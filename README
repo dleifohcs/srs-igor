@@ -1,0 +1,41 @@
+=============================================================================
+
+ A collection of data analysis macros for Igor Pro:
+
+ SRS-STS: functions written to analyse and manipulate STM and CITS data
+
+ SRS-SPECS: functions written to analyse and manipulate photoelectron 
+ spectroscopy data
+
+ Steven R. Schofield, University College London  
+ steven.schofield at physics.org  
+
+=============================================================================
+ 
+SRS-STM: This is a project that I continue to work on slowly, and that is 
+still very much a work in progress.  It is for the analysis of scanning 
+tunnelling microscopy and spectroscopy data.  While there are many more 
+useful packages for the analysis of image data, the strength of these macros
+lies in the analysis of tunnelling spectroscopy data, especially in the form 
+of 3D CITS data sets.   
+
+SRS-SPECS: This is a collection of macros written for Igor Pro primarily for
+the analysis of photoelectron spectroscopy data.  This project was started 
+during a visit to the Soft X-Ray beam line at the Australian Synchrotron with 
+Kane O'Donnell and Lars Thomsen.  In a relatively short time these macros 
+developed into quite a useful tool for analysing our NEXAFS data, and Kane 
+suggested making them available for use and modification via GitHub.  
+
+I also follow Kane's advice and add the following: please feel free to use 
+and/or contribute to these macros, but adhere to the GPLv3 licencing 
+agreement. See the COPYING file for more details.  
+
+I would be very interested to hear how you've used, modified or improved 
+these macros.
+
+These files should be installed in:
+
+~/Documents/WaveMetrics/Igor Pro 6 User Files/
+
+ --Steven 
+ Aug. 2013
