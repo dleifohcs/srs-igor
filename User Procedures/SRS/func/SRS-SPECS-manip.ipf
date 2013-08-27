@@ -36,6 +36,7 @@
 // Function CursorMovedForSpecsGraph(info, cursNum)
 // Function subtractLeadingEdge(graphName)
 // Function postEdgeNormalisation(graphName)
+// Function XPSBackground(graphName,type)
 // Function findMinimum(graphName)
 // Function prettyNEXAFS()
 // Function setNEXAFSyAxis()
@@ -128,6 +129,16 @@ Function doSomethingWithSpecsData(actionType)
 					
 					// leading edge subtraction
 					postEdgeNormalisation(graphName)
+					
+					break
+					
+				case "XPSLinearBackground":
+				
+					// Establish link between cursor positions and CursorMoved fn. 
+					CursorDependencyForSpecsGraph(graphName) 
+					
+					// leading edge subtraction
+					XPSBackground(graphName,type="linear")
 					
 					break
 					
@@ -337,6 +348,7 @@ Function subtractLeadingEdge(graphName,type)
 	AutoPositionWindow/E/m=0/R=$graphName $newGraphName
 End
 
+
 //------------------------------------------------------------------------------------------------------------------------------------
 // Function to perform post-edge normalisation
 //------------------------------------------------------------------------------------------------------------------------------------
@@ -409,6 +421,104 @@ Function postEdgeNormalisation(graphName)
 	
 	AutoPositionWindow/E/m=0/R=$graphName $newGraphName
 	
+End
+
+
+
+//------------------------------------------------------------------------------------------------------------------------------------
+// Function to remove a background in XPS type spectrum
+//------------------------------------------------------------------------------------------------------------------------------------
+Function XPSBackground(graphName,[type])
+	String graphName,type
+	
+	// Get current data folder
+	DFREF saveDF = GetDataFolderDFR()	  // Save
+	
+	// Move to the data folder containing the global variables for the graph
+	SetDataFolder root:WinGlobals:$graphName // should already be in this data folder, but include this to be sure
+	
+	// Get the global variable for this graph (these were set in the manipulateData procedure)
+	String/G wDF			// data folder containing the data shown on the graph
+	String/G wStr		// name of the wave shown on the graph (an image or 3D data set; e.g. STM or CITS)
+	String/G wFullStr		// data folder plus wave name
+	
+	// Make wave assignment to the data.  This can be either a 2d, or 3d data wave
+	Wave w= $wFullStr
+	
+	// Determine image size for positioning the cursors
+	Variable xMin= DimOffset(w,0)
+	Variable xMax= (DimDelta(w,0) * DimSize(w,0) + DimOffset(w,0))
+	Variable xRange= xMax - xMin
+	
+	// Calculate cursor positions
+	Variable leftCurs= xMin + (0.1 * xRange)
+	Variable rightCurs= xMax - (0.1 * xRange)
+	
+	// Load the cursor positions from global variables if they exist
+	Variable/G xA
+	Variable/G xB
+	
+	// Try to load cursors from reference spectrum data folder if they exist
+	NVAR cursorA = root:reference:cursorA
+	NVAR cursorB = root:reference:cursorB
+
+	if ( (Abs(xA)+Abs(xB))>0 && (Abs(xA)+Abs(xB)) < 10000 )  // assume if these are all zero then they have not been defined before, otherwise they have so use those numbers/
+		leftCurs= xA
+		rightCurs= xB
+	elseif ( numtype (cursorA+cursorB)==0 )  // checks these are not NaN or INF
+		leftCurs= cursorA
+		rightCurs= cursorB
+	endif
+
+	// Place Cursors on Image (unless they are already there)
+	if (strlen(CsrInfo(A))==0)
+		Cursor/W=$graphName/s=0/c=(0,0,0) A, $wStr, leftCurs
+	endif 
+	if (strlen(CsrInfo(B))==0)
+		Cursor/W=$graphName/s=0/c=(0,0,0) B, $wStr, rightCurs
+	endif
+	
+	// Create a wave that will be used for the leading edge subtraction
+	Duplicate/O w, fitW
+	
+	// Determine the wave to be used for leading edge subtraction, depending on type of subtraction desired
+	
+	Variable m,b
+	strswitch ( type )  // only know how to do Linear at the moment...
+		case "linear":
+			m = (vcsr(B) - vcsr(A)) / (xcsr(B) - xcsr(A))
+			b = vcsr(B) - m*xcsr(B)
+			fitW = m*x + b
+			break
+		default :
+			break
+	endswitch
+	
+	// Show the wave used for subtraction on the graph window
+	AppendToGraph/C=(0,0,0) fitW
+	
+	// change to data DF	
+	SetDataFolder wDF
+	
+	// make wave name for subtracted wave
+	String newWStr
+	newWStr= wStr+"_L"
+	
+	// Create new wave that has been modified
+	Duplicate/O w, $newWStr
+	
+	// Make wave assignment
+	Wave newW= $newWStr
+	
+	// Perform subtraction
+	newW= w-fitW
+	
+	// Display result
+	DoWindow/K $(newWStr+"0")
+	Display/k=1/N=$newWStr newW
+	String newGraphName= WinName(0,1)
+	
+	AutoPositionWindow/E/m=0/R=$graphName $newGraphName
 End
 
 

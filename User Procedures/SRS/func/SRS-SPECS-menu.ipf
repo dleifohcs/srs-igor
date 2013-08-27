@@ -81,6 +81,19 @@ Menu "NEXAFS"
 	"-"
 	"About", SRSSPECSAbout()
 	
-		
+End
+
+//------------------------------------------------------------------------------------------------------------------------------------
+// Menu items specific for XPS data
+Menu "XPS"
+	SubMenu "Background subtraction"
+		"Linear", doSomethingWithSpecsData("XPSLinearBackground")
+		"-"
+		"Set cursors for background subtraction/1", setDefaultNEXAFScursors()
+		"Remove annotations from graph", removeAnnotations()
+	End
+	
+	"-"
+	"About", SRSSPECSAbout()
 End
 
