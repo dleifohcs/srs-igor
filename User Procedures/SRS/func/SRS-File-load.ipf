@@ -108,7 +108,7 @@ Function SRSLoadData(pathStr,filenameStr)
 			SRSFlatFileLoad(pathStr,filenameStr)
 			break
 		case "xy":
-			loadKaneXY2012(pathStr,filenameStr)
+			loadXY2013(pathStr,filenameStr)
 			break
 		case "wfn":
 			loadWaveFunction( pathStr, filenameStr )
@@ -175,6 +175,156 @@ Function loadKaneXY2012(path,filename)
 //	SetDataFolder saveDF
 End
 
+
+
+
+//------------------------------------------------------------------------------------------------------------------------------------
+// Load data from 2013 XY format - i.e., the output of SinSpect
+//------------------------------------------------------------------------------------------------------------------------------------
+Function loadXY2013(pathStr,filenameStr)
+	String pathStr, filenameStr
+	
+	// -------------------------------------------------------------------------------------------------------------------------------------------//
+	// USER DEFINED VARIABLES FOR CONTROLLING THE BEHAVIOUR OF THIS FILE LOADER	
+	Variable VERBOSE = 1  // set to 1 to increase the amount of output to the command window: useful for debugging 
+	Variable keepEXT = 1 // set to 1 to keep the individual channel data and extended channels 
+	// -------------------------------------------------------------------------------------------------------------------------------------------//
+	
+	// Save current DF
+	String saveDF = GetDataFolder(1)
+	
+	// Make  DF to load data into 
+	//KillDataFolder/Z root:XY
+	NewDataFolder/O/S root:XY
+	
+	Variable i			// used in for loops
+	Variable refNum		// used for the file identification
+	String headerStr		// string to read file header line into
+	
+	// Combine path and filename into a single string 
+	String FullFileNameStr = pathStr+filenameStr
+	
+	// Open data file
+	Open/R/Z=1 refNum as FullFileNameStr
+	Variable err = V_flag
+	if ( err )
+		Print "ERROR: unable to open the XY file for reading. Aborting."
+		return 1
+	endif
+		
+	// Output that we're beginning the file load 
+	Print " "
+	
+	// VERBOSE
+	if ( VERBOSE )
+		Print "Loading XY file" 
+	endif 
+	
+	// -----------------------------------------
+	// SECTION 1: HEADER
+	// -----------------------------------------
+
+	// read the header line and write to screen	
+	FReadLine refnum, headerStr
+	if ( VERBOSE )
+		Print headerStr
+	endif
+	
+	// Close file - will load the data using Igor general wave load function (since Kane so nicely formatted the data file!)
+	Close refnum
+	
+	// -----------------------------------------
+	// SECTION 2: DATA
+	// -----------------------------------------
+	
+	// load data using built in Igor function
+	LoadWave/A/Q/G/D/W/O FullFileNameStr
+	
+	// get list of wave names
+	String waveNameList = S_waveNames
+	
+	// get names of first two waves and assume these are the energy wave and the counts wave
+	String energyWStr = StringFromList(0,waveNameList)
+	String countsWStr = StringFromList(1,waveNameList)
+	
+	// make wave assignments
+	Wave energyW = $energyWStr
+	Wave countsW = $countsWStr
+	
+	// -------------------------------------------
+	// SECTION 3: Data scaling, info, etc.
+	// -------------------------------------------
+	
+	// add header to waves as a note
+	Note energyW, headerStr
+	Note countsW, headerStr
+	
+	// add x scale to counts wave
+	Variable eVmin = WaveMin(energyW)
+	Variable eVmax = WaveMax(energyW)
+	SetScale/I x, eVmin, eVmax, "eV", countsW
+	
+	// y scale
+	SetScale/I y, 0, 1, "counts", countsW
+		
+	// -----------------------------------------
+	// SECTION 4: rename data wave 
+	// -----------------------------------------
+	
+	// kill redundant energy wave
+	KillWaves/Z energyW	
+	
+	// make a name from file name that is safe for naming an igor wave
+	String filenameForWaveNames 
+	filenameForWaveNames = replaceHyphen(filenameStr)  // replaces "-" with "_" in file name since Igor doesn't like those in wave names
+	
+	// make name for the data wave based on path and file name
+	String newWaveNameStr = ParseFilePath(3,filenameForWaveNames, ":", 0, 0)  // remove the file extension
+	filenameForWaveNames = removeBadChars(filenameForWaveNames)  // just in case...
+	
+	// copy data wave to one with same name as input file name
+	Duplicate/O countsW, $newWaveNameStr
+	
+	KillWaves/Z countsW
+	
+	// -----------------------------------------
+	// SECTION 5: Tidy Data Folder 
+	// -----------------------------------------
+	
+	if ( keepEXT == 1 ) // keep the individual channel data and extended channel data
+	
+		// Move all the other waves into a new datafolder (neater)
+		String wStr=""
+		String extDFStr = "ext_"+newWaveNameStr
+		NewDataFolder/O $extDFStr
+		for (i=2; i<ItemsInList(waveNameList); i+=1)
+			wStr = StringFromList(i,waveNameList)
+			Wave w = $wStr
+			Duplicate/O w, root:XY:$(extDFStr):$(wStr)
+			KillWaves/Z w
+		endfor
+	
+	else 	// delete individual channel data and extended channel data
+		
+		for (i=2; i<ItemsInList(waveNameList); i+=1)
+			wStr = StringFromList(i,waveNameList)
+			Wave w = $wStr
+			KillWaves/Z w
+		endfor
+		
+	endif
+	
+	// ---------------------------------------------------
+	// End
+	// ---------------------------------------------------
+
+	// return to original DF
+	//SetDataFolder saveDF
+	
+	// Leave user in the DF of the data
+	SetDataFolder root:XY
+End
+	
 
 //------------------------------------------------------------------------------------------------------------------------------------
 // this loads the NEXAFS data files from the August 2013 trip to Australian Synchrotron
