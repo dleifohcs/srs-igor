@@ -37,6 +37,7 @@
 // Function/S EverythingAfterLastColon(str)
 // Function/S possiblyRemoveHash(str)
 // Function/S replaceHyphen(str)
+// Function/S replaceSpace(str)
 //
 //------------------------------------------------------------------------------------------------------------------------------------
 // Above is a list of functions contained in this file
@@ -266,9 +267,7 @@ Function/S possiblyRemoveHash(str)
 	endfor
 	return newstr
 End
-		
-		
-		
+				
 		
 //------------------------------------------------------------------------------------------------------------------------------------
 // Replaces "-" with "_"
@@ -284,6 +283,33 @@ Function/S replaceHyphen(str)
 		char=str[i]
 		strswitch(char)
 			case "-":
+				newstr[i]= "_"
+				break
+			default:
+				newstr[i]= char
+				break
+		endswitch
+	endfor
+	
+	return newstr
+End
+
+
+		
+//------------------------------------------------------------------------------------------------------------------------------------
+// Replaces " " with "_"
+//------------------------------------------------------------------------------------------------------------------------------------
+Function/S replaceSpace(str)
+	String str
+	
+	Variable len=strlen(str)
+	Variable i
+	String newstr= ""
+	String char= ""
+	for (i=0; i<len; i+=1)
+		char=str[i]
+		strswitch(char)
+			case " ":
 				newstr[i]= "_"
 				break
 			default:

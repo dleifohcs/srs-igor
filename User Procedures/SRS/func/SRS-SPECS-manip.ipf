@@ -37,6 +37,8 @@
 // Function subtractLeadingEdge(graphName)
 // Function postEdgeNormalisation(graphName)
 // Function XPSBackground(graphName,type)
+// Function XPSMeasureEnergyOffset(graphName,[type])
+// Function XPSApplyEnergyOffset(graphName)
 // Function findMinimum(graphName)
 // Function prettyNEXAFS()
 // Function setNEXAFSyAxis()
@@ -127,7 +129,7 @@ Function doSomethingWithSpecsData(actionType)
 					// Establish link between cursor positions and CursorMoved fn. 
 					CursorDependencyForSpecsGraph(graphName) 
 					
-					// leading edge subtraction
+					// post edge normalise
 					postEdgeNormalisation(graphName)
 					
 					break
@@ -137,18 +139,37 @@ Function doSomethingWithSpecsData(actionType)
 					// Establish link between cursor positions and CursorMoved fn. 
 					CursorDependencyForSpecsGraph(graphName) 
 					
-					// leading edge subtraction
+					// XPS linear background subtraction
 					XPSBackground(graphName,type="linear")
 					
 					break
 					
+				case "XPSMeasureAu3f72Offset":
+				
+					// Establish link between cursor positions and CursorMoved fn. 
+					CursorDependencyForSpecsGraph(graphName) 
+					
+					// 
+					XPSMeasureEnergyOffset(graphName,type="Au4f72")
+					
+					break
+					
+				case "XPSApplyEnergyOffset":
+				
+					// Establish link between cursor positions and CursorMoved fn. 
+					CursorDependencyForSpecsGraph(graphName) 
+					
+					// 
+					XPSApplyEnergyOffset(graphName)
+					
+					break
 					
 				case "findMinimum":
 				
 					// Establish link between cursor positions and CursorMoved fn. 
 					CursorDependencyForSpecsGraph(graphName) 
 					
-					// leading edge subtraction
+					// 
 					findMinimum(graphName)
 					
 					break
@@ -259,10 +280,10 @@ Function subtractLeadingEdge(graphName,type)
 	
 	// Get the global variable for this graph (these were set in the manipulateData procedure)
 	String/G wDF			// data folder containing the data shown on the graph
-	String/G wStr		// name of the wave shown on the graph (an image or 3D data set; e.g. STM or CITS)
+	String/G wStr			// name of the wave shown on the graph 
 	String/G wFullStr		// data folder plus wave name
 	
-	// Make wave assignment to the data.  This can be either a 2d, or 3d data wave
+	// Make wave assignment to the data. 
 	Wave w= $wFullStr
 	
 	// Determine image size for positioning the cursors
@@ -322,6 +343,7 @@ Function subtractLeadingEdge(graphName,type)
 	endswitch
 	
 	// Show the wave used for subtraction on the graph window
+	RemoveFromGraph/Z fitW
 	AppendToGraph/C=(0,0,0) fitW
 	
 	// change to data DF	
@@ -363,10 +385,10 @@ Function postEdgeNormalisation(graphName)
 	
 	// Get the global variable for this graph (these were set in the manipulateData procedure)
 	String/G wDF			// data folder containing the data shown on the graph
-	String/G wStr		// name of the wave shown on the graph (an image or 3D data set; e.g. STM or CITS)
+	String/G wStr			// name of the wave shown on the graph 
 	String/G wFullStr		// data folder plus wave name
 	
-	// Make wave assignment to the data.  This can be either a 2d, or 3d data wave
+	// Make wave assignment to the data.
 	Wave w= $wFullStr
 	
 	// Determine image size for positioning the cursors
@@ -439,10 +461,10 @@ Function XPSBackground(graphName,[type])
 	
 	// Get the global variable for this graph (these were set in the manipulateData procedure)
 	String/G wDF			// data folder containing the data shown on the graph
-	String/G wStr		// name of the wave shown on the graph (an image or 3D data set; e.g. STM or CITS)
+	String/G wStr			// name of the wave shown on the graph 
 	String/G wFullStr		// data folder plus wave name
 	
-	// Make wave assignment to the data.  This can be either a 2d, or 3d data wave
+	// Make wave assignment to the data. 
 	Wave w= $wFullStr
 	
 	// Determine image size for positioning the cursors
@@ -462,12 +484,15 @@ Function XPSBackground(graphName,[type])
 	NVAR cursorA = root:reference:cursorA
 	NVAR cursorB = root:reference:cursorB
 
-	if ( (Abs(xA)+Abs(xB))>0 && (Abs(xA)+Abs(xB)) < 10000 )  // assume if these are all zero then they have not been defined before, otherwise they have so use those numbers/
-		leftCurs= xA
-		rightCurs= xB
-	elseif ( numtype (cursorA+cursorB)==0 )  // checks these are not NaN or INF
+	if ( numtype (cursorA+cursorB)==0 )  // checks these are not NaN or INF
 		leftCurs= cursorA
 		rightCurs= cursorB
+	endif
+
+	if ( (Abs(xA)+Abs(xB))>0 && (Abs(xA)+Abs(xB)) < 10000 )  // assume if these are all zero then they have not been defined before, otherwise they have so use those numbers/
+		Print "xA=",xA
+		leftCurs= xA
+		rightCurs= xB
 	endif
 
 	// Place Cursors on Image (unless they are already there)
@@ -484,10 +509,15 @@ Function XPSBackground(graphName,[type])
 	// Determine the wave to be used for leading edge subtraction, depending on type of subtraction desired
 	
 	Variable m,b
+	Variable xLeft =  xcsr(A)
+	Variable xRight =  xcsr(B)
+	Variable yLeft =  vcsr(A)
+	Variable yRight =  vcsr(B)
+	
 	strswitch ( type )  // only know how to do Linear at the moment...
 		case "linear":
-			m = (vcsr(B) - vcsr(A)) / (xcsr(B) - xcsr(A))
-			b = vcsr(B) - m*xcsr(B)
+			m = (yRight - yLeft) / (xRight - xLeft)
+			b = yRight - m*xRight
 			fitW = m*x + b
 			break
 		default :
@@ -495,6 +525,7 @@ Function XPSBackground(graphName,[type])
 	endswitch
 	
 	// Show the wave used for subtraction on the graph window
+	RemoveFromGraph/Z fitW
 	AppendToGraph/C=(0,0,0) fitW
 	
 	// change to data DF	
@@ -513,13 +544,125 @@ Function XPSBackground(graphName,[type])
 	// Perform subtraction
 	newW= w-fitW
 	
+	// Add wave note
+	Note/NOCR newW, "BACKGROUND: linear;"
+	Note/NOCR newW, "BACKGROUNDXMIN: "+num2str(xLeft)+";"
+	Note/NOCR newW, "BACKGROUNDXMAX: "+num2str(xRight)+";"
+	
 	// Display result
 	DoWindow/K $(newWStr+"0")
 	Display/k=1/N=$newWStr newW
+	SetAxis bottom xLeft, xRight
 	String newGraphName= WinName(0,1)
 	
 	AutoPositionWindow/E/m=0/R=$graphName $newGraphName
 End
+
+
+
+
+//------------------------------------------------------------------------------------------------------------------------------------
+// function to measure the energy different to a reference peak
+//------------------------------------------------------------------------------------------------------------------------------------
+Function XPSMeasureEnergyOffset(graphName,[type])
+	String graphName,type
+	
+	// Get current data folder
+	DFREF saveDF = GetDataFolderDFR()	  // Save
+	
+	// Move to the data folder containing the global variables for the graph
+	SetDataFolder root:WinGlobals:$graphName // should already be in this data folder, but include this to be sure
+	
+	// Get the global variable for this graph (these were set in the manipulateData procedure)
+	String/G wDF			// data folder containing the data shown on the graph
+	String/G wStr			// name of the wave shown on the graph
+	String/G wFullStr		// data folder plus wave name
+	
+	// Make wave assignment to the data. 
+	Wave w= $wFullStr
+	
+	// Load the cursor position from global variables if they exist
+	Variable/G xA
+	
+	// Calculate cursor positions
+	Variable referenceEnergy
+	
+	strswitch ( type )
+		case "Au4f72":
+			referenceEnergy = 83.98
+			break
+		default:
+			Print" error: what region?"
+			break
+	endswitch
+	
+	// change to data DF	
+	SetDataFolder wDF
+	
+	// variable for energy offset
+	Variable/G energyOffset
+	
+	// Place Cursors on Image (unless they are already there)
+	if (strlen(CsrInfo(A))==0)
+		Cursor/W=$graphName/s=0/c=(0,0,0) A, $wStr, referenceEnergy
+		
+	else  // if the cursor is there then perform measurement
+		
+		strswitch ( type )  
+		
+			case "Au4f72":	// Au reference from the 3f 7/2 line at 83.98
+				energyOffset =  xcsr(A) - referenceEnergy
+				Print "The Au 3f 7/2 peak is offset by",energyOffset,"eV from its known position at 83.98 eV"
+				break
+			default :
+				Print "Error: don't know what the reference energy is"
+				break
+		endswitch
+	
+	endif 
+End
+
+
+
+//------------------------------------------------------------------------------------------------------------------------------------
+// Function to remove a background in XPS type spectrum
+//------------------------------------------------------------------------------------------------------------------------------------
+Function XPSApplyEnergyOffset(graphName)
+	String graphName
+	
+	// Get current data folder
+	DFREF saveDF = GetDataFolderDFR()	  // Save
+	
+	// Move to the data folder containing the global variables for the graph
+	SetDataFolder root:WinGlobals:$graphName // should already be in this data folder, but include this to be sure
+	
+	// Get the global variable for this graph (these were set in the manipulateData procedure)
+	String/G wDF			// data folder containing the data shown on the graph
+	String/G wStr			// name of the wave shown on the graph 
+	String/G wFullStr		// data folder plus wave name
+	
+	// Make wave assignment to the data.  
+	Wave w= $wFullStr
+		
+	// change to data DF	
+	SetDataFolder wDF
+	
+	// variable for energy offset
+	NVAR energyOffset
+	
+	if ( NVAR_exists(energyOffset) )
+		Print "LOADED energy offset of,",energyOffset,"eV from data folder,",wDF
+		Print "WARNING: subtracting this shift to all data in the current graph"
+		ShiftTracesInGraph(graphName,shiftX=-energyOffset)
+	else 
+		Print "WARNING: could not load energy offset data"
+		ShiftTracesInGraph(graphName)
+	endif
+	
+	
+End
+
+
 
 
 //------------------------------------------------------------------------------------------------------------------------------------
@@ -539,10 +682,10 @@ Function findMinimum(graphName)
 	
 	// Get the global variable for this graph (these were set in the manipulateData procedure)
 	String/G wDF			// data folder containing the data shown on the graph
-	String/G wStr		// name of the wave shown on the graph (an image or 3D data set; e.g. STM or CITS)
+	String/G wStr			// name of the wave shown on the graph 
 	String/G wFullStr		// data folder plus wave name
 	
-	// Make wave assignment to the data.  This can be either a 2d, or 3d data wave
+	// Make wave assignment to the data. 
 	Wave w= $wFullStr
 	
 	// Determine image size for positioning the cursors
@@ -702,7 +845,7 @@ Function setDefaultNEXAFScursors()
 	Prompt promptCursA, "Energy for left cursor"
 	Prompt promptCursB, "Energy for right cursor"
 	DoPrompt "Default Cursor Energies for Pre-edge Subtraction", promptCursA, promptCursB
-		
+	
 	cursorA=promptCursA
 	cursorB = promptCursB
 	

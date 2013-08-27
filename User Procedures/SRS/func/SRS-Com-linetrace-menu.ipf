@@ -82,6 +82,8 @@ Menu "Line Trace"
 	SubMenu "Manipulate"
 		"Smooth all traces, Binomial/4", SmoothTracesInGraph("",type="B")
 		"Smooth all traces, Savitsky-Golay, 5pt", SmoothTracesInGraph("",type="SG")
+		"-"
+		"Shift x-axis for all traces", ShiftTracesInGraph("")
 	End
 	
 	"-"

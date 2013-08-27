@@ -1093,3 +1093,76 @@ Function SmoothTracesInGraph(graphName,[type])
 	
 	SetDataFolder $saveDF
 End
+
+
+
+
+
+
+
+//------------------------------------------------------------------------------------------------------------------------------------
+// This function operates on a graph window.  It duplicates all traces in that window into their own DFs and
+// appends "_X" to their names.  It then applies a shift equal to shiftX to their x-axes.
+//------------------------------------------------------------------------------------------------------------------------------------
+Function ShiftTracesInGraph(graphName,[shiftX])
+	String graphName
+	Variable shiftX
+	Variable i
+	String waveNameStr, waveDF, FullWaveNameStr
+	
+	// Get current data folder
+	String saveDF = GetDataFolder(1)	  // Save
+	
+	if ( cmpstr(graphName,"")==0 )
+		// Get name of top graph
+		graphName= WinName(0,1)
+	endif
+	
+	// Check if there is a graph before doing anything
+	if( strlen(graphName) )
+		
+		// if no shift amount was given the request the user enter it
+		if ( ParamIsDefault(shiftX) )
+			Prompt shiftX, "Enter amount to shift the X-axis"
+			DoPrompt "Shift X", shiftX
+			if ( V_flag )
+				shiftX = 0
+			endif
+		endif
+		
+		String waveNameList=TraceNameList(graphName, ";", 1 )
+		Variable numWaves = itemsInList(waveNameList)
+		String shiftedWaveName
+		
+		for (i=0; i<numWaves; i+=1)
+			waveNameStr = StringFromList(i,waveNameList)
+			Wave w = WaveRefIndexed(GraphName,i,1)	
+			waveDF = GetWavesDataFolder(w,1)		
+			FullWaveNameStr = GetWavesDataFolder(w,2)	
+			
+			// Move to waves DF
+			SetDataFolder $waveDF
+			
+			shiftedWaveName = waveNameStr+"_SX"
+			Duplicate/O w, $shiftedWaveName
+						
+			Wave sw = $shiftedWaveName
+			
+			SetScale/P x, dimOffset(w,0)+shiftX, dimDelta(w,0), sw
+			
+			// Add wave note
+			Note/NOCR sw, "XSHIFTEDBY: "+num2str(shiftX)+";"
+		
+			if ( i==0 )
+				display1D(shiftedWaveName)
+			else
+				display1D(shiftedWaveName,appendWave="yes")
+			endif
+			
+		endfor
+	else	
+		Print "Error: no graph of that name"
+	endif
+	
+	SetDataFolder $saveDF
+End

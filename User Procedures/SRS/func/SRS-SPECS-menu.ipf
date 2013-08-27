@@ -83,6 +83,7 @@ Menu "NEXAFS"
 	
 End
 
+
 //------------------------------------------------------------------------------------------------------------------------------------
 // Menu items specific for XPS data
 Menu "XPS"
@@ -93,6 +94,10 @@ Menu "XPS"
 		"Remove annotations from graph", removeAnnotations()
 	End
 	
+	SubMenu "Energy Calibration"
+		"\\M0Measure position of the Au 3f 7/2 peak", doSomethingWithSpecsData("XPSMeasureAu3f72Offset")
+		"Apply energy calibration to data", doSomethingWithSpecsData("XPSApplyEnergyOffset")
+	End
 	"-"
 	"About", SRSSPECSAbout()
 End

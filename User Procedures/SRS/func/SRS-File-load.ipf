@@ -211,7 +211,7 @@ Function loadXY2013(pathStr,filenameStr)
 		Print "ERROR: unable to open the XY file for reading. Aborting."
 		return 1
 	endif
-		
+	
 	// Output that we're beginning the file load 
 	Print " "
 	
@@ -255,9 +255,8 @@ Function loadXY2013(pathStr,filenameStr)
 	// SECTION 3: Data scaling, info, etc.
 	// -------------------------------------------
 	
-	// add header to waves as a note
-	Note energyW, headerStr
-	Note countsW, headerStr
+	// add header to wave as a note
+	Note countsW, "HEADER: "+headerStr+";"
 	
 	// add x scale to counts wave
 	Variable eVmin = WaveMin(energyW)
@@ -273,10 +272,19 @@ Function loadXY2013(pathStr,filenameStr)
 	
 	// kill redundant energy wave
 	KillWaves/Z energyW	
+			
+	// get a sample description from user
+	String shortfilename = ParseFilePath(3, filenameStr, ":", 0, 0)
+	String sampleDescription = XPSDialogSamplePreparation(shortfilename)
+	
+	// add header to waves as a note
+	Note/NOCR countsW, "DESCRIPTION: "+sampleDescription+";"
 	
 	// make a name from file name that is safe for naming an igor wave
 	String filenameForWaveNames 
 	filenameForWaveNames = replaceHyphen(filenameStr)  // replaces "-" with "_" in file name since Igor doesn't like those in wave names
+	
+	filenameForWaveNames = sampleDescription+"_"+filenameForWaveNames
 	
 	// make name for the data wave based on path and file name
 	String newWaveNameStr = ParseFilePath(3,filenameForWaveNames, ":", 0, 0)  // remove the file extension
@@ -465,6 +473,26 @@ Function/S NEXAFSDialogRegion(shortfilename)
 		else
 			return region
 		endif
+	endif
+End
+
+//------------------------------------------------------------------------------------------------------------------------------------
+// Get input from user on sample preparation
+//------------------------------------------------------------------------------------------------------------------------------------
+Function/S XPSDialogSamplePreparation(shortfilename)
+	String shortfilename
+	String description="X"
+	Prompt description, "Enter very brief sample description ( < 10 characters) "+shortfilename 
+	DoPrompt shortfilename, description
+	if (V_Flag)
+      	return "error"                   // User canceled
+	else 
+		// clean up description if necessary
+		description = replaceSpace(description)
+		description = replaceHyphen(description)
+		description = removeBadChars(description)
+		
+		return description
 	endif
 End
 
