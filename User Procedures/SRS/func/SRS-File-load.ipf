@@ -259,8 +259,11 @@ Function loadXY2013(pathStr,filenameStr)
 	Note countsW, "HEADER: "+headerStr+";"
 	
 	// add x scale to counts wave
-	Variable eVmin = WaveMin(energyW)
-	Variable eVmax = WaveMax(energyW)
+	// KOD: actually because it's a binding energy axis it's in reverse,
+	// so to play it safe, set the scale directly from the first and last
+	// energies not the min and max.
+	Variable eVmin = energyW(0)
+	Variable eVmax = energyW(numpnts(energyW)-1)
 	SetScale/I x, eVmin, eVmax, "eV", countsW
 	
 	// y scale
