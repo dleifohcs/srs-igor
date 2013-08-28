@@ -145,6 +145,16 @@ Function doSomethingWithSpecsData(actionType)
 					
 					break
 					
+				case "XPSMeasureSi2p32Offset":
+				
+					// Establish link between cursor positions and CursorMoved fn. 
+					CursorDependencyForSpecsGraph(graphName) 
+					
+					// 
+					XPSMeasureEnergyOffset(graphName,type="Si2p32")
+					
+					break
+					
 				case "XPSMeasureAu3f72Offset":
 				
 					// Establish link between cursor positions and CursorMoved fn. 
@@ -601,8 +611,11 @@ Function XPSMeasureEnergyOffset(graphName,[type])
 		case "Au4f72":
 			referenceEnergy = 83.98
 			break
+		case "Si2p32":
+			referenceEnergy = 99.6
+			break
 		default:
-			Print" error: what region?"
+			Print"Error: what region?"
 			break
 	endswitch
 	
@@ -622,7 +635,11 @@ Function XPSMeasureEnergyOffset(graphName,[type])
 		
 			case "Au4f72":	// Au reference from the 3f 7/2 line at 83.98
 				energyOffset =  xcsr(A) - referenceEnergy
-				Print "The Au 3f 7/2 peak is offset by",energyOffset,"eV from its known position at 83.98 eV"
+				Print "The Au(3f) 7/2 peak is offset by",energyOffset,"eV from its known position at 83.98 eV"
+				break
+			case "Si2p32":	// Si reference from the 2p 3/2 line at 99.6
+				energyOffset =  xcsr(A) - referenceEnergy
+				Print "The Si(2p) 3/2 peak is offset by",energyOffset,"eV from its known position at 99.6 eV"
 				break
 			default :
 				Print "Error: don't know what the reference energy is"
@@ -796,8 +813,6 @@ Function prettyXPS()
 	ModifyGraph mirror=1,standoff=0;DelayUpdate
 	ModifyGraph tick=2;DelayUpdate
 	SetAxis left 0,*;DelayUpdate
-	SetAxis/A bottom;DelayUpdate
-	Label bottom "Binding Energy (\\U)";DelayUpdate
 	ModifyGraph fSize=16;DelayUpdate
 	ModifyGraph standoff(bottom)=1; DelayUpdate
 	MakeTracesDifferentColours("SpectrumBlack")

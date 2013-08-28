@@ -187,7 +187,7 @@ Function loadXY2013(pathStr,filenameStr)
 	// -------------------------------------------------------------------------------------------------------------------------------------------//
 	// USER DEFINED VARIABLES FOR CONTROLLING THE BEHAVIOUR OF THIS FILE LOADER	
 	Variable VERBOSE = 1  // set to 1 to increase the amount of output to the command window: useful for debugging 
-	Variable keepEXT = 1 // set to 1 to keep the individual channel data and extended channels 
+	Variable keepEXT = 0 // set to 1 to keep the individual channel data and extended channels 
 	// -------------------------------------------------------------------------------------------------------------------------------------------//
 	
 	// Save current DF

@@ -75,7 +75,8 @@ Menu "XPS"
 	End
 	"-"
 	SubMenu "Energy Calibration"
-		"\\M0Measure position of the Au 3f 7/2 peak", doSomethingWithSpecsData("XPSMeasureAu3f72Offset")
+		"\\M0Measure position of the Au(3f) 7/2 peak", doSomethingWithSpecsData("XPSMeasureAu3f72Offset")
+		"\\M0Measure position of the Si(2p) 3/2 peak", doSomethingWithSpecsData("XPSMeasureSi2p32Offset")
 		"Apply energy calibration to data", doSomethingWithSpecsData("XPSApplyEnergyOffset")
 	End
 	"-"
@@ -83,6 +84,9 @@ Menu "XPS"
 		"XPS axes", prettyXPS()
 		"-"
 		"X-range from Background Region", XPSXRangeToBackground()
+		"-"
+		"X-axis is kinetic energy", Label bottom "Kinetic energy (\\U)"; SetAxis/A bottom
+		"X-axis is binding energy", Label bottom "Binding energy (\\U)"; SetAxis/A/R bottom
 	End
 	"-"
 	"About", SRSSPECSAbout()
