@@ -38,7 +38,6 @@ Menu "Line Trace"
 		help = {"Append a single 1D wave from the current data folder to the top graph window"}
 	
 		"-"
-	
 		"Display All Waves", display1DWaves("all")
 		help = {"Display all 1D waves from the current data folder in a new graph window"}
 	
@@ -46,6 +45,7 @@ Menu "Line Trace"
 		help = {"Append all1D waves from the current data folder to the top graph window"}
 	
 		"-"
+		"Set default cursor positions/1", setDefaultCursors()
 		"Remove cursors and fitW from graph", removeAnnotations()
 	End
 	Submenu "Colours"

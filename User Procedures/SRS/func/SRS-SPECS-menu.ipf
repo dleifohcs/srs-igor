@@ -36,10 +36,6 @@ Menu "NEXAFS"
 	
 		"Display Normalised Spectrum", display1DWaves("oneN")
 		help = {"Display a double normalised spectrum from the current data folder in a new graph window. Igor looks for a wave ending in '_n', otherwise displays a dialogue."}
-	
-		"-"
-		"Set cursors for pre-edge subtraction/1", setDefaultNEXAFScursors()
-		//"Remove annotations from graph", removeAnnotations()
 	End
 	"-"
 	Submenu "Manipulate"
@@ -76,21 +72,29 @@ End
 Menu "XPS"
 	SubMenu "Background subtraction"
 		"Linear", doSomethingWithSpecsData("XPSLinearBackground")
+<<<<<<< HEAD
 		"Shirley", doSomethingWithSpecsData("XPSShirleyBackground")
 		"-"
 		"Set cursors for background subtraction/1", setDefaultNEXAFScursors()
 		//"Remove annotations from graph", removeAnnotations()
+=======
+>>>>>>> 63a1bc2b6f656d5d1ccad7db23cfe3af34890e5c
 	End
 	"-"
 	SubMenu "Energy Calibration"
-		"\\M0Measure position of the Au 3f 7/2 peak", doSomethingWithSpecsData("XPSMeasureAu3f72Offset")
+		"\\M0Measure position of the Au(3f) 7/2 peak", doSomethingWithSpecsData("XPSMeasureAu3f72Offset")
+		"\\M0Measure position of the Si(2p) 3/2 peak", doSomethingWithSpecsData("XPSMeasureSi2p32Offset")
 		"Apply energy calibration to data", doSomethingWithSpecsData("XPSApplyEnergyOffset")
 	End
 	"-"
 	Submenu "Make pretty"
 		"XPS axes", prettyXPS()
 		"-"
-		"X-range from Background Region", XPSXRangeToBackground()
+		"X-axis is kinetic energy - background region", XPSXRangeToBackground("KE")
+		"X-axis is kinetic energy - full scale", Label bottom "Kinetic energy (\\U)"; SetAxis/A bottom
+		"-"
+		"X-axis is binding energy - background region", XPSXRangeToBackground("BE")
+		"X-axis is binding energy - full scale", Label bottom "Binding energy (\\U)"; SetAxis/A/R bottom
 	End
 	"-"
 	"About", SRSSPECSAbout()

@@ -44,7 +44,7 @@
 // Function prettyNEXAFS()
 // Function setNEXAFSyAxis()
 // Function setNEXAFSyAxisVariable()
-// Function setDefaultNEXAFScursors()
+// Function setDefaultCursors()
 //
 //------------------------------------------------------------------------------------------------------------------------------------
 // Above is a list of functions contained in this file
@@ -145,6 +145,7 @@ Function doSomethingWithSpecsData(actionType)
 					
 					break
 					
+<<<<<<< HEAD
 				case "XPSShirleyBackground":
 					
 					// Establish link between cursor positions and CursorMoved fn.
@@ -152,6 +153,15 @@ Function doSomethingWithSpecsData(actionType)
 					
 					// XPS Shirley background
 					XPSBackground(graphName,type="shirley")
+=======
+				case "XPSMeasureSi2p32Offset":
+				
+					// Establish link between cursor positions and CursorMoved fn. 
+					CursorDependencyForSpecsGraph(graphName) 
+					
+					// 
+					XPSMeasureEnergyOffset(graphName,type="Si2p32")
+>>>>>>> 63a1bc2b6f656d5d1ccad7db23cfe3af34890e5c
 					
 					break
 					
@@ -559,7 +569,16 @@ Function XPSBackground(graphName,[type])
 	newW= w-fitW
 	
 	// Add wave note
-	Note/NOCR newW, "BACKGROUND: linear;"
+	strswitch ( type )  // only know how to do Linear at the moment...
+		case "linear":
+				Note/NOCR newW, "BACKGROUND: linear;"
+				Note/NOCR newW, "BACKGROUNDFUNCTION: y=mx+b, m="+num2str(m)+", b="+num2str(b)+";"
+			break
+		default :
+			// do nothing
+			break
+	endswitch
+	
 	Note/NOCR newW, "BACKGROUNDXMIN: "+num2str(xLeft)+";"
 	Note/NOCR newW, "BACKGROUNDXMAX: "+num2str(xRight)+";"
 	
@@ -682,8 +701,11 @@ Function XPSMeasureEnergyOffset(graphName,[type])
 		case "Au4f72":
 			referenceEnergy = 83.98
 			break
+		case "Si2p32":
+			referenceEnergy = 99.6
+			break
 		default:
-			Print" error: what region?"
+			Print"Error: what region?"
 			break
 	endswitch
 	
@@ -703,7 +725,11 @@ Function XPSMeasureEnergyOffset(graphName,[type])
 		
 			case "Au4f72":	// Au reference from the 3f 7/2 line at 83.98
 				energyOffset =  xcsr(A) - referenceEnergy
-				Print "The Au 3f 7/2 peak is offset by",energyOffset,"eV from its known position at 83.98 eV"
+				Print "The Au(3f) 7/2 peak is offset by",energyOffset,"eV from its known position at 83.98 eV"
+				break
+			case "Si2p32":	// Si reference from the 2p 3/2 line at 99.6
+				energyOffset =  xcsr(A) - referenceEnergy
+				Print "The Si(2p) 3/2 peak is offset by",energyOffset,"eV from its known position at 99.6 eV"
 				break
 			default :
 				Print "Error: don't know what the reference energy is"
@@ -849,7 +875,8 @@ End
 //------------------------------------------------------------------------------------------------------------------------------------
 // Simple macro to make the x-axis of an XPS plot the same as the background region (that is stored in the wave note)
 //------------------------------------------------------------------------------------------------------------------------------------
-Function XPSXRangeToBackground()
+Function XPSXRangeToBackground(type)
+	String type
 	
 	// TRY TO READ THE REGION FROM THE TOP WAVE using the WAVE NOTE
 	
@@ -861,9 +888,18 @@ Function XPSXRangeToBackground()
 	Variable right = NumberByKey("BACKGROUNDXMAX", wNote)
 	
 	if ( numtype(left + right) == 0 ) // not a NaN
-		SetAxis bottom left, right
+		strswitch(type)
+			case "KE":
+				SetAxis bottom left, right
+				Print "Set x-axis to: left =",left,"right =",right
+				break
+			case "BE":
+				SetAxis bottom right,left
+				Print "Set x-axis to: left =",right,"right =",left
+				break
+		endswitch
 	else 
-		Print "Error: the wave not contains no information about the background region"
+		Print "Error: the wave not contains no information about the background region. (left =",left,"right =",right
 	endif
 End
 
@@ -876,8 +912,6 @@ Function prettyXPS()
 	ModifyGraph mirror=1,standoff=0;DelayUpdate
 	ModifyGraph tick=2;DelayUpdate
 	SetAxis left 0,*;DelayUpdate
-	SetAxis/A bottom;DelayUpdate
-	Label bottom "Binding Energy (\\U)";DelayUpdate
 	ModifyGraph fSize=16;DelayUpdate
 	ModifyGraph standoff(bottom)=1; DelayUpdate
 	MakeTracesDifferentColours("SpectrumBlack")
@@ -956,7 +990,7 @@ End
 // This will create global variables that store the positions of the cursors used for NEXAFS
 // preedge subtraction
 //------------------------------------------------------------------------------------------------------------------------------------
-Function setDefaultNEXAFScursors()
+Function setDefaultCursors()
 	// Get current data folder
 	DFREF saveDF = GetDataFolderDFR()	  // Save
 	
