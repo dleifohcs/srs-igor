@@ -477,13 +477,13 @@ Function loadNEXAFSASC2013(path, filename )
 		mcpdn = mcpn
 		mcpdn = mcpdn/cln
 		// add the angle to the wave note so that it can be extracted later if desired
-		Note mcpdn, "THETA:"+num2str(theta)+";REGION:"+region
+		Note/NOCR mcpdn, "THETA:"+num2str(theta)+";REGION:"+region
 		
 	else  // only single normalisation
 		mcpn = mcpn / I0
 	endif
 	// add the angle to the wave note so that it can be extracted later if desired
-	Note mcpn, "THETA:"+num2str(theta)+";REGION:"+region
+	Note/NOCR mcpn, "THETA:"+num2str(theta)+";REGION:"+region
 	
 	
 	SetDataFolder saveDFR

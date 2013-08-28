@@ -542,7 +542,9 @@ Function XPSBackground(graphName,[type])
 			fitW = m*x + b
 			break
 		case "shirley":
-			Wave fitW = XPSShirleyBackground(w, pcsr(A), pcsr(B))
+			Wave shirleyW = XPSShirleyBackground(w, pcsr(A), pcsr(B))
+			fitW = shirleyW
+			KillWaves/Z shirleyW
 			break
 		default :
 			break
@@ -557,7 +559,14 @@ Function XPSBackground(graphName,[type])
 	
 	// make wave name for subtracted wave
 	String newWStr
-	newWStr= wStr+"_L"
+	strswitch ( type )  // only know how to do Linear at the moment...
+		case "linear":
+			newWStr= wStr+"_L"
+			break
+		case "shirley":
+			newWStr= wStr+"_S"
+			break
+	endswitch
 	
 	// Create new wave that has been modified
 	Duplicate/O w, $newWStr
@@ -572,7 +581,10 @@ Function XPSBackground(graphName,[type])
 	strswitch ( type )  // only know how to do Linear at the moment...
 		case "linear":
 				Note/NOCR newW, "BACKGROUND: linear;"
-				Note/NOCR newW, "BACKGROUNDFUNCTION: y=mx+b, m="+num2str(m)+", b="+num2str(b)+";"
+				Note/NOCR newW, "LINEARFORM: y=mx+b, m="+num2str(m)+", b="+num2str(b)+";"
+			break
+		case "shirley":
+				Note/NOCR newW, "BACKGROUND: shirley;"
 			break
 		default :
 			// do nothing
