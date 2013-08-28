@@ -36,10 +36,6 @@ Menu "NEXAFS"
 	
 		"Display Normalised Spectrum", display1DWaves("oneN")
 		help = {"Display a double normalised spectrum from the current data folder in a new graph window. Igor looks for a wave ending in '_n', otherwise displays a dialogue."}
-	
-		"-"
-		"Set cursors for pre-edge subtraction/1", setDefaultNEXAFScursors()
-		//"Remove annotations from graph", removeAnnotations()
 	End
 	"-"
 	Submenu "Manipulate"
@@ -76,9 +72,6 @@ End
 Menu "XPS"
 	SubMenu "Background subtraction"
 		"Linear", doSomethingWithSpecsData("XPSLinearBackground")
-		"-"
-		"Set cursors for background subtraction/1", setDefaultNEXAFScursors()
-		//"Remove annotations from graph", removeAnnotations()
 	End
 	"-"
 	SubMenu "Energy Calibration"

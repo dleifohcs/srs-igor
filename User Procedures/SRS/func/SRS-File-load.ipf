@@ -262,9 +262,14 @@ Function loadXY2013(pathStr,filenameStr)
 	// KOD: actually because it's a binding energy axis it's in reverse,
 	// so to play it safe, set the scale directly from the first and last
 	// energies not the min and max.
-	Variable eVmin = energyW(0)
-	Variable eVmax = energyW(numpnts(energyW)-1)
-	SetScale/I x, eVmin, eVmax, "eV", countsW
+	Variable eVi = energyW(0)
+	Variable eVf = energyW(numpnts(energyW)-1)
+	if ( eVi > eVf )
+		Reverse countsW
+		SetScale/I x, eVf, eVi, "eV", countsW
+	else
+		SetScale/I x, eVi, eVf, "eV", countsW
+	endif 
 	
 	// y scale
 	SetScale/I y, 0, 1, "counts", countsW

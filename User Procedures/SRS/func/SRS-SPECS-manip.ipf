@@ -44,7 +44,7 @@
 // Function prettyNEXAFS()
 // Function setNEXAFSyAxis()
 // Function setNEXAFSyAxisVariable()
-// Function setDefaultNEXAFScursors()
+// Function setDefaultCursors()
 //
 //------------------------------------------------------------------------------------------------------------------------------------
 // Above is a list of functions contained in this file
@@ -546,7 +546,16 @@ Function XPSBackground(graphName,[type])
 	newW= w-fitW
 	
 	// Add wave note
-	Note/NOCR newW, "BACKGROUND: linear;"
+	strswitch ( type )  // only know how to do Linear at the moment...
+		case "linear":
+				Note/NOCR newW, "BACKGROUND: linear;"
+				Note/NOCR newW, "BACKGROUNDFUNCTION: y=mx+b, m="+num2str(m)+", b="+num2str(b)+";"
+			break
+		default :
+			// do nothing
+			break
+	endswitch
+	
 	Note/NOCR newW, "BACKGROUNDXMIN: "+num2str(xLeft)+";"
 	Note/NOCR newW, "BACKGROUNDXMAX: "+num2str(xRight)+";"
 	
@@ -772,8 +781,9 @@ Function XPSXRangeToBackground()
 	
 	if ( numtype(left + right) == 0 ) // not a NaN
 		SetAxis bottom left, right
+		Print "Set x-axis to: left =",left,"right =",right
 	else 
-		Print "Error: the wave not contains no information about the background region"
+		Print "Error: the wave not contains no information about the background region. (left =",left,"right =",right
 	endif
 End
 
@@ -866,7 +876,7 @@ End
 // This will create global variables that store the positions of the cursors used for NEXAFS
 // preedge subtraction
 //------------------------------------------------------------------------------------------------------------------------------------
-Function setDefaultNEXAFScursors()
+Function setDefaultCursors()
 	// Get current data folder
 	DFREF saveDF = GetDataFolderDFR()	  // Save
 	
