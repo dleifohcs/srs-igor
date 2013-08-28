@@ -785,7 +785,8 @@ End
 //------------------------------------------------------------------------------------------------------------------------------------
 // Simple macro to make the x-axis of an XPS plot the same as the background region (that is stored in the wave note)
 //------------------------------------------------------------------------------------------------------------------------------------
-Function XPSXRangeToBackground()
+Function XPSXRangeToBackground(type)
+	String type
 	
 	// TRY TO READ THE REGION FROM THE TOP WAVE using the WAVE NOTE
 	
@@ -797,8 +798,16 @@ Function XPSXRangeToBackground()
 	Variable right = NumberByKey("BACKGROUNDXMAX", wNote)
 	
 	if ( numtype(left + right) == 0 ) // not a NaN
-		SetAxis bottom left, right
-		Print "Set x-axis to: left =",left,"right =",right
+		strswitch(type)
+			case "KE":
+				SetAxis bottom left, right
+				Print "Set x-axis to: left =",left,"right =",right
+				break
+			case "BE":
+				SetAxis bottom right,left
+				Print "Set x-axis to: left =",right,"right =",left
+				break
+		endswitch
 	else 
 		Print "Error: the wave not contains no information about the background region. (left =",left,"right =",right
 	endif

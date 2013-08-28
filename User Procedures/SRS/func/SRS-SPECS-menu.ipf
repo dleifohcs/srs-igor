@@ -83,10 +83,11 @@ Menu "XPS"
 	Submenu "Make pretty"
 		"XPS axes", prettyXPS()
 		"-"
-		"X-range from Background Region", XPSXRangeToBackground()
+		"X-axis is kinetic energy - background region", XPSXRangeToBackground("KE")
+		"X-axis is kinetic energy - full scale", Label bottom "Kinetic energy (\\U)"; SetAxis/A bottom
 		"-"
-		"X-axis is kinetic energy", Label bottom "Kinetic energy (\\U)"; SetAxis/A bottom
-		"X-axis is binding energy", Label bottom "Binding energy (\\U)"; SetAxis/A/R bottom
+		"X-axis is binding energy - background region", XPSXRangeToBackground("BE")
+		"X-axis is binding energy - full scale", Label bottom "Binding energy (\\U)"; SetAxis/A/R bottom
 	End
 	"-"
 	"About", SRSSPECSAbout()
