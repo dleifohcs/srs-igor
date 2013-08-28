@@ -72,14 +72,11 @@ End
 Menu "XPS"
 	SubMenu "Background subtraction"
 		"Linear", doSomethingWithSpecsData("XPSLinearBackground")
-<<<<<<< HEAD
-		"Shirley", doSomethingWithSpecsData("XPSShirleyBackground")
+    "Shirley", doSomethingWithSpecsData("XPSShirleyBackground")
 		"-"
 		"Set cursors for background subtraction/1", setDefaultNEXAFScursors()
 		//"Remove annotations from graph", removeAnnotations()
-=======
->>>>>>> 63a1bc2b6f656d5d1ccad7db23cfe3af34890e5c
-	End
+  End
 	"-"
 	SubMenu "Energy Calibration"
 		"\\M0Measure position of the Au(3f) 7/2 peak", doSomethingWithSpecsData("XPSMeasureAu3f72Offset")

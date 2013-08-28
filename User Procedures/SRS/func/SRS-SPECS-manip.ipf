@@ -145,27 +145,27 @@ Function doSomethingWithSpecsData(actionType)
 					
 					break
 					
-<<<<<<< HEAD
-				case "XPSShirleyBackground":
+        case "XPSShirleyBackground":
 					
 					// Establish link between cursor positions and CursorMoved fn.
 					CursorDependencyForSpecsGraph(graphName)
 					
 					// XPS Shirley background
 					XPSBackground(graphName,type="shirley")
-=======
-				case "XPSMeasureSi2p32Offset":
+					
+					break
+					
+        case "XPSMeasureSi2p32Offset":
 				
 					// Establish link between cursor positions and CursorMoved fn. 
 					CursorDependencyForSpecsGraph(graphName) 
 					
 					// 
 					XPSMeasureEnergyOffset(graphName,type="Si2p32")
->>>>>>> 63a1bc2b6f656d5d1ccad7db23cfe3af34890e5c
-					
+				
 					break
 					
-				case "XPSMeasureAu3f72Offset":
+				case "XPSMeasureAu4f72Offset":
 				
 					// Establish link between cursor positions and CursorMoved fn. 
 					CursorDependencyForSpecsGraph(graphName) 
