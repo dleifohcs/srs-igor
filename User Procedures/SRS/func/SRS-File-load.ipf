@@ -187,7 +187,7 @@ Function loadXY2013(pathStr,filenameStr)
 	// -------------------------------------------------------------------------------------------------------------------------------------------//
 	// USER DEFINED VARIABLES FOR CONTROLLING THE BEHAVIOUR OF THIS FILE LOADER	
 	Variable VERBOSE = 1  // set to 1 to increase the amount of output to the command window: useful for debugging 
-	Variable keepEXT = 0 // set to 1 to keep the individual channel data and extended channels 
+	Variable keepEXT = 1 // set to 1 to keep the individual channel data and extended channels 
 	// -------------------------------------------------------------------------------------------------------------------------------------------//
 	
 	// Save current DF
@@ -300,12 +300,14 @@ Function loadXY2013(pathStr,filenameStr)
 	
 	// copy data wave to one with same name as input file name
 	Duplicate/O countsW, $newWaveNameStr
-	
 	KillWaves/Z countsW
 	
-	// -----------------------------------------
-	// SECTION 5: Tidy Data Folder 
-	// -----------------------------------------
+	// make new wave assignment because use this below in section 6 for moving to new DF
+	Wave countsW = $newWaveNameStr
+	
+	// ---------------------------------------------------------------------------------------
+	// SECTION 5: Tidy Data Folder by moving EXT data to its own directory
+	// ---------------------------------------------------------------------------------------
 	
 	if ( keepEXT == 1 ) // keep the individual channel data and extended channel data
 	
@@ -330,6 +332,31 @@ Function loadXY2013(pathStr,filenameStr)
 		
 	endif
 	
+	// ----------------------------------------------------------------------------------
+	// SECTION 6: Rename data DF based on supplied user description 
+	// ----------------------------------------------------------------------------------
+	
+	SetDataFolder root:
+	if ( DataFolderExists(sampleDescription) )
+		// do nothing
+	else
+		NewDataFolder root:$(sampleDescription)
+	endif
+	
+	// Make copy of data in DESCRIPTION DF
+	Duplicate/O countsW, root:$(sampleDescription):$newWaveNameStr
+	
+	// make copy of ext data as well if keepEXT flag is set
+	if ( keepEXT == 1 ) // keep the individual channel data and extended channel data
+		// kill DF in that directory if it exists
+		KillDataFolder/Z root:$(sampleDescription):$extDFStr
+		// duplicate the loaded DF
+		DuplicateDataFolder root:XY:$extDFStr, root:$(sampleDescription):$extDFStr
+	endif
+	
+	// Kill the XY data folder
+	KillDataFolder/Z root:XY
+	
 	// ---------------------------------------------------
 	// End
 	// ---------------------------------------------------
@@ -338,7 +365,7 @@ Function loadXY2013(pathStr,filenameStr)
 	//SetDataFolder saveDF
 	
 	// Leave user in the DF of the data
-	SetDataFolder root:XY
+	SetDataFolder root:$(sampleDescription)
 End
 	
 
