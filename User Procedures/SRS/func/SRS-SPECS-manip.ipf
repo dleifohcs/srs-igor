@@ -145,6 +145,16 @@ Function doSomethingWithSpecsData(actionType)
 					
 					break
 					
+				case "XPSShirleyBackground":
+					
+					// Establish link between cursor positions and CursorMoved fn.
+					CursorDependencyForSpecsGraph(graphName)
+					
+					// XPS Shirley background
+					XPSBackground(graphName,type="shirley")
+					
+					break
+					
 				case "XPSMeasureAu3f72Offset":
 				
 					// Establish link between cursor positions and CursorMoved fn. 
@@ -504,10 +514,10 @@ Function XPSBackground(graphName,[type])
 		Cursor/W=$graphName/s=0/c=(0,0,0) B, $wStr, rightCurs
 	endif
 	
-	// Create a wave that will be used for the leading edge subtraction
+	// Create a wave that will be used for the background subtraction
 	Duplicate/O w, fitW
 	
-	// Determine the wave to be used for leading edge subtraction, depending on type of subtraction desired
+	// Determine the wave to be used for background subtraction, depending on type of subtraction desired
 	
 	Variable m,b
 	Variable xLeft =  xcsr(A)
@@ -515,11 +525,14 @@ Function XPSBackground(graphName,[type])
 	Variable yLeft =  vcsr(A)
 	Variable yRight =  vcsr(B)
 	
-	strswitch ( type )  // only know how to do Linear at the moment...
+	strswitch ( type )  // Idea is to do linear first on pre-edge, then Shirley (you have to move the cursors!)
 		case "linear":
 			m = (yRight - yLeft) / (xRight - xLeft)
 			b = yRight - m*xRight
 			fitW = m*x + b
+			break
+		case "shirley":
+			Wave fitW = XPSShirleyBackground(w, pcsr(A), pcsr(B))
 			break
 		default :
 			break
@@ -559,8 +572,85 @@ Function XPSBackground(graphName,[type])
 	AutoPositionWindow/E/m=0/R=$graphName $newGraphName
 End
 
-
-
+//------------------------------------------------------------------------------------------------------------------------------------
+// Iteratively compute a Shirley background for XPS spectrum between two cursor points.
+//------------------------------------------------------------------------------------------------------------------------------------
+Function/WAVE XPSShirleyBackground(data, pl, pr)
+	Wave data
+	Variable pl, pr
+	
+	// USER SETTING - max number of iterations for the Shirley background
+	Variable maxit = 10
+	Variable it = 0
+	Variable tol = 1e-5
+	Variable dbg = 1
+	
+	// background, new background (next iteration) and background difference.
+	Duplicate/O data b
+	b = 0
+	Duplicate/O data bnew
+	bnew = 0
+	Duplicate/O bnew bdiff
+	
+	// Loop variables
+	Variable ksum = 0
+	Variable ysum = 0
+	Variable k,i,j
+	Variable imax = numpnts(data)
+	Variable xl = leftx(data) + pl * deltax(data)
+	Variable xr = leftx(data) + pr * deltax(data)
+	Variable yl = data[pl]
+	Variable yr = data[pr]
+	
+	// Initial background is a step from xl
+	for (i=pl;i<imax;i=i+1)
+		b[i] = yr-yl
+		bnew[i] = yr-yl
+	endfor
+	
+	if (dbg == 1)
+		print "On entry, cursor positions are: ", pl, pr
+		print "Our variables are", xl, xr, yl, yr
+	endif
+	
+	// NOTE TO KANE: If SRS reverses the x-wave orders, need to SWAP xl, xr, yl
+	//, yr in the code below
+	
+	do
+		//if (dbg == 1)
+		//	print "Shirley iteration", it, norm(bdiff)
+		//endif
+		ksum = 0.0
+		// k = (yr - yl) / (integral_xl^xr J(x') - yl - b(x') dx')
+		for (i=pl;i<imax;i=i+1)
+			ksum = ksum + deltax(data) * 0.5 * (data[i] + data[i+1] - 2 * yl - b[i] - b[i+1])
+		endfor
+		k = (yr - yl) / ksum
+		// Generate a new b
+		for (i=pl;i<pr;i = i+1)
+			ysum = 0.0
+			for (j=i;j<imax;j = j + 1)
+				ysum = ysum + deltax(data) * 0.5 * (data[j] + data[j+1] - 2 * yl - b[j] - b[j+1])
+			endfor
+			bnew[i] = k * ysum
+		endfor
+		bdiff = bnew - b
+		if (norm(bdiff) < tol)
+			b = bnew
+			break
+		else
+			b = bnew
+		endif
+		it = it + 1
+	while (it < maxit)
+	
+	if (it >= maxit)
+		print "Warning: max Shirley iterations exceeded before convergence, the Shirley spectrum may be rubbish!"
+	endif
+	
+	b = b + yl
+	return b
+End 
 
 //------------------------------------------------------------------------------------------------------------------------------------
 // function to measure the energy different to a reference peak
