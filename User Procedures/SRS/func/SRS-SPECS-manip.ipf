@@ -627,28 +627,20 @@ Function/WAVE XPSShirleyBackground(data, pl, pr)
 		bnew[i] = yr-yl
 	endfor
 	
-	if (dbg == 1)
-		print "On entry, cursor positions are: ", pl, pr
-		print "Our variables are", xl, xr, yl, yr
-	endif
-	
-	// NOTE TO KANE: If SRS reverses the x-wave orders, need to SWAP xl, xr, yl
-	//, yr in the code below
-	
 	do
-		//if (dbg == 1)
-		//	print "Shirley iteration", it, norm(bdiff)
-		//endif
+		if (dbg == 1)
+			print "Shirley iteration", it, norm(bdiff)
+		endif
 		ksum = 0.0
 		// k = (yr - yl) / (integral_xl^xr J(x') - yl - b(x') dx')
-		for (i=pl;i<imax;i=i+1)
+		for (i=pl;i<pr;i=i+1)
 			ksum = ksum + deltax(data) * 0.5 * (data[i] + data[i+1] - 2 * yl - b[i] - b[i+1])
 		endfor
 		k = (yr - yl) / ksum
 		// Generate a new b
 		for (i=pl;i<pr;i = i+1)
 			ysum = 0.0
-			for (j=i;j<imax;j = j + 1)
+			for (j=pl;j<i;j = j + 1)
 				ysum = ysum + deltax(data) * 0.5 * (data[j] + data[j+1] - 2 * yl - b[j] - b[j+1])
 			endfor
 			bnew[i] = k * ysum
