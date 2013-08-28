@@ -76,6 +76,7 @@ End
 Menu "XPS"
 	SubMenu "Background subtraction"
 		"Linear", doSomethingWithSpecsData("XPSLinearBackground")
+		"Shirley", doSomethingWithSpecsData("XPSShirleyBackground")
 		"-"
 		"Set cursors for background subtraction/1", setDefaultNEXAFScursors()
 		//"Remove annotations from graph", removeAnnotations()
