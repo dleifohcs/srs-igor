@@ -40,6 +40,7 @@
 // Function XPSMeasureEnergyOffset(graphName,[type])
 // Function XPSApplyEnergyOffset(graphName)
 // Function findMinimum(graphName)
+// Function XPSXRangeToBackground()
 // Function prettyNEXAFS()
 // Function setNEXAFSyAxis()
 // Function setNEXAFSyAxisVariable()
@@ -749,6 +750,50 @@ Function findMinimum(graphName)
 	
 	// Set the global variable for peak min to be the location of the fitted minimum
 	peakMinLoc= fittedMin
+End
+
+
+
+
+
+//------------------------------------------------------------------------------------------------------------------------------------
+// Simple macro to make the x-axis of an XPS plot the same as the background region (that is stored in the wave note)
+//------------------------------------------------------------------------------------------------------------------------------------
+Function XPSXRangeToBackground()
+	
+	// TRY TO READ THE REGION FROM THE TOP WAVE using the WAVE NOTE
+	
+	// get top wave from top graph window
+	Wave w= WaveRefIndexed("",0,1)
+	
+	String wNote = note(w)
+	Variable left = NumberByKey("BACKGROUNDXMIN", wNote)
+	Variable right = NumberByKey("BACKGROUNDXMAX", wNote)
+	
+	if ( numtype(left + right) == 0 ) // not a NaN
+		SetAxis bottom left, right
+	else 
+		Print "Error: the wave not contains no information about the background region"
+	endif
+End
+
+
+//------------------------------------------------------------------------------------------------------------------------------------
+// Simple macro to make the axes of the graph nice
+//------------------------------------------------------------------------------------------------------------------------------------
+Function prettyXPS()
+	ModifyGraph width=566.929,height=283.465;DelayUpdate
+	ModifyGraph mirror=1,standoff=0;DelayUpdate
+	ModifyGraph tick=2;DelayUpdate
+	SetAxis left 0,*;DelayUpdate
+	SetAxis/A bottom;DelayUpdate
+	Label bottom "Binding Energy (\\U)";DelayUpdate
+	ModifyGraph fSize=16;DelayUpdate
+	ModifyGraph standoff(bottom)=1; DelayUpdate
+	MakeTracesDifferentColours("SpectrumBlack")
+	DoUpdate
+	Legend/C/N=text0/F=0
+	DoUpdate
 End
 
 //------------------------------------------------------------------------------------------------------------------------------------

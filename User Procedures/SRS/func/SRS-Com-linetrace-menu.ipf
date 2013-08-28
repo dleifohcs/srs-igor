@@ -46,7 +46,7 @@ Menu "Line Trace"
 		help = {"Append all1D waves from the current data folder to the top graph window"}
 	
 		"-"
-		"Remove cursors and/or fitW from graph", removeAnnotations()
+		"Remove cursors and fitW from graph", removeAnnotations()
 	End
 	Submenu "Colours"
 		"Make Traces Different",/Q,Execute/P/Q/Z "INSERTINCLUDE <KBColorizeTraces>";Execute/P/Q/Z "COMPILEPROCEDURES ";Execute/P/Q/Z "ShowKBColorizePanel()"

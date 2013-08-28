@@ -39,7 +39,7 @@ Menu "NEXAFS"
 	
 		"-"
 		"Set cursors for pre-edge subtraction/1", setDefaultNEXAFScursors()
-		"Remove annotations from graph", removeAnnotations()
+		//"Remove annotations from graph", removeAnnotations()
 	End
 	"-"
 	Submenu "Manipulate"
@@ -63,19 +63,6 @@ Menu "NEXAFS"
 		"Carbon energy range", SetAxis/A bottom 280, 320; setNEXAFSyAxis()
 		"Nitrogen energy range", SetAxis/A bottom 393, 420; setNEXAFSyAxis(); MakeTracesDifferentColours("CyanMagenta")
 		"Define y-axis maximum for NEXAFS axes", setNEXAFSyAxisVariable()
-		"-"
-		"Colours: Spectrum", MakeTracesDifferentColours("SpectrumBlack")
-		"Colours: Blue Red Green", MakeTracesDifferentColours("BlueRedGreen256")
-		"Colours: Red Yellow", MakeTracesDifferentColours("YellowHot256")
-		"Colours: Grays", MakeTracesDifferentColours("Grays256")
-		"Colours: Rainbow", MakeTracesDifferentColours("Rainbow256")
-		"Colours: Red", MakeTracesDifferentColours("Red")
-		"Colours: Blue", MakeTracesDifferentColours("Blue")
-		"Colours: Green", MakeTracesDifferentColours("Green")
-		"Colours: Cyan", MakeTracesDifferentColours("Cyan")
-		"Colours: Cyan Magenta", MakeTracesDifferentColours("CyanMagenta")
-		"Colours: Blue Black Red", MakeTracesDifferentColours("BlueBlackRed")
-		"Colours: Geo", MakeTracesDifferentColours("Geo")
 	End
 	
 	"-"
@@ -91,12 +78,18 @@ Menu "XPS"
 		"Linear", doSomethingWithSpecsData("XPSLinearBackground")
 		"-"
 		"Set cursors for background subtraction/1", setDefaultNEXAFScursors()
-		"Remove annotations from graph", removeAnnotations()
+		//"Remove annotations from graph", removeAnnotations()
 	End
-	
+	"-"
 	SubMenu "Energy Calibration"
 		"\\M0Measure position of the Au 3f 7/2 peak", doSomethingWithSpecsData("XPSMeasureAu3f72Offset")
 		"Apply energy calibration to data", doSomethingWithSpecsData("XPSApplyEnergyOffset")
+	End
+	"-"
+	Submenu "Make pretty"
+		"XPS axes", prettyXPS()
+		"-"
+		"X-range from Background Region", XPSXRangeToBackground()
 	End
 	"-"
 	"About", SRSSPECSAbout()
