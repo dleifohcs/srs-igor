@@ -86,6 +86,7 @@ Function display1DWaves(mode)
 	// Get current data folder
 	String wDF = GetDataFolder(1)
 	String wDFName= GetDataFolder(0)  // this is used to name the graph window
+	
 	// remove bad characters from the DFname
 	wDFName = removeBadChars(wDFName)
 	wDFName = removeSpace(wDFName)

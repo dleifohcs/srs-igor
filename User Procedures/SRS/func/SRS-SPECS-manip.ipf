@@ -725,25 +725,28 @@ Function XPSMeasureEnergyOffset(graphName,[type])
 		case "Au4f72":	// Au reference from the 4f 7/2 line at 83.98
 			energyOffset =  peakPosition - referenceEnergy
 			Print "The Au(4f) 7/2 peak is offset by",energyOffset,"eV from its known position at 83.98 eV"
+			Note/NOCR w, "REFERENCE: Au(4f) 7/2;"
 			break
 		case "Si2p32":	// Si reference from the 2p 3/2 line at 99.6
 			energyOffset =  peakPosition - referenceEnergy
 			Print "The Si(2p) 3/2 peak is offset by",energyOffset,"eV from its known position at 99.6 eV"
+			Note/NOCR w, "REFERENCE: Si(2p) 3/2;"
 			break
 		default :
 			Print "Error: don't know what the reference energy is"
 			break
 	endswitch
-
-
 	
-//	endif 
+	// add delta E to wave note
+	NOTE/NOCR w, "REFERENCE_SHIFT: "+num2str(energyOffset)
+	
+	SetDataFolder saveDF
 End
 
 
 
 //------------------------------------------------------------------------------------------------------------------------------------
-// Function to remove a background in XPS type spectrum
+// 
 //------------------------------------------------------------------------------------------------------------------------------------
 Function XPSApplyEnergyOffset(graphName)
 	String graphName
@@ -777,11 +780,81 @@ Function XPSApplyEnergyOffset(graphName)
 		ShiftTracesInGraph(graphName)
 	endif
 	
-	
 End
 
 
 
+
+//------------------------------------------------------------------------------------------------------------------------------------
+// Searches the wave notes of all waves in the current data folder.  If one of them contains the key word
+// "REFERENCE_SHIFT", then it extracts the corresponding energy shift from teh wave note and then applies
+// this as a shift to the other waves in this data folder.
+//------------------------------------------------------------------------------------------------------------------------------------
+Function XPSApplyEnergyOffsetToDF()
+
+	// List (1D) waves in current data folder
+	String wList =  WaveList("*",";","DIMS:1") 
+	Variable wNum = ItemsInList(wList)
+	Variable i, energyShiftTmp, energyShift, refWcounter
+	String notetmp, wName, waveDF, shiftedWaveName
+	
+	KillWaves/Z isReferenceW
+	Make/N=(wNum) isReferenceW
+	
+	refWcounter = 0
+	for ( i=0; i<wNum; i+=1)
+	
+		// get the name of the ith wave and read its wave note
+		wName = StringFromList(i,wList)
+		Wave w = $wName
+		notetmp = note(w)
+		
+		// check for REFERENCE_SHIFT and read the number if it exists
+		energyShiftTmp = NumberByKey("REFERENCE_SHIFT",notetmp)
+		
+		// record which wave is the reference wave
+		if ( numtype(energyShiftTmp) == 0 ) 
+			energyShift=energyShiftTmp
+			isReferenceW[i] = 1  // this is a reference wave
+			wList = RemoveFromList(wName,wList)  // remove this name from the list
+			wNum -=1
+		else
+			isReferenceW[i] = 0 // this is not a reference wave
+		endif
+	endfor
+		
+	if ( sum(isReferenceW) > 1 )
+		Print "ERROR: This data folder contains more than one reference wave. Aborting."
+		return -1
+	else
+		// apply energy shift to all waves excpt the reference wave
+		for ( i=0; i<wNum; i+=1)
+	
+			// get the name of the ith wave and read its wave note
+			wName = StringFromList(i,wList)
+			Wave w = $wName
+			
+			waveDF = GetWavesDataFolder(w,1)		
+			//FullWaveNameStr = GetWavesDataFolder(w,2)	
+			
+			// Move to waves DF
+			SetDataFolder $waveDF
+			
+			shiftedWaveName = wName+"_SX"
+			Duplicate/O w, $shiftedWaveName
+						
+			Wave sw = $shiftedWaveName
+			
+			SetScale/P x, dimOffset(w,0)+energyShift, dimDelta(w,0), sw
+			
+			// Add wave note
+			Note/NOCR sw, "XSHIFTEDBY: "+num2str(energyShift)+";"
+		endfor
+	endif
+	
+	// Clean up
+	KillWaves/Z isReferenceW
+End
 
 
 //------------------------------------------------------------------------------------------------------------------------------------
