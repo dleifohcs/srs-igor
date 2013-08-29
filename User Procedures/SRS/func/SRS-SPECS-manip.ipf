@@ -185,13 +185,13 @@ Function doSomethingWithSpecsData(actionType)
 					
 					break
 					
-				case "findTracePeak":
+				case "findTracePeakWithGaussian":
 				
 					// Establish link between cursor positions and CursorMoved fn. 
 					CursorDependencyForSpecsGraph(graphName) 
 					
 					// 
-					findTracePeak(graphName)
+					findTracePeakWithGaussian(graphName)
 					
 					break
 				
@@ -716,31 +716,28 @@ Function XPSMeasureEnergyOffset(graphName,[type])
 	// change to data DF	
 	SetDataFolder wDF
 	
+	Variable peakPosition =  findTracePeakWithGaussian(graphName) 
+	
 	// variable for energy offset
 	Variable/G energyOffset
 	
-	// Place Cursors on Image (unless they are already there)
-	if (strlen(CsrInfo(A))==0)
-		Cursor/W=$graphName/s=0/c=(0,0,0) A, $wStr, referenceEnergy
-		
-	else  // if the cursor is there then perform measurement
-		
-		strswitch ( type )  
-		
-			case "Au4f72":	// Au reference from the 4f 7/2 line at 83.98
-				energyOffset =  xcsr(A) - referenceEnergy
-				Print "The Au(4f) 7/2 peak is offset by",energyOffset,"eV from its known position at 83.98 eV"
-				break
-			case "Si2p32":	// Si reference from the 2p 3/2 line at 99.6
-				energyOffset =  xcsr(A) - referenceEnergy
-				Print "The Si(2p) 3/2 peak is offset by",energyOffset,"eV from its known position at 99.6 eV"
-				break
-			default :
-				Print "Error: don't know what the reference energy is"
-				break
-		endswitch
+	strswitch ( type )  
+		case "Au4f72":	// Au reference from the 4f 7/2 line at 83.98
+			energyOffset =  peakPosition - referenceEnergy
+			Print "The Au(4f) 7/2 peak is offset by",energyOffset,"eV from its known position at 83.98 eV"
+			break
+		case "Si2p32":	// Si reference from the 2p 3/2 line at 99.6
+			energyOffset =  peakPosition - referenceEnergy
+			Print "The Si(2p) 3/2 peak is offset by",energyOffset,"eV from its known position at 99.6 eV"
+			break
+		default :
+			Print "Error: don't know what the reference energy is"
+			break
+	endswitch
+
+
 	
-	endif 
+//	endif 
 End
 
 

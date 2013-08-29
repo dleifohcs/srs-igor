@@ -95,6 +95,6 @@ Menu "XPS"
 	"About", SRSSPECSAbout()
 End
 
-//Menu "Test area"
-//	"FindTracePeak", FindTracePeak("")
-//End
+Menu "Test area"
+	"FindTracePeak", doSomethingWithSpecsData("findTracePeakWithGaussian")
+End

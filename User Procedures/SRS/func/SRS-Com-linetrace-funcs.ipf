@@ -1175,10 +1175,9 @@ End
 
 
 //------------------------------------------------------------------------------------------------------------------------------------
-//  .... this not used at the moment  ...  is left over from some previous version of these macros
-//  ...  could be modified to be useful in determining energy calibration, e.g.
+//  Finds location of peak, then fits a gaussian and returns the x location of the gaussian apex
 //------------------------------------------------------------------------------------------------------------------------------------
-Function findTracePeak(graphName)
+Function findTracePeakWithGaussian(graphName)
 	String graphName
 	
 	// Get current data folder
@@ -1193,9 +1192,6 @@ Function findTracePeak(graphName)
 	// Move to the data folder containing the global variables for the graph
 	SetDataFolder root:WinGlobals:$graphName // should already be in this data folder, but include this to be sure
 	
-	// Create a global variable to contain the value of the determined minimum
-	Variable/G peakMinLoc=NaN
-	
 	// Get the global variable for this graph (these were set in the manipulateData procedure)
 	String/G wDF			// data folder containing the data shown on the graph
 	String/G wStr			// name of the wave shown on the graph 
@@ -1208,37 +1204,16 @@ Function findTracePeak(graphName)
 	Variable xMin= DimOffset(w,0)
 	Variable xMax= (DimDelta(w,0) * DimSize(w,0) + DimOffset(w,0))
 	Variable xRange= xMax - xMin
-
-	// Duplicate wave and smooth it; will use the smoothed wave for peak fitting then delete this wave
-	Duplicate/O w, $(wStr+"_Sm")
-	Wave smW= $(wStr+"_Sm")
 	
-	// smooth data using 3 pass binomial
-	Smooth/B 3, smW
+	// Automatically find where the peak is
+	Variable minPeakHeight = 0.95*WaveMax(w)
+	FindPeak/M=(minPeakHeight) w
+	Print "peak at", V_PeakLoc
 	
-	// Find minimum of wave
-	FindPeak/Q/N smW
-	Variable dataMin=V_PeakLoc
-	Print "Found data minimum value at", dataMin, "eV"
+	// Set cursor positions 
+	Variable leftCurs= V_PeakLoc - (0.01 * xRange)
+	Variable rightCurs= V_PeakLoc + (0.01 * xRange)
 	
-	// Remove temporary smoothed wave
-	KillWaves smW
-	
-	// Set cursor positions based on wave minimum
-	Variable leftCurs= V_PeakLoc - (0.03 * xRange)
-	Variable rightCurs= V_PeakLoc + (0.03 * xRange)
-	
-	// Load the cursor positions from global variables if they exist
-	Variable/G xA
-	Variable/G xB
-	
-	if ( (Abs(xA)+Abs(xB))!=0 && (Abs(xA)+Abs(xB)) < 10000 )  // assume if these are all zero then they have not been defined before, otherwise they have so use those numbers/
-
-		leftCurs= xA
-		rightCurs= xB
-
-	endif
-		
 	// Place Cursors on Image (unless they are already there)
 	if (strlen(CsrInfo(A))==0)
 		Cursor/W=$graphName/s=0/c=(0,0,0) A, $wStr, leftCurs
@@ -1246,25 +1221,25 @@ Function findTracePeak(graphName)
 	if (strlen(CsrInfo(B))==0)
 		Cursor/W=$graphName/s=0/c=(0,0,0) B, $wStr, rightCurs
 	endif
-
-	// Fit parabola to curve minimum (between cursors)
-	Duplicate/O w, fitW
-	CurveFit/Q/NTHR=0 poly 3,  w[pcsr(A),pcsr(B)] /D=fitW
-	Wave fitCoef=W_coef
-	fitW= fitCoef[2]*x^2 + fitCoef[1]*x + fitCoef[0]
-	Variable minY, maxY
-	GetAxis/Q left
-	RemoveFromGraph/Z/W=$graphName fitW
+	
+	// Fit gaussian to wave peak (between cursors)
+	CurveFit/NTHR=0 gauss w[pcsr(A),pcsr(B)] /D
+	Wave fittedWave = $"fit_"+wStr
+	Duplicate/O fittedWave, fitW
+	RemoveFromGraph/Z fitW
 	AppendToGraph/C=(0,0,0) fitW
-	SetAxis left V_min, V_max
+	KillWaves/Z fittedWave
 	
-	// Find minimum of the fitted parabola
-	FindPeak/Q/N fitW
-	Variable fittedMin= V_PeakLoc
-	Print "Found fitted minimum value at", fittedMin, "eV"
+	// Find maximum of the fitted gaussian
+	FindPeak fitW
+	Variable peakLoc= V_PeakLoc
 	
-	// Set the global variable for peak min to be the location of the fitted minimum
-	peakMinLoc= fittedMin
+	// Output to command area
+	Print " "
+	Print "Location of maximum of the fitted Gaussian is", peakLoc, "eV"
+	
+	// Return the result
+	return peakLoc
 End
 
 
