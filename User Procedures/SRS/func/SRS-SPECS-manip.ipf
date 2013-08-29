@@ -185,13 +185,13 @@ Function doSomethingWithSpecsData(actionType)
 					
 					break
 					
-				case "findMinimum":
+				case "findTracePeak":
 				
 					// Establish link between cursor positions and CursorMoved fn. 
 					CursorDependencyForSpecsGraph(graphName) 
 					
 					// 
-					findMinimum(graphName)
+					findTracePeak(graphName)
 					
 					break
 				
@@ -564,7 +564,7 @@ Function XPSBackground(graphName,[type])
 			newWStr= wStr+"_L"
 			break
 		case "shirley":
-			newWStr= wStr+"_S"
+			newWStr= wStr+"_Sh"
 			break
 	endswitch
 	
@@ -727,9 +727,9 @@ Function XPSMeasureEnergyOffset(graphName,[type])
 		
 		strswitch ( type )  
 		
-			case "Au4f72":	// Au reference from the 3f 7/2 line at 83.98
+			case "Au4f72":	// Au reference from the 4f 7/2 line at 83.98
 				energyOffset =  xcsr(A) - referenceEnergy
-				Print "The Au(3f) 7/2 peak is offset by",energyOffset,"eV from its known position at 83.98 eV"
+				Print "The Au(4f) 7/2 peak is offset by",energyOffset,"eV from its known position at 83.98 eV"
 				break
 			case "Si2p32":	// Si reference from the 2p 3/2 line at 99.6
 				energyOffset =  xcsr(A) - referenceEnergy
@@ -781,95 +781,6 @@ Function XPSApplyEnergyOffset(graphName)
 	endif
 	
 	
-End
-
-
-
-
-//------------------------------------------------------------------------------------------------------------------------------------
-// Function to remove a background based on the slope of the leading edge
-//------------------------------------------------------------------------------------------------------------------------------------
-Function findMinimum(graphName)
-	String graphName
-	
-	// Get current data folder
-	DFREF saveDF = GetDataFolderDFR()	  // Save
-	
-	// Move to the data folder containing the global variables for the graph
-	SetDataFolder root:WinGlobals:$graphName // should already be in this data folder, but include this to be sure
-	
-	// Create a global variable to contain the value of the determined minimum
-	Variable/G peakMinLoc=NaN
-	
-	// Get the global variable for this graph (these were set in the manipulateData procedure)
-	String/G wDF			// data folder containing the data shown on the graph
-	String/G wStr			// name of the wave shown on the graph 
-	String/G wFullStr		// data folder plus wave name
-	
-	// Make wave assignment to the data. 
-	Wave w= $wFullStr
-	
-	// Determine image size for positioning the cursors
-	Variable xMin= DimOffset(w,0)
-	Variable xMax= (DimDelta(w,0) * DimSize(w,0) + DimOffset(w,0))
-	Variable xRange= xMax - xMin
-	
-	// Duplicate wave and smooth it; will use the smoothed wave for peak fitting then delete this wave
-	Duplicate/O w, $(wStr+"_smooth")
-	Wave smW= $(wStr+"_smooth")
-	// determine the smoothing factor by the length of the data
-	Variable smth= Round(numpnts(smW)/20)
-	Smooth smth, smW
-	
-	// Find minimum of wave
-	FindPeak/Q/N smW
-	Variable dataMin=V_PeakLoc
-	Print "Found data minimum value at", dataMin, "eV"
-	
-	// Remove temporary smoothed wave
-	KillWaves smW
-	
-	// Set cursor positions based on wave minimum
-	Variable leftCurs= V_PeakLoc - (0.03 * xRange)
-	Variable rightCurs= V_PeakLoc + (0.03 * xRange)
-	
-	// Load the cursor positions from global variables if they exist
-	Variable/G xA
-	Variable/G xB
-	
-	if ( (Abs(xA)+Abs(xB))!=0 && (Abs(xA)+Abs(xB)) < 10000 )  // assume if these are all zero then they have not been defined before, otherwise they have so use those numbers/
-
-		leftCurs= xA
-		rightCurs= xB
-
-	endif
-		
-	// Place Cursors on Image (unless they are already there)
-	if (strlen(CsrInfo(A))==0)
-		Cursor/W=$graphName/s=0/c=(0,0,0) A, $wStr, leftCurs
-	endif 
-	if (strlen(CsrInfo(B))==0)
-		Cursor/W=$graphName/s=0/c=(0,0,0) B, $wStr, rightCurs
-	endif
-
-	// Fit parabola to curve minimum (between cursors)
-	Duplicate/O w, fitW
-	CurveFit/Q/NTHR=0 poly 3,  w[pcsr(A),pcsr(B)] /D=fitW
-	Wave fitCoef=W_coef
-	fitW= fitCoef[2]*x^2 + fitCoef[1]*x + fitCoef[0]
-	Variable minY, maxY
-	GetAxis/Q left
-	RemoveFromGraph/Z/W=$graphName fitW
-	AppendToGraph/C=(0,0,0) fitW
-	SetAxis left V_min, V_max
-	
-	// Find minimum of the fitted parabola
-	FindPeak/Q/N fitW
-	Variable fittedMin= V_PeakLoc
-	Print "Found fitted minimum value at", fittedMin, "eV"
-	
-	// Set the global variable for peak min to be the location of the fitted minimum
-	peakMinLoc= fittedMin
 End
 
 
