@@ -825,7 +825,8 @@ Function XPSApplyEnergyOffsetToDF()
 		
 	if ( sum(isReferenceW) > 1 )
 		Print "ERROR: This data folder contains more than one reference wave. Aborting."
-		return -1
+	elseif ( sum(isReferenceW) < 1 )
+		Print "ERROR: This data folder does not contain a processed reference wave. Aborting. "
 	else
 		// apply energy shift to all waves excpt the reference wave
 		for ( i=0; i<wNum; i+=1)
@@ -885,6 +886,16 @@ Function XPSXRangeToBackground(type)
 		endswitch
 	else 
 		Print "Error: the wave not contains no information about the background region. (left =",left,"right =",right
+		strswitch(type)
+			case "KE":
+				SetAxis/A bottom 
+				Print "Set x-axis to full scale"
+				break
+			case "BE":
+				SetAxis/A/R bottom
+				Print "Set x-axis to full scale"
+				break
+		endswitch
 	endif
 End
 

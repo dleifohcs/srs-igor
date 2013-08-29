@@ -79,6 +79,7 @@ Menu "XPS"
 	SubMenu "Energy Calibration"
 		"\\M0Measure position of the Au(4f) 7/2 peak", doSomethingWithSpecsData("XPSMeasureAu4f72Offset")
 		"\\M0Measure position of the Si(2p) 3/2 peak", doSomethingWithSpecsData("XPSMeasureSi2p32Offset")
+		"-"
 		"Apply energy calibration to data to Graph", doSomethingWithSpecsData("XPSApplyEnergyOffset")
 		"Apply energy calibration to all waves in Data Folder", XPSApplyEnergyOffsetToDF()
 	End
