@@ -71,13 +71,12 @@
 // Function MakeTracesDifferentColours(paletteName)
 // Function SmoothTracesInGraph(graphName,[type])
 //
+//
+// Function findTracePeakWithGaussian(graphName)
 //------------------------------------------------------------------------------------------------------------------------------------
 
 
 
-//-------------------------------------------
-// Functions for displaying line traces
-//-------------------------------------------
 
 
 //------------------------------------------------------------------------------------------------------------------------------------
@@ -1237,6 +1236,9 @@ Function findTracePeakWithGaussian(graphName)
 	// Output to command area
 	Print " "
 	Print "Location of maximum of the fitted Gaussian is", peakLoc, "eV"
+	
+	// Change back to original DF
+	SetDataFolder saveDF
 	
 	// Return the result
 	return peakLoc
