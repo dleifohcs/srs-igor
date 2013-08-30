@@ -67,7 +67,18 @@ Function doSomethingWithSpecsData(actionType)
 	
 	// Check if there is a graph before doing anything
 	if( strlen(graphName) )
+		// do nothing
+	else
+		Print "Error: no data window, bringng up data display dialogue"
+		display1DWaves("one")
+		
+		// Get name of top graph
+		graphName= WinName(0,1)
+	endif	
 
+	// Check again (in case user cancelled above) if there is a graph before doing anything
+	if( strlen(graphName) )
+		
 		// Create WinGlobals etc.
 		GlobalsForGraph(graphName)
 		
@@ -145,7 +156,7 @@ Function doSomethingWithSpecsData(actionType)
 					
 					break
 					
-        case "XPSShirleyBackground":
+        			case "XPSShirleyBackground":
 					
 					// Establish link between cursor positions and CursorMoved fn.
 					CursorDependencyForSpecsGraph(graphName)
@@ -155,7 +166,7 @@ Function doSomethingWithSpecsData(actionType)
 					
 					break
 					
-        case "XPSMeasureSi2p32Offset":
+        			case "XPSMeasureSi2p32Offset":
 				
 					// Establish link between cursor positions and CursorMoved fn. 
 					CursorDependencyForSpecsGraph(graphName) 
@@ -204,7 +215,7 @@ Function doSomethingWithSpecsData(actionType)
 				Print "Data must 1 dimensional.  Stopping."
 		endif
 	else
-		Print "Error: no data window"
+		Print "Error: need at least one graph window open"
 	endif
 	
 	//bring the graph containing the data to the front
