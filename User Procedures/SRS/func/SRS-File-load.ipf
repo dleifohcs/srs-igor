@@ -226,6 +226,8 @@ Function loadXY2013(pathStr,filenameStr)
 
 	// read the header line and write to screen	
 	FReadLine refnum, headerStr
+	// remove hash and quotes from headerStr
+	headerStr = headerStr[2,strlen(headerStr)-2]
 	if ( VERBOSE )
 		Print headerStr
 	endif
@@ -256,7 +258,7 @@ Function loadXY2013(pathStr,filenameStr)
 	// -------------------------------------------
 	
 	// add header to wave as a note
-	Note/NOCR countsW, "HEADER: "+headerStr+";"
+	Note/NOCR countsW, "HEADER:"+headerStr+";"
 	
 	// add x scale to counts wave
 	// KOD: actually because it's a binding energy axis it's in reverse,
@@ -286,7 +288,7 @@ Function loadXY2013(pathStr,filenameStr)
 	String sampleDescription = XPSDialogSamplePreparation(shortfilename)
 	
 	// add header to waves as a note
-	Note/NOCR countsW, "DESCRIPTION: "+sampleDescription+";"
+	Note/NOCR countsW, "DESCRIPTION:"+sampleDescription+";"
 	
 	// make a name from file name that is safe for naming an igor wave
 	String filenameForWaveNames 

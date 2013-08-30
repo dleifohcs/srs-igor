@@ -578,26 +578,30 @@ Function XPSBackground(graphName,[type])
 	newW= w-fitW
 	
 	// Add wave note
-	strswitch ( type )  // only know how to do Linear at the moment...
+	strswitch ( type )  
 		case "linear":
-				Note/NOCR newW, "BACKGROUND: linear;"
-				Note/NOCR newW, "LINEARFORM: y=mx+b, m="+num2str(m)+", b="+num2str(b)+";"
+				Note/NOCR newW, "BG:linear, m="+num2str(m)+", b="+num2str(b)+";"
 			break
 		case "shirley":
-				Note/NOCR newW, "BACKGROUND: shirley;"
+				Note/NOCR newW, "BG:shirley;"
 			break
 		default :
 			// do nothing
 			break
 	endswitch
 	
-	Note/NOCR newW, "BACKGROUNDXMIN: "+num2str(xLeft)+";"
-	Note/NOCR newW, "BACKGROUNDXMAX: "+num2str(xRight)+";"
+	// add wave note for background region
+	Note/NOCR newW, "BG_MIN: "+num2str(xLeft)+";"
+	Note/NOCR newW, "BG_MAX: "+num2str(xRight)+";"
 	
 	// Display result
 	DoWindow/K $(newWStr+"0")
 	Display/k=1/N=$newWStr newW
-	SetAxis bottom xLeft, xRight
+	
+	// set x-axis range based on the BG_MIN and BG_MAX keywords added to teh wave note
+	XPSXRangeToBackground("KE")
+	//SetAxis bottom xLeft, xRight
+	
 	String newGraphName= WinName(0,1)
 	
 	AutoPositionWindow/E/m=0/R=$graphName $newGraphName
@@ -869,9 +873,29 @@ Function XPSXRangeToBackground(type)
 	// get top wave from top graph window
 	Wave w= WaveRefIndexed("",0,1)
 	
+	// get the wave note string
 	String wNote = note(w)
-	Variable left = NumberByKey("BACKGROUNDXMIN", wNote)
-	Variable right = NumberByKey("BACKGROUNDXMAX", wNote)
+	
+	// Determine min and max x-axis values (left,right) from the wave note
+	Variable left, right
+	Variable numberOfBackgroundSubtracts = StringByKeyNumberOfInstances("BG_MIN",wNote)
+	left = NumberByKey("BG_MIN", wNote)
+	right = NumberByKey("BG_MAX", wNote)
+	if ( numberOfBackgroundSubtracts == 1 )  // only one background subtraction has been applied
+		// do nothing, we're already done
+	else  // more than one back ground subtraction so check if the range gets expanded
+		Variable i, leftTmp, rightTmp
+		for (i=1; i<numberOfBackgroundSubtracts; i+=1)
+			leftTmp =  str2num(StringByKeyIndexed(i,"BG_MIN",wNote))
+			if ( leftTmp < left )
+				left = leftTmp
+			endif
+			rightTmp =  str2num(StringByKeyIndexed(i,"BG_MAX",wNote))
+			if ( rightTmp > right )
+				right = rightTmp
+			endif
+		endfor
+	endif
 	
 	if ( numtype(left + right) == 0 ) // not a NaN
 		strswitch(type)

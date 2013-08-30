@@ -38,6 +38,8 @@
 // Function/S possiblyRemoveHash(str)
 // Function/S replaceHyphen(str)
 // Function/S replaceSpace(str)
+//Function StringByKeyNumberOfInstances(matchStr,listStr,[sepChar])
+//Function/S StringByKeyIndexed(instance,matchStr,listStr,[sepChar])
 //
 //------------------------------------------------------------------------------------------------------------------------------------
 // Above is a list of functions contained in this file
@@ -319,4 +321,78 @@ Function/S replaceSpace(str)
 	endfor
 	
 	return newstr
+End
+
+//----------------------------------------------------------------------------------
+// counts the number of times a particular key word appears in a list
+//----------------------------------------------------------------------------------
+Function StringByKeyNumberOfInstances(matchStr,listStr,[sepChar])
+	String matchStr,listStr,sepChar
+	
+	Variable i // for loops
+	Variable instanceCount=0
+	String tmpStr
+	
+	// default to semicolon for the separation character
+	if ( paramIsDefault(sepChar) )
+		sepChar = ";"
+	endif
+
+	// count the instances in the list
+	for (i=0; i<999; i+=1 )
+		tmpStr = stringFromList(i,listStr,sepChar)
+		if ( strlen(tmpStr)==0 )  
+			break // reached the end of the list
+		endif
+		if ( strlen(StringByKey(matchStr,tmpStr))==0 )
+			// do nothing
+		else 
+			instanceCount+=1  // increment the instance count
+		endif
+	endfor
+	
+	return instanceCount
+	
+End
+
+//----------------------------------------------------------------------------------
+// counts the number of times a particular key word appears in a list
+//----------------------------------------------------------------------------------
+Function/S StringByKeyIndexed(instance,matchStr,listStr,[sepChar])
+	Variable instance
+	String matchStr,listStr,sepChar
+	
+	// default to semicolon for the separation character
+	if ( paramIsDefault(sepChar) )
+		sepChar = ";"
+	endif
+	
+	Variable i // for loops
+	Variable instanceCount=0
+	String tmpStr
+	
+	// find out how many instances in total
+	Variable instanceTotal = StringByKeyNumberOfInstances(matchStr,listStr,sepChar=sepChar)	
+	
+	if ( instance > instanceTotal-1 )
+		Print "ERROR: There are only", instanceTotal, "instances in the list (the first instance is numbered 0)"
+		return  ""
+	endif
+	
+	// 	get the instance from the list
+	for (i=0; i<999; i+=1 )
+		tmpStr = stringFromList(i,listStr,sepChar)
+		if ( strlen(StringByKey(matchStr,tmpStr))==0 )
+			// do nothing
+		else 
+			if ( instanceCount >= instance)
+				break
+			endif
+			instanceCount+=1  // increment the instance count
+		endif
+	endfor
+	String returnStr = StringByKey(matchStr,tmpStr)
+
+	return returnStr
+	
 End
