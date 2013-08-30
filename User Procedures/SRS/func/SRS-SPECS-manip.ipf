@@ -64,17 +64,6 @@ Function doSomethingWithSpecsData(actionType)
 	
 	// Get name of top graph
 	String graphName= WinName(0,1)
-	
-	// Check if there is a graph before doing anything
-	if( strlen(graphName) )
-		// do nothing
-	else
-		Print "Error: no data window, bringng up data display dialogue"
-		display1DWaves("one")
-		
-		// Get name of top graph
-		graphName= WinName(0,1)
-	endif	
 
 	// Check again (in case user cancelled above) if there is a graph before doing anything
 	if( strlen(graphName) )
@@ -861,7 +850,7 @@ Function XPSApplyEnergyOffsetToDF()
 						
 			Wave sw = $shiftedWaveName
 			
-			SetScale/P x, dimOffset(w,0)+energyShift, dimDelta(w,0), sw
+			SetScale/P x, dimOffset(w,0)-energyShift, dimDelta(w,0), sw
 			
 			// Add wave note
 			Note/NOCR sw, "XSHIFTEDBY: "+num2str(energyShift)+";"
