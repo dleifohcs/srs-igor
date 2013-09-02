@@ -80,8 +80,10 @@ Menu "Line Trace"
 	
 	"-"
 	SubMenu "Manipulate"
-		"Smooth all traces, Binomial/4", SmoothTracesInGraph("",type="B")
-		"Smooth all traces, Savitsky-Golay, 5pt", SmoothTracesInGraph("",type="SG")
+		"Smooth all traces, Binomial/4", DoSomethingToAllTracesInGraph("",type="smooth-B")
+		"Smooth all traces, Savitsky-Golay, 5pt", DoSomethingToAllTracesInGraph("",type="smooth-SG")
+		"-"
+		"Differentiate all traces",DoSomethingToAllTracesInGraph("",type="differentiate")
 		"-"
 		"Shift x-axis for all traces", ShiftTracesInGraph("")
 	End

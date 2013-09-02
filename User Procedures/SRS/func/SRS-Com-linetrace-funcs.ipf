@@ -1032,6 +1032,11 @@ Function SmoothTracesInGraph(graphName,[type])
 	Variable i
 	String waveNameStr, waveDF, FullWaveNameStr
 	
+Print "****************WARNING*******************"
+Print "THIS FUNCTION NOW REDUNDANT.  "
+PRINT " PLEASE USE: Function DoSomethingToAllTracesInGraph(graphName,[type])"
+Print "****************WARNING*******************"
+	
 	// Get current data folder
 	String saveDF = GetDataFolder(1)	  // Save
 	
@@ -1246,3 +1251,96 @@ Function findTracePeakWithGaussian(graphName)
 End
 
 
+
+
+
+
+//------------------------------------------------------------------------------------------------------------------------------------
+// This function operates on a graph window.  It duplicates all traces in that window into their own DFs and
+// appends "_X" to their names.  It then performs some action of the waves (smoothing, differentiating...)
+//------------------------------------------------------------------------------------------------------------------------------------
+Function DoSomethingToAllTracesInGraph(graphName,[type])
+	String graphName, type
+	Variable i
+	String waveNameStr, waveDF, FullWaveNameStr
+	
+	// Get current data folder
+	String saveDF = GetDataFolder(1)	  // Save
+	
+	if ( cmpstr(graphName,"")==0 )
+		// Get name of top graph
+		graphName= WinName(0,1)
+	endif
+	
+	// Check if there is a graph before doing anything
+	if( strlen(graphName) )
+		String waveNameList=TraceNameList(graphName, ";", 1 )
+		Variable numWaves = itemsInList(waveNameList)
+		String manipulatedWaveName
+		
+		
+		// get any input required from user before entering the loop
+		strswitch (type)
+			case "smooth-B":
+				Variable smth=3
+				Prompt smth, "Enter Smoothing Factor"
+				DoPrompt "Smoothing", smth
+				break
+		endswitch
+		
+		// loop over all waves in this graph window
+		for (i=0; i<numWaves; i+=1) 
+			waveNameStr = StringFromList(i,waveNameList)
+			Wave w = WaveRefIndexed(GraphName,i,1)	
+			waveDF = GetWavesDataFolder(w,1)		
+			FullWaveNameStr = GetWavesDataFolder(w,2)	
+			
+			// Move to waves DF
+			SetDataFolder $waveDF
+			
+			strswitch (type)
+				case "smooth-SG":
+					manipulatedWaveName = waveNameStr+"_SG"
+					Duplicate/O w, $manipulatedWaveName
+					Wave mw = $manipulatedWaveName
+					Smooth/S=2 5, mw
+					break
+				case "smooth-B":
+					manipulatedWaveName = waveNameStr+"_SB"
+					Duplicate/O w, $manipulatedWaveName
+					smoothAWaveB(manipulatedWaveName,smth)
+					break
+				case "differentiate":
+					manipulatedWaveName = waveNameStr+"_D"
+					Duplicate/O w, $manipulatedWaveName
+					Wave mw = $manipulatedWaveName
+					Differentiate mw
+					break
+				default:
+					Print "ERROR: Don't know what to do with this data"
+					break
+			endswitch
+			
+			// Display the result
+			if ( i==0 )
+				display1D(manipulatedWaveName)
+			else
+				display1D(manipulatedWaveName,appendWave="yes")
+			endif
+			
+		endfor
+	else	
+		Print "Error: no graph of that name, or no graph window open"
+	endif
+	
+	SetDataFolder $saveDF
+End
+
+Function smoothAWaveB(waveStr,smth)
+	String waveStr
+	Variable smth
+	
+	Wave w = $waveStr
+	
+	Smooth smth, w
+End

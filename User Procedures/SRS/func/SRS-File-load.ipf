@@ -116,6 +116,9 @@ Function SRSLoadData(pathStr,filenameStr)
 		case "asc":
 			loadNEXAFSASC2013( pathStr, filenameStr )
 			break
+		case "14":
+			loadSEMITIPfort14( pathStr, filenameStr )
+			break
 		default:
 			returnVar = 0
 			Print "SRS macro package does not know this file extension type; handing file back to Igor file loader"
@@ -2088,3 +2091,37 @@ Function loadWaveFunction( pathStr, filenameStr )
 	// Close data file
 	Close refNum 
 End
+
+
+
+
+//------------------------------------------------------------------------------------------------------------------------------------
+// Load output from "schroedsolve"
+//------------------------------------------------------------------------------------------------------------------------------------
+Function loadSEMITIPfort14( path, filename )
+	String path, filename
+	
+	// Save current DF
+	String saveDF = GetDataFolder(1)
+	
+	// write to screen 
+	Print "SEMITIP v6 fort.14 data (STS)"
+	
+	// make new DF
+	NewDataFolder/O/S root:SEMITIP_STS
+	
+	// load data
+	LoadWave/G/D/W/A path+filename
+	
+	Wave wave0, wave1
+	
+	// interpolate data (this is to fix the data point reversal that occurs in the raw data
+	Interpolate2/T=1/N=1000/Y=sts wave0, wave1
+	
+	// clean up
+	KillWaves/Z wave0, wave1, wave2, wave3
+	
+	// return to DF
+	//SetDataFolder saveDF
+End
+	
