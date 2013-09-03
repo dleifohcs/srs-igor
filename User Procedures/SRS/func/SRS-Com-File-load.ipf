@@ -117,7 +117,16 @@ Function SRSLoadData(pathStr,filenameStr)
 			loadNEXAFSASC2013( pathStr, filenameStr )
 			break
 		case "14":
-			loadSEMITIPfort14( pathStr, filenameStr )
+			loadSEMITIPfort( pathStr, filenameStr, 14)
+			break
+		case "15":
+			loadSEMITIPfort( pathStr, filenameStr, 15 )
+			break
+		case "17":
+			loadSEMITIPfort( pathStr, filenameStr, 17 )
+			break
+		case "19":
+			loadSEMITIPfort( pathStr, filenameStr, 19 )
 			break
 		default:
 			returnVar = 0
@@ -2098,14 +2107,15 @@ End
 //------------------------------------------------------------------------------------------------------------------------------------
 // Load output from "schroedsolve"
 //------------------------------------------------------------------------------------------------------------------------------------
-Function loadSEMITIPfort14( path, filename )
+Function loadSEMITIPfort( path, filename, fortNum)
 	String path, filename
+	Variable fortNum
 	
 	// Save current DF
 	String saveDF = GetDataFolder(1)
 	
 	// write to screen 
-	Print "SEMITIP v6 fort.14 data (STS)"
+	Print "SEMITIP v6 fort."+num2str(fortNum)+" data (STS)"
 	
 	// get input from user
 	String description="X"
@@ -2124,9 +2134,20 @@ Function loadSEMITIPfort14( path, filename )
 		Wave wave0, wave1
 	
 		Variable dataLen = DimSize(wave1,0)
-	
-		String newWStr = "sts_"+description
+		String newWStr
 		
+		switch ( fortNum )
+			case 14:
+				newWStr = "sts_"+description
+				break
+			case 15:
+				newWStr = "stsd_"+description
+				break
+			default:
+				newWStr = "data_"+description
+				break
+		endswitch
+			
 		// interpolate data (this is to fix the data point reversal that occurs in the raw data
 		Interpolate2/T=1/N=(dataLen) /Y=$(newWStr) wave0, wave1
 	

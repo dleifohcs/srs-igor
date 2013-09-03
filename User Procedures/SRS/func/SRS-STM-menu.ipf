@@ -24,7 +24,7 @@
 //------------------------------------------------------------------------------------------------------------------------------------#pragma rtGlobals=1		// Use modern global access method.
 
 
-Menu "SRS-STM"
+Menu "STM"
 	
 		"Display an image or CITS/F10", displayData()
 		Submenu "Colour Scale Control"
@@ -87,7 +87,7 @@ Menu "SRS-STM"
 			"Quick process CITS", quickScript("CITSstandard")
 		End
 		"-"
-		"About SRS-STM", SRSSTMAbout()
+		"About", SRSSTMAbout()
 
 End
 
