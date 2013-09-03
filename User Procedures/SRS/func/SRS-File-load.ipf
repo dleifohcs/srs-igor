@@ -2107,20 +2107,34 @@ Function loadSEMITIPfort14( path, filename )
 	// write to screen 
 	Print "SEMITIP v6 fort.14 data (STS)"
 	
-	// make new DF
-	NewDataFolder/O/S root:SEMITIP_STS
+	// get input from user
+	String description="X"
+	Prompt description, "Enter very brief description for the wave name ( < 10 characters) "+filename 
+	DoPrompt filename, description
+	if (V_Flag)
+      	return -1                   // User canceled
+	else 
 	
-	// load data
-	LoadWave/G/D/W/A path+filename
+		// make new DF
+		NewDataFolder/O/S root:SEMITIP_STS
 	
-	Wave wave0, wave1
+		// load data
+		LoadWave/G/D/W/A path+filename
 	
-	// interpolate data (this is to fix the data point reversal that occurs in the raw data
-	Interpolate2/T=1/N=1000/Y=sts wave0, wave1
+		Wave wave0, wave1
 	
-	// clean up
-	KillWaves/Z wave0, wave1, wave2, wave3
+		Variable dataLen = DimSize(wave1,0)
 	
+		String newWStr = "sts_"+description
+		
+		// interpolate data (this is to fix the data point reversal that occurs in the raw data
+		Interpolate2/T=1/N=(dataLen) /Y=$(newWStr) wave0, wave1
+	
+		// clean up
+		KillWaves/Z wave0, wave1, wave2, wave3
+
+	endif 
+		
 	// return to DF
 	//SetDataFolder saveDF
 End
