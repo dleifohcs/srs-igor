@@ -440,6 +440,9 @@ Function loadNEXAFSASC2013(path, filename )
 	Wave wave14
 	Wave wave15
 	
+	// data folder to store waves not commonly used in the analysis
+	NewDataFolder/O/S data 
+	
 	// Rename waves
 	Duplicate/O wave1, scanEnergy
 	Duplicate/O wave2, dwellTime
@@ -452,10 +455,10 @@ Function loadNEXAFSASC2013(path, filename )
 	Duplicate/O wave9, PHD
 	Duplicate/O wave10, TFYPHD
 	
-	// clean up
-	KillWaves wave0, wave1, wave2, wave3, wave4, wave5, wave6
-	KillWaves wave7, wave8, wave9, wave10,wave11, wave12
-	KillWaves wave13, wave14, wave15
+	// Move back to main data folder for the NEXAFS data
+	SetDataFolder root:$datafoldername
+	
+	
 	
 	Variable scanMin = WaveMin(scanEnergy)
 	Variable scanMax = WaveMax(scanEnergy)
@@ -471,14 +474,19 @@ Function loadNEXAFSASC2013(path, filename )
 	
 	String mcpnName = "mcp_n"
 	if ( cmpstr(region,"ref")==0 ) // reference spectrum
-		Duplicate/O MCP $mcpnName
+		Duplicate/O wave7 $mcpnName
 	else // not reference
 		mcpnName = shortfilename+"_"+region+"_"+num2str(theta)+"_n"
-		String mcpdnName = shortfilename+"_"+region+"_"+num2str(theta)+"_dn"
-		Duplicate/O MCP $mcpnName
-		Duplicate/O MCP $mcpdnName
-		Wave mcpdn = $mcpdnName
+		Duplicate/O wave7 $mcpnName
+		if ( WaveExists(cln) ) // check that a reference spectrum exists before attempting double normalisation
+			String mcpdnName = shortfilename+"_"+region+"_"+num2str(theta)+"_dn"
+			Duplicate/O MCP $mcpdnName
+			Wave mcpdn = $mcpdnName
+		else
+			// do nothing
+		endif
 	endif
+	
 	Wave mcpn = $mcpnName
 	
 	// Check if the global variable "cleanSpectrum) exists. If it does, double normalize
@@ -499,6 +507,10 @@ Function loadNEXAFSASC2013(path, filename )
 	// add the angle to the wave note so that it can be extracted later if desired
 	Note/NOCR mcpn, "THETA:"+num2str(theta)+";REGION:"+region
 	
+	// clean up
+	KillWaves wave0, wave1, wave2, wave3, wave4, wave5, wave6
+	KillWaves wave7, wave8, wave9, wave10,wave11, wave12
+	KillWaves wave13, wave14, wave15
 	
 	SetDataFolder saveDFR
 	return 1
@@ -2121,9 +2133,16 @@ Function loadSEMITIPfort( path, filename, fortNum)
 	String description="X"
 	Prompt description, "Enter very brief description for the wave name ( < 10 characters) "+filename 
 	DoPrompt filename, description
+	
 	if (V_Flag)
       	return -1                   // User canceled
+      	
 	else 
+	
+		// clean up description if necessary to avoid having wave names that igor doesn't like for some functions
+		description = replaceSpace(description)
+		description = replaceHyphen(description)
+		description = removeBadChars(description)
 	
 		// make new DF
 		NewDataFolder/O/S root:SEMITIP_STS
