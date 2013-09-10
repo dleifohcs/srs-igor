@@ -35,7 +35,14 @@
 // Function Stohr916a(w,theta)
 // Function Stohr923(w,theta)
 // Function Stohr918a(w,theta)
-
+//
+//--------------------------------------------------
+// Functions that add to MultiPeak functionality.
+//--------------------------------------------------
+// Function/S ErfStep_PeakFuncInfo(InfoDesired)
+// Function GaussToErfStepGuess(w)
+// Function ErfStepPeak(w, yw, xw)
+// Function ErfStepPeakParams(cw, sw, outWave)
 
 //------------------------------------------------------------------------------------------------------------------------------------
 
@@ -105,4 +112,108 @@ Function Stohr918a(w,theta) : FitFunc
 	//CurveFitDialog/ w[2] = alpha2
 
 	return w[0] * (1 + 0.5 * (3 * cos(theta * pi / 180) ^ 2 - 1) * (cos(w[1] * pi / 180) ^ 2 + cos(w[2] * pi / 180) ^ 2 + cos(w[1] * pi / 180) * cos(w[2] * pi / 180) - 1))
+End
+
+// Provides a error function step fit for the MultiPeak package. This is equation 
+// 7.9a and b from Stohr using exponential decay after the step.
+Function/S ErfStep_PeakFuncInfo(InfoDesired)
+	Variable InfoDesired
+	
+	String info=""
+	
+	// NOTE: I needed to use integers here because we want to be able
+	// to load the SRS macros without having to load Multipeak first.
+	// Here are the conversions:
+	//constant PeakFuncInfo_ParamNames = 0
+	//constant PeakFuncInfo_PeakFName = 1
+	//constant PeakFuncInfo_GaussConvFName = 2
+	//constant PeakFuncInfo_ParameterFunc = 3
+	//constant PeakFuncInfo_DerivedParamNames = 4
+	Switch (InfoDesired)
+		case 0:
+			info = "Location;Width;Height;Decay"
+			break;
+		case 1:
+			info = "ErfStepPeak"
+			break;
+		case 2:
+			info = "GaussToErfStepGuess"
+			break;
+		case 3:
+			info = "ErfStepPeakParams"
+			break;
+		case 4:
+			info = "Location;Height;Area;FWHM;"		// just the standard derived parameters
+			break;
+		default:
+			break;
+	endSwitch
+	
+	return info
+End
+
+// This is a mandatory function for adding to Multipeak - specifying
+// how to convert the parameters of a gaussian into the parameters for
+// our erf step.
+Function GaussToErfStepGuess(w)
+	Wave w
+	
+	Variable x0 = w[0]
+	Variable width = w[1]
+	Variable height = w[2]
+	
+	Redimension/N=4 w
+	
+	w[0] = x0
+	w[1] = width
+	w[2] = height
+	// Guess a long decay so small decay constant
+	w[3] = 0.001
+	return 0
+End
+
+//	Another mandatory function for the Multipeak fitting. This function
+// provides an erf step in yw over the x range of xw with parameters w.
+Function ErfStepPeak(w, yw, xw)
+	Wave w
+	Wave yw, xw
+	
+	// First step is to do the erf part
+	yw = w[2] * (0.5 + 0.5 * erf((xw[p] - w[0]) / (w[1] / 2 * sqrt(ln(2)))))
+	
+	// Now construct a decaying exponential for x > w[0]
+	Wave dw
+	Make/N=(numpnts(xw)) /FREE dw
+	
+	dw = 1
+	dw[x2pnt(xw,w[0]+w[1]),numpnts(xw)] *= exp(-1 * w[3] * (xw[p] - w[0] - w[1]))
+	
+	yw *= dw
+End
+
+// Yet another mandatory multipeak fit function. This function provides
+// the derived parameters (location and height) for our function. Area
+// is not very useful, nor is FWHM.
+// NOTE: the parameters are STUPIDLY NAMED here - use the documentation
+// source code to figure out why I've put things where as there are too many
+// to document.
+Function ErfStepParams(cw, sw, outWave)
+	Wave cw, sw, outWave
+	
+	// Location
+	outWave[0][0] = cw[0]
+	outWave[0][1] = sqrt(sw[0][0])
+	
+	// Height
+	outWave[1][0] = cw[2]
+	outWave[1][1] = sqrt(sw[2][2])
+	
+	// Area: just use the left half (ie, the bit before the edge, half a gaussian)
+	// because we don't really care about the area.
+	outWave[2][0] = cw[2] * cw[1] * sqrt(Pi) / 2
+	outWave[2][1] = NaN // Don't use this as an error estimate since we're fudging.
+	
+	// FWHM - again, use the gaussian width and the standard formula.
+	outWave[3][0] = cw[1] * 2 * sqrt(ln(2))
+	outWave[3][1] = NaN
 End
