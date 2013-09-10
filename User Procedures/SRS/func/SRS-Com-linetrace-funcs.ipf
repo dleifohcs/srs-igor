@@ -325,6 +325,9 @@ Function getYvaluesFromGraph(graphName)
 			NEXAFSintensity[i] = w(eV)
 		endfor
 		
+		// Reorder the data in ascending order
+		Sort NEXAFStheta, NEXAFStheta, NEXAFSintensity
+		
 		// Display result
 		DoWindow/K $(graphName+"_analysis0")
 		Display/k=1 /N=$(graphName+"_analysis") NEXAFSintensity vs NEXAFStheta
