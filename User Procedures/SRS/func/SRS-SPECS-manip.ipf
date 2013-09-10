@@ -928,36 +928,50 @@ End
 // Simple macro to make the axes of the graph nice
 //------------------------------------------------------------------------------------------------------------------------------------
 Function prettyXPS()
-	ModifyGraph width=566.929,height=283.465;DelayUpdate
-	ModifyGraph mirror=1,standoff=0;DelayUpdate
-	ModifyGraph tick=2;DelayUpdate
-	SetAxis left 0,*;DelayUpdate
-	ModifyGraph fSize=16;DelayUpdate
-	ModifyGraph standoff(bottom)=1; DelayUpdate
-	MakeTracesDifferentColours("SpectrumBlack")
-	DoUpdate
-	Legend/C/N=text0/F=0
-	DoUpdate
+	// check if there is a graph window first 
+	String graphName= WinName(0,1)
+	if ( strlen(graphName) ==0 )
+		// do nothing
+		Print "ERROR: no graph window present"
+	else
+		ModifyGraph width=566.929,height=283.465;DelayUpdate
+		ModifyGraph mirror=1,standoff=0;DelayUpdate
+		ModifyGraph tick=2;DelayUpdate
+		SetAxis left 0,*;DelayUpdate
+		ModifyGraph fSize=16;DelayUpdate
+		ModifyGraph standoff(bottom)=1; DelayUpdate
+		MakeTracesDifferentColours("SpectrumBlack")
+		DoUpdate
+		Legend/C/N=text0/F=0
+		DoUpdate
+	endif
 End
 
 //------------------------------------------------------------------------------------------------------------------------------------
 // Simple macro to make the axes of the graph nice
 //------------------------------------------------------------------------------------------------------------------------------------
 Function prettyNEXAFS()
-	ModifyGraph width=566.929,height=283.465;DelayUpdate
-	ModifyGraph mirror=1,standoff=0;DelayUpdate
-	ModifyGraph tick=2;DelayUpdate
-	SetAxis left 0,*;DelayUpdate
-	SetAxis/A bottom;DelayUpdate
-	Label left "Normalised Auger Yield";DelayUpdate
-	Label bottom "Photon Energy (\\U)";DelayUpdate
-	ModifyGraph fSize=16;DelayUpdate
-	Label left "\\Z16Normalised Auger Yield";DelayUpdate
-	Label bottom "\\Z16Photon Energy (\\U)"
-	MakeTracesDifferentColours("YellowHot256")
-	DoUpdate
-	Legend/C/N=text0/F=0
-	DoUpdate
+	// check if there is a graph window first 
+	String graphName= WinName(0,1)
+	if ( strlen(graphName) ==0 )
+		// do nothing
+		Print "ERROR: no graph window present"
+	else
+		ModifyGraph width=566.929,height=283.465;DelayUpdate
+		ModifyGraph mirror=1,standoff=0;DelayUpdate
+		ModifyGraph tick=2;DelayUpdate
+		SetAxis left 0,*;DelayUpdate
+		SetAxis/A bottom;DelayUpdate
+		Label left "Normalised Auger Yield";DelayUpdate
+		Label bottom "Photon Energy (\\U)";DelayUpdate
+		ModifyGraph fSize=16;DelayUpdate
+		Label left "\\Z16Normalised Auger Yield";DelayUpdate
+		Label bottom "\\Z16Photon Energy (\\U)"
+		MakeTracesDifferentColours("YellowHot256")
+		DoUpdate
+		Legend/C/N=text0/F=0
+		DoUpdate
+	endif
 End
 
 //------------------------------------------------------------------------------------------------------------------------------------

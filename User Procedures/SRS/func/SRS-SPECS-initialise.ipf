@@ -44,3 +44,5 @@
 #include "SRS-SPECS-menu"
 #include "SRS-SPECS-manip"
 
+// KANE fitting
+#include "KOD-SPECS-special-funcs"
