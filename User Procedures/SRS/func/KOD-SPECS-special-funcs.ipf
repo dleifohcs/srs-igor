@@ -116,7 +116,7 @@ End
 
 // Provides a error function step fit for the MultiPeak package. This is equation 
 // 7.9a and b from Stohr using exponential decay after the step.
-Function/S ErfStep_PeakFuncInfo(InfoDesired)
+Function/S ErrorStep_PeakFuncInfo(InfoDesired)
 	Variable InfoDesired
 	
 	String info=""
@@ -134,13 +134,13 @@ Function/S ErfStep_PeakFuncInfo(InfoDesired)
 			info = "Location;Width;Height;Decay"
 			break;
 		case 1:
-			info = "ErfStepPeak"
+			info = "ErrorStepPeak"
 			break;
 		case 2:
-			info = "GaussToErfStepGuess"
+			info = "GaussToErrorStepGuess"
 			break;
 		case 3:
-			info = "ErfStepPeakParams"
+			info = "ErrorStepPeakParams"
 			break;
 		case 4:
 			info = "Location;Height;Area;FWHM;"		// just the standard derived parameters
@@ -155,7 +155,7 @@ End
 // This is a mandatory function for adding to Multipeak - specifying
 // how to convert the parameters of a gaussian into the parameters for
 // our erf step.
-Function GaussToErfStepGuess(w)
+Function GaussToErrorStepGuess(w)
 	Wave w
 	
 	Variable x0 = w[0]
@@ -168,13 +168,13 @@ Function GaussToErfStepGuess(w)
 	w[1] = width
 	w[2] = height
 	// Guess a long decay so small decay constant
-	w[3] = 0.001
+	w[3] = 0.01
 	return 0
 End
 
 //	Another mandatory function for the Multipeak fitting. This function
 // provides an erf step in yw over the x range of xw with parameters w.
-Function ErfStepPeak(w, yw, xw)
+Function ErrorStepPeak(w, yw, xw)
 	Wave w
 	Wave yw, xw
 	
@@ -186,7 +186,11 @@ Function ErfStepPeak(w, yw, xw)
 	Make/N=(numpnts(xw)) /FREE dw
 	
 	dw = 1
-	dw[x2pnt(xw,w[0]+w[1]),numpnts(xw)] *= exp(-1 * w[3] * (xw[p] - w[0] - w[1]))
+	// You know, Stohr says to only do the decaying exponential thing above the ionization
+	// edge, but it results in a discontinuity (sometimes quite extreme). So I include 
+	// it for the whole range. Doesn't seem to affect the edge very much at all.
+	//dw[x2pnt(xw,w[0]+w[1]),numpnts(xw)] *= exp(-1 * w[3] * (xw[p] - w[0] - w[1]))
+	dw *= exp(-1 * w[3] * (xw[p] - w[0] - w[1]))
 	
 	yw *= dw
 End
@@ -197,7 +201,7 @@ End
 // NOTE: the parameters are STUPIDLY NAMED here - use the documentation
 // source code to figure out why I've put things where as there are too many
 // to document.
-Function ErfStepParams(cw, sw, outWave)
+Function ErrorStepParams(cw, sw, outWave)
 	Wave cw, sw, outWave
 	
 	// Location
