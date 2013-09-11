@@ -455,6 +455,10 @@ Function loadNEXAFSASC2013(path, filename )
 	Duplicate/O wave9, PHD
 	Duplicate/O wave10, TFYPHD
 	
+	// Make new wave which is MCP/CHN - this is Bruce's "rough normalised data"
+	Duplicate/O wave7, MCPoverCHN
+	MCPoverCHN = MCP / CHN
+	
 	// Move back to main data folder for the NEXAFS data
 	SetDataFolder root:$datafoldername
 	

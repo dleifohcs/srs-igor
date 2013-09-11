@@ -73,6 +73,8 @@
 //
 //
 // Function findTracePeakWithGaussian(graphName)
+//
+// Function DoSomethingToAllTracesInGraph(graphName,[type])
 //------------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -283,15 +285,8 @@ Function getYvaluesFromGraph(graphName)
 		Cursor/W=$graphName/s=0/c=(0,0,0) A, $wStr, cursPos
 	endif 
 		
-	// Load the cursor positions from global variables if they exist
-	Variable/G xA
-	
 	// Set energy to cursor position
-	if ( numtype(xA)==0 )
-		eV=xA;
-	else 
-		eV = cursPos
-	endif
+	eV = hcsr(A,graphName)
 	
 	// make data folder to hold result
 	NewDataFolder/O/S root:$(graphName+"_analysis")

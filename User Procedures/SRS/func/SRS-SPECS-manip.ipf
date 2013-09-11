@@ -418,7 +418,7 @@ Function postEdgeNormalisation(graphName)
 	Variable xRange= xMax - xMin
 	
 	// Calculate cursor positions
-	Variable leftCurs= xMax - (0.15 * xRange)
+	Variable leftCurs= xMax - (0.05 * xRange)
 	Variable rightCurs= xMax 
 	
 	// Load the cursor positions from global variables if they exist
