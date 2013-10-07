@@ -43,6 +43,10 @@
 // Function GaussToErfStepGuess(w)
 // Function ErfStepPeak(w, yw, xw)
 // Function ErfStepPeakParams(cw, sw, outWave)
+// Function/S GaussLorentz_PeakFuncInfo(InfoDesired)
+// Function GaussToGaussLorentz(w)
+// Function GaussLorentzPeak(w, yw, xw)
+// Function GaussLorentzPeakParams(cw, sw, outWave)
 
 //------------------------------------------------------------------------------------------------------------------------------------
 
@@ -220,4 +224,127 @@ Function ErrorStepParams(cw, sw, outWave)
 	// FWHM - again, use the gaussian width and the standard formula.
 	outWave[3][0] = cw[1] * 2 * sqrt(ln(2))
 	outWave[3][1] = NaN
+End
+
+// Provides a gaussian-lorentzian (the sum verion G+L).
+Function/S GaussLorentz_PeakFuncInfo(InfoDesired)
+	Variable InfoDesired
+	
+	String info=""
+	
+	// NOTE: I needed to use integers here because we want to be able
+	// to load the SRS macros without having to load Multipeak first.
+	// Here are the conversions:
+	//constant PeakFuncInfo_ParamNames = 0
+	//constant PeakFuncInfo_PeakFName = 1
+	//constant PeakFuncInfo_GaussConvFName = 2
+	//constant PeakFuncInfo_ParameterFunc = 3
+	//constant PeakFuncInfo_DerivedParamNames = 4
+	Switch (InfoDesired)
+		case 0:
+			info = "Location;GaussWidth;LorentzWidth;Height;Mix"
+			break;
+		case 1:
+			info = "GaussLorentzPeak"
+			break;
+		case 2:
+			info = "GaussToGaussLorentzGuess"
+			break;
+		case 3:
+			info = "GaussLorentzPeakParams"
+			break;
+		case 4:
+			info = "Location;Height;Area;FWHM;"		// just the standard derived parameters
+			break;
+		default:
+			break;
+	endSwitch
+	
+	return info
+End
+
+// This is a mandatory function for adding to Multipeak - specifying
+// how to convert the parameters of a gaussian into the parameters for
+// our gaussian+lorentzian.
+Function GaussToGaussLorentzGuess(w)
+	Wave w
+	
+	Variable x0 = w[0]
+	Variable width = w[1]
+	Variable height = w[2]
+	
+	Redimension/N=5 w
+	
+	w[0] = x0
+	w[1] = width
+	w[2] = width // Initially set them to equal widths
+	w[3] = height
+	// Guess a 15% Lorentzian mix
+	w[4] = 0.15
+	return 0
+End
+
+//	Another mandatory function for the Multipeak fitting. This function
+// provides the sum of a gaussian and lorentzian in yw over the x range of xw with parameters w.
+Function GaussLorentzPeak(w, yw, xw)
+	Wave w
+	Wave yw, xw
+	
+	print "GL with w = ", w
+	Variable g_prefactor  = 1.0 / (w[1] * sqrt(2*Pi))
+	Variable l_prefactor = w[2] / (2 * Pi)
+	// Gaussian bit - this is NOT normalized (so that the width
+	// and height are decoupled).
+	yw = w[3] * (1 - w[4]) * exp(-1.0 * (xw[p] - w[0])^2 / (2.0 * w[1]^2))
+	
+	// Lorentzian bit - again, not normalized and height is decoupled from
+	// width so the maximum is just the height * mixing fraction
+	yw += w[3] * w[4] / (1 + 4 * (xw[p] - w[0])^2 / (w[2]^2))
+	
+End
+
+// Yet another mandatory multipeak fit function. This function provides
+// the derived parameters (location and height) for our function.
+// NOTE: the parameters are STUPIDLY NAMED here - use the documentation
+// source code to figure out why I've put things where as there are too many
+// to document.
+Function GaussLorentzParams(cw, sw, outWave)
+	Wave cw, sw, outWave
+	
+	// Because we've defined our Gaussian and Lorentzians differently here we
+	// need to be careful - can't just copy from the MultiPeak functions.
+	
+	// Convenience unpack of the variables
+	Variable s = cw[1]
+	Variable G = cw[2]
+	Variable h = cw[3]
+	Variable m = cw[4]
+	Variable dh = sqrt(sw[3][3])
+	Variable dm = sqrt(sw[4][4])
+	Variable ds = sqrt(sw[1][1])
+	Variable dG = sqrt(sw[2][2])
+		
+	// Location
+	outWave[0][0] = cw[0]
+	outWave[0][1] = sqrt(sw[0][0])
+	
+	// Height
+	outWave[1][0] = h
+	outWave[1][1] = sqrt(sw[3][3])
+	
+	// Area: this is just the weighted sum of the two
+	// bits.
+	// The usual error expression based on differentials with respect to all the
+	// variables.
+	outWave[2][0] =h * ((1 - m) * s * sqrt(2*Pi) + m * (Pi * G) / 2)
+	outWave[2][1] = ((1 - m) * sqrt(2 * Pi) * s + m * Pi * G / 2) * dh + (h * Pi * G / 2 - h * sqrt(2 * Pi) * s) * dm + h * (1 - m) * sqrt(2 * Pi) * ds + (h * m * Pi / 2) * dG
+	//outWave[2][1] = NaN
+	
+	// FWHM -One day will actually fill this in...for now it is
+	// the FWHM of the gaussian component. 
+	outWave[3][0] = cw[1] * 2 * sqrt(ln(2))
+	outWave[3][1] = NaN
+	
+	print "Variables:"
+	print cw[0], s, G, h, m, outWave[2][1]
 End
