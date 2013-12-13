@@ -310,7 +310,13 @@ Function loadXY2013(pathStr,filenameStr)
 	
 	// make name for the data wave based on path and file name
 	String newWaveNameStr = ParseFilePath(3,filenameForWaveNames, ":", 0, 0)  // remove the file extension
-	filenameForWaveNames = removeBadChars(filenameForWaveNames)  // just in case...
+	// EDIT 13Dec2013: I think we want to removeBadChars and place the result in newWaveNameStr not filenameForWaveNames.
+	newWaveNameStr = removeBadChars(filenameForWaveNames)  // just in case...
+	
+	// COMMENT 13Dec2013: What if the wave name is too long? Ask user for alternative.
+	if (strlen(newWaveNameStr) >= 32)
+		newWaveNameStr = SPECSDialogNameTooLong(newWaveNameStr)
+	endif
 	
 	// copy data wave to one with same name as input file name
 	Duplicate/O countsW, $newWaveNameStr
@@ -561,6 +567,29 @@ Function/S XPSDialogSamplePreparation(shortfilename)
 	endif
 End
 
+//------------------------------------------------------------------------------------------------------------------------------------
+// Ask for an alternative file name because the automatically generated one is too long.
+//------------------------------------------------------------------------------------------------------------------------------------
+Function/S SPECSDialogNameTooLong(longfilename)
+	String longfilename
+	String shortname="X"
+	
+	do
+		Prompt shortname, "Enter a shorter file name! ( < 32 characters) "+ longfilename 
+		DoPrompt longfilename, shortname
+	while (strlen(shortname) >= 32)
+	
+	if (V_Flag)
+      		return "error"                   // User canceled
+	else 
+		// clean up description if necessary
+		shortname = replaceSpace(shortname)
+		shortname = replaceHyphen(shortname)
+		shortname = removeBadChars(shortname)
+		
+		return shortname
+	endif
+End
 
 //------------------------------------------------------------------------------------------------------------------------------------
 // Get Theta from User for NEXAFS data load
