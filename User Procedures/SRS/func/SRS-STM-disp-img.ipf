@@ -127,6 +127,9 @@ End
 Function imgDisplay(imgWStr)
 	String imgWStr
 	
+	// get global variable on automatic background subtraction preference
+	SVAR autoBackground = root:WinGlobals:srsstm_ControlVariables:defaultBackground
+	
 	// Get current data folder
 	DFREF saveDF = GetDataFolderDFR()	  // Save
 	String imgDF = GetDataFolder(1)  // This is the DF that holds the 2D image wave data
@@ -145,6 +148,27 @@ Function imgDisplay(imgWStr)
 	
 	// Adjust graph size etc.
 	doSomethingWithData("makeImgPretty")
+	
+	// automatic background subtraction
+	strswitch(autoBackground)
+		case "none":
+			// do nothing
+			break
+		case "linewise":
+			// plane correct
+			doSomethingWithData("subtractlinewise")
+			break
+		case "plane":
+			// plane correct
+			doSomethingWithData("subtractplane")
+			break
+		default:
+			// do nothing
+			break
+	endswitch
+	
+	// set minimum to zero
+	doSomethingWithData("subtractMin")
 	
 	// Return to starting data folder
 	SetDataFolder saveDF

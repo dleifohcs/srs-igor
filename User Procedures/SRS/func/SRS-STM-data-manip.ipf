@@ -740,6 +740,11 @@ Function VariablesForProgramControl()
 	if (strlen(commonDataFolder)==0)
 		commonDataFolder = "no"
 	endif
+	
+	String/G defaultBackground
+	if (strlen(defaultBackground)==0)
+		defaultBackground = "none"
+	endif
 
 	SetDataFolder saveDF
 End

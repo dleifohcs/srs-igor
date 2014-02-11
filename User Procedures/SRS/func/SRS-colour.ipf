@@ -166,6 +166,7 @@ End
 Function updateColourRange(graphName,[minVal,maxVal,changeScale])
 	String graphName,changeScale
 	Variable minVal, maxVal
+	Variable rangeVal
 	
 	// Get current data folder
 	DFREF saveDF = GetDataFolderDFR()	  // Save
@@ -200,13 +201,14 @@ Function updateColourRange(graphName,[minVal,maxVal,changeScale])
 		Variable/G ctabwMax
 	else		// change the colour scaling
 		// Min and max of the image wave for colour table scaling
+		rangeVal = WaveMax(imgW) - WaveMin(imgW)
 		if ( ParamIsDefault(minVal) )  	// minVal not given in function call
-			Variable/G ctabwMin = WaveMin(imgW)
+			Variable/G ctabwMin = WaveMin(imgW) + 0.1*rangeVal
 		else 							// minVal given in function call
 			Variable/G ctabwMin = minVal
 		endif
 		if ( ParamIsDefault(maxVal) )  	// minVal not given in function call
-			Variable/G ctabwMax = WaveMax(imgW)
+			Variable/G ctabwMax = WaveMax(imgW) - 0.05*rangeVal
 		else 							// minVal given in function call
 			Variable/G ctabwMax = maxVal
 		endif

@@ -91,6 +91,9 @@ Menu "STM"
 		Submenu "Global Programme Control"
 			"Load all data into MyData", VariablesForProgramControl(); root:WinGlobals:srsstm_ControlVariables:commonDataFolder="yes";
 			"Load data into separate datafolders", VariablesForProgramControl(); root:WinGlobals:srsstm_ControlVariables:commonDataFolder="no"
+			"-"
+			"Auto background subtraction: plane", VariablesForProgramControl(); root:WinGlobals:srsstm_ControlVariables:defaultBackground="plane";
+			"Auto background subtraction: linewise", VariablesForProgramControl(); root:WinGlobals:srsstm_ControlVariables:defaultBackground="linewise";
 		End
 		"-"
 		"About", SRSSTMAbout()
