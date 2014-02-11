@@ -1339,19 +1339,24 @@ Function DoSomethingToAllTracesInGraph(graphName,[type])
 					break
 			endswitch
 			
-			// Divide average wave by number of traces (if doing an average)		
-			if ( cmpstr(type,"average") == 0 )
-				mw = mw / wavesAveraged
-			endif
-		
-			// Display the result
-			if ( i==0 )
-				display1D(manipulatedWaveName)
+			if (cmpstr(type,"average")==0)
+				// do nothing
 			else
-				display1D(manipulatedWaveName,appendWave="yes")
+				// Display the result 
+				if ( i==0 )
+					display1D(manipulatedWaveName)
+				else
+					display1D(manipulatedWaveName,appendWave="yes")
+				endif
 			endif
 			
 		endfor
+		
+		// Divide average wave by number of traces (if doing an average)		
+		if ( cmpstr(type,"average") == 0 )
+			mw = mw / wavesAveraged
+			display1D(manipulatedWaveName)
+		endif
 	else	
 		Print "Error: no graph of that name, or no graph window open"
 	endif
