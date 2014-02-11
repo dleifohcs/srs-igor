@@ -1498,7 +1498,18 @@ Function quickScript(scriptType)
 				//doSomethingWithData("STSfromCITS")
 				doSomethingWithData("lineprofile")
 				break				
-				
+			case "STSstandard":
+				// Get current data folder
+				DFREF saveDF = GetDataFolderDFR()	  // Save DF
+				// display all STS
+				display1DWaves("all")
+				// average
+				DoSomethingToAllTracesInGraph("",type="average")
+				// differentiate
+				DoSomethingToAllTracesInGraph("",type="differentiate")
+				// smooth
+				DoSomethingToAllTracesInGraph("",type="smooth-B")
+				break
 		endswitch
 End
 

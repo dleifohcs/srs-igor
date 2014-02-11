@@ -84,7 +84,8 @@ Menu "STM"
 		"-"
 		
 		Submenu "Automated scripting"
-			"Quick process CITS", quickScript("CITSstandard")
+			"Batch process CITS", quickScript("CITSstandard")
+			"Batch process point STS folder", quickScript("STSstandard")
 		End
 		"-"
 		Submenu "Global Programme Control"
