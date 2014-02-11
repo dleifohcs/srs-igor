@@ -87,7 +87,11 @@ End
 //------------------------------------------------------------------------------------------------------------------------------------
 Function SRSLoadData(pathStr,filenameStr)
 	String pathStr,filenameStr
-
+	
+	// CREATE a data folder containing variables for controlling the behaviour of the programme,
+	// e.g., determining whether or not to load all data in a single data folder, or separate DFs.
+	VariablesForProgramControl()
+	
 	String ext = ParseFilePath(4, filenameStr, ":", 0, 0)
 	
 	Variable returnVar = 1 // set to 1 means that Igor will not attempt to open the file
@@ -2015,32 +2019,38 @@ Function/S FlatRenameWaveAndDF()
 		endfor
 	endif	
 
-// ---------------HACK--------------------------
-// uncomment the following section to load all data into the same DF (also comment out the renamedatafolder command below section)
-//
-//	DFname = "MyData"
-//	
-//	if ( DataFolderExists(DFname) )
-//		// do nothing
-//	else 
-//		NewDataFolder $DFname
-//	endif
-//	
-//	SetDataFolder root:FlatFile
-//	
-//	String waveNameList = WaveList("*",";","")
-//	Variable numWaves = itemsInList(waveNameList,";")
-//	String waveNameStr
-//	for ( i=0 ; i<numWaves ; i+=1 )
-//		waveNameStr = StringFromList(i,waveNameList,";")
-//		MoveWave $waveNameStr, root:MyData:
-//	endfor
-//	KillDataFolder root:FlatFile
-// ---------------------------------------------
+	// get this gloable variable to determine whether to load the data into separate or common
+	SVAR commonDFcontrol = root:WinGlobals:srsstm_ControlVariables:commonDataFolder
+	
+	// the code below will load all data into the same DF if commonDataFolder string set to "yes"
+	if ( cmpstr(commonDFcontrol,"yes")==0 )
+	 
+		DFname = "MyData"
+	
+		if ( DataFolderExists(DFname) )
+			// do nothing
+		else 
+			NewDataFolder $DFname
+		endif
+	
+		SetDataFolder root:FlatFile
+		
+		String waveNameList = WaveList("*",";","")
+		Variable numWaves = itemsInList(waveNameList,";")
+		String waveNameStr
+		for ( i=0 ; i<numWaves ; i+=1 )
+			waveNameStr = StringFromList(i,waveNameList,";")
+			MoveWave $waveNameStr, root:MyData:
+		endfor
+		KillDataFolder root:FlatFile	
 
-	// rename the DF
-	SetDataFolder root:
-	RenameDataFolder FlatFile, $DFname
+		SetDataFolder root:
+
+	else
+		// rename the DF specific to this data
+		SetDataFolder root:
+		RenameDataFolder FlatFile, $DFname
+	endif
 	
 	// return DF name
 	return DFname

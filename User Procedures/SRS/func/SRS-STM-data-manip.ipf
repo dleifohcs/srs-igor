@@ -48,6 +48,11 @@
 // Function CursorMovedForGraph(info, cursNum)
 //
 //-------------------------------
+// Global Programme control
+//-------------------------------
+// Function VariablesForProgramControl()
+//
+//-------------------------------
 // Background subtraction
 //-------------------------------
 // Function subtractPlane(graphname,[ROI])
@@ -653,7 +658,6 @@ Function CursorDependencyForGraph(graphName)
 End
 
 
-
 //--------------------------------------------------------------------------------------------------------------
 Function CursorMovedForGraph(info, cursNum)
 	String info
@@ -722,7 +726,23 @@ Function CursorMovedForGraph(info, cursNum)
 	return result
 End
 
+//--------------------------------------------------------------------------------------------------------------
+Function VariablesForProgramControl()
+	
+	DFREF saveDF = GetDataFolderDFR()	  // Save
+	
+	NewDataFolder/O root:WinGlobals
+	NewDataFolder/O/S root:WinGlobals:srsstm_ControlVariables
+	
+	// Create a global string that can be set to "yes" if the user wants to load all their data into a single data folder
+	// e.g., if they are loading multiple STS measurements taken at the same point.
+	String/G commonDataFolder
+	if (strlen(commonDataFolder)==0)
+		commonDataFolder = "no"
+	endif
 
+	SetDataFolder saveDF
+End
 
 //--------------------------------------------------------------------------------------------------------------
 // PLANE SUBTRACT

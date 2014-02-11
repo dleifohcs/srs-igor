@@ -87,6 +87,11 @@ Menu "STM"
 			"Quick process CITS", quickScript("CITSstandard")
 		End
 		"-"
+		Submenu "Global Programme Control"
+			"Load all data into MyData", VariablesForProgramControl(); root:WinGlobals:srsstm_ControlVariables:commonDataFolder="yes";
+			"Load data into separate datafolders", VariablesForProgramControl(); root:WinGlobals:srsstm_ControlVariables:commonDataFolder="no"
+		End
+		"-"
 		"About", SRSSTMAbout()
 
 End
