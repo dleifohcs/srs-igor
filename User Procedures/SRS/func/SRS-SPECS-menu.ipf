@@ -83,6 +83,7 @@ Menu "XPS"
 	"-"
 	
 	SubMenu "Background subtraction"
+		"Linear Pre-edge", doSomethingWithSpecsData("leadingSubtraction")
 		"Linear", doSomethingWithSpecsData("XPSLinearBackground")
     		"Shirley", doSomethingWithSpecsData("XPSShirleyBackground")
  		// I moved the cursor function to the Line Trace menu
