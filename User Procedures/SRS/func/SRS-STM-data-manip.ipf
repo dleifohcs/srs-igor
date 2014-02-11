@@ -493,12 +493,13 @@ Function lineProfile(graphname)
 	if (WaveExists(citsImgW)==1)
 		AutoPositionWindow/E/m=0/R=$graphName $lineProfile2dGraphName
 		AutoPositionWindow/E/m=1/R=$lineProfile2dGraphName $lineProfileGraphName
-	else 
-		AutoPositionWindow/E/m=0/R=$lineProfile2dGraphName $lineProfileGraphName
-	endif	
+	else
+		AutoPositionWindow/E/m=0/R=$GraphName $lineProfileGraphName
+	endif
 	 
 	// Move back to the original data folder
 	SetDataFolder saveDF
+
 End
 
 
