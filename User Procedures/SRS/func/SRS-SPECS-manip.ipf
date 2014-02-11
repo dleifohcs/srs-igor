@@ -975,6 +975,36 @@ Function prettyNEXAFS()
 End
 
 //------------------------------------------------------------------------------------------------------------------------------------
+// Simple macro to make the axes of the graph nice
+//------------------------------------------------------------------------------------------------------------------------------------
+Function prettyNEXAFSpaperfig()
+	// check if there is a graph window first 
+	String graphName= WinName(0,1)
+	if ( strlen(graphName) ==0 )
+		// do nothing
+		Print "ERROR: no graph window present"
+	else
+		ModifyGraph mirror=1,standoff=0;DelayUpdate
+		ModifyGraph tick=2;DelayUpdate
+		SetAxis left 0,*;DelayUpdate
+		SetAxis/A bottom;DelayUpdate
+		Label left "Normalised Auger Yield";DelayUpdate
+		Label bottom "Photon Energy (\\U)";DelayUpdate
+		ModifyGraph fSize=16;DelayUpdate
+		Label left "\\Z16Normalised Auger Yield";DelayUpdate
+		Label bottom "\\Z16Photon Energy (\\U)"
+		DoUpdate
+		Legend/C/N=text0/F=0
+		DoUpdate
+		
+		ModifyGraph width=283.465,height=170.079; DelayUpdate
+		SetAxis/A bottom 280, 320; DelayUpdate
+		SetAxis left 0,4; DelayUpdate
+		DoUpdate
+	endif
+End
+
+//------------------------------------------------------------------------------------------------------------------------------------
 // This looks for a variable in root:reference that determines the y-axis height and if it finds it it sets the y-axis
 //------------------------------------------------------------------------------------------------------------------------------------
 Function setNEXAFSyAxis()

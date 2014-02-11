@@ -96,6 +96,64 @@ Function/S removeBadChars(str)
 	return newstr
 End
 
+//------------------------------------------------------------------------------------------------------------------------------------
+// Takes a string as input and removes bad characters and replaces them with "_"
+// Bad Chars=  
+// : ; + = , ( )
+//------------------------------------------------------------------------------------------------------------------------------------
+Function/S replaceBadChars(str)
+	String str
+	
+	Variable len=strlen(str)
+	Variable i
+	Variable j=0
+	String newstr= ""
+	String char= ""
+	for (i=0; i<len; i+=1)
+		char=str[i]
+		strswitch(char)
+			case ".":
+				newstr[j]= "_"
+				j+=1
+				break
+			case ":":
+				newstr[j]= "_"
+				j+=1
+				break
+			case ";":
+				newstr[j]= "_"
+				j+=1
+				break
+			case "+":
+				newstr[j]= "_"
+				j+=1
+				break
+			case "=":
+				newstr[j]= "_"
+				j+=1
+				break
+			case "(":
+				newstr[j]= "_"
+				j+=1
+				break
+			case ")":
+				newstr[j]= "_"
+				j+=1
+				break
+			case ",":
+				newstr[j]= "_"
+				j+=1
+				break
+			default:
+				newstr[j]= char
+				j+=1
+				break
+		endswitch
+	endfor
+	
+	return newstr
+End
+
 
 //------------------------------------------------------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------------------------------------------------
@@ -122,6 +180,7 @@ Function/S removeSpace(str)
 	
 	return newstr
 End
+
 
 
 //--------------------------------------------------------------------------------------------------------------

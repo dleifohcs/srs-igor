@@ -1883,11 +1883,20 @@ Function/S FlatRenameWaveAndDF()
 	
 	// determine whether this is a 1D data (e.g., STS) or rastered data (e.g., images or CITS)	
 	Wave dataW
-	if ( WaveExists(dataW) )// 1D wave
+	
+	if ( WaveExists(dataW) ) // 1D wave
 		
 		String Wwavenote = note(dataW)
 		String Wname = StringByKey("Name",Wwavenote)
+		Wname = replaceBadChars(Wname)
+		Wname = replaceSpace(Wname)
+		Wname = replaceHyphen(Wname)
+		
 		DFname = StringByKey("DFName",Wwavenote)
+		DFname = replaceBadChars(DFname)
+		DFname = replaceSpace(DFname)
+		DFname = replaceHyphen(DFname)
+		
 		Make/O/D  $Wname
 		Duplicate/O dataW, $Wname
 		KillWaves dataW
@@ -1909,8 +1918,28 @@ Function/S FlatRenameWaveAndDF()
 		String nameFD = StringByKey("Name",wavenoteFD)
 		String nameBD = StringByKey("Name",wavenoteBD)
 		
+		nameFU = replaceBadChars(nameFU)
+		nameFU = replaceSpace(nameFU)
+		nameFU = replaceHyphen(nameFU)
+		
+		nameBU = replaceBadChars(nameBU)
+		nameBU = replaceSpace(nameBU)
+		nameBU = replaceHyphen(nameBU)
+		
+		nameFD = replaceBadChars(nameFD)
+		nameFD = replaceSpace(nameFD)
+		nameFD = replaceHyphen(nameFD)
+		
+		nameBD = replaceBadChars(nameBD)
+		nameBD = replaceSpace(nameBD)
+		nameBD = replaceHyphen(nameBD)
+		
 		// Get name of the DF from the forward up wave
 		DFname = StringByKey("DFName",wavenoteFU)
+		
+		DFname = replaceBadChars(DFname)
+		DFname = replaceSpace(DFname)
+		DFname = replaceHyphen(DFname)
 		
 		Make/O/D  $nameFU
 		Make/O/D  $nameBU
@@ -1959,6 +1988,7 @@ Function/S FlatRenameWaveAndDF()
 
 // ---------------HACK--------------------------
 // uncomment the following section to load all data into the same DF (also comment out the renamedatafolder command below section)
+//
 //	DFname = "MyData"
 //	
 //	if ( DataFolderExists(DFname) )

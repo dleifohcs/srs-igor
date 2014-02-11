@@ -31,10 +31,10 @@ Menu "Line Trace"
 	
 	Submenu "Display"
 	
-		"Display a wave/O6", display1DWaves("one")
+		"Display a wave/5", display1DWaves("one")
 		help = {"Display a single 1D wave from the current data folder in a new graph window"}
 	
-		"Append a wave", display1DWaves("appendone")
+		"Append a wave/6", display1DWaves("appendone")
 		help = {"Append a single 1D wave from the current data folder to the top graph window"}
 	
 		"-"
@@ -86,6 +86,8 @@ Menu "Line Trace"
 		"Differentiate all traces",DoSomethingToAllTracesInGraph("",type="differentiate")
 		"-"
 		"Shift x-axis for all traces", ShiftTracesInGraph("")
+		"-"
+		"Average all traces in graph", DoSomethingToAllTracesInGraph("",type="average")
 	End
 	
 	"-"

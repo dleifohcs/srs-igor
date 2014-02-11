@@ -120,7 +120,11 @@ Function display1DWaves(mode)
 				break
 				
 			case "one":
-				wName= chooseWindowDialogue(wList,wNum)  // returns the image name, or "none" if user cancels
+				if ( wNum > 1)
+					wName= chooseWindowDialogue(wList,wNum)  // returns the image name, or "none" if user cancels
+				else 
+					wName = StringFromList(0,wList)
+				endif
 				if ( cmpstr(wName,"None")==0 )
 					// do nothing
 				else
@@ -180,7 +184,11 @@ Function display1DWaves(mode)
 				endfor
 				break
 			case "appendone":
-				wName= chooseWindowDialogue(wList,wNum)  // returns the image name, or "none" if user cancels
+				if ( wNum > 1 )
+					wName= chooseWindowDialogue(wList,wNum)  // returns the image name, or "none" if user cancels
+				else
+					wName = StringFromList(0,wList)
+				endif
 				if ( cmpstr(wName,"None")==0 )
 					// do nothing
 				else
@@ -1280,6 +1288,18 @@ Function DoSomethingToAllTracesInGraph(graphName,[type])
 				break
 		endswitch
 		
+		// Duplicate the wave if want to average the data
+		if ( cmpstr(type,"average") == 0 )
+			waveNameStr = StringFromList(0,waveNameList)
+			Wave w = WaveRefIndexed(GraphName,0,1)	
+			waveDF = GetWavesDataFolder(w,1)		
+			FullWaveNameStr = GetWavesDataFolder(w,2)	
+			manipulatedWaveName = waveNameStr+"_A"
+			NewDataFolder/O/S root:averaged
+			Duplicate/O w, $manipulatedWaveName
+			Variable wavesAveraged = 0
+		endif
+						
 		// loop over all waves in this graph window
 		for (i=0; i<numWaves; i+=1) 
 			waveNameStr = StringFromList(i,waveNameList)
@@ -1308,11 +1328,22 @@ Function DoSomethingToAllTracesInGraph(graphName,[type])
 					Wave mw = $manipulatedWaveName
 					Differentiate mw
 					break
+				case "average":
+					SetDataFolder root:averaged
+					Wave mw = $manipulatedWaveName
+					mw = mw + w
+					wavesAveraged += 1
+					break
 				default:
 					Print "ERROR: Don't know what to do with this data"
 					break
 			endswitch
 			
+			// Divide average wave by number of traces (if doing an average)		
+			if ( cmpstr(type,"average") == 0 )
+				mw = mw / wavesAveraged
+			endif
+		
 			// Display the result
 			if ( i==0 )
 				display1D(manipulatedWaveName)
