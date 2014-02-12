@@ -50,7 +50,7 @@
 //-------------------------------
 // Global Programme control
 //-------------------------------
-// Function VariablesForProgramControl()
+// Function createSRSControlVariables()
 //
 //-------------------------------
 // Background subtraction
@@ -727,23 +727,33 @@ Function CursorMovedForGraph(info, cursNum)
 End
 
 //--------------------------------------------------------------------------------------------------------------
-Function VariablesForProgramControl()
+Function createSRSControlVariables()
 	
 	DFREF saveDF = GetDataFolderDFR()	  // Save
 	
 	NewDataFolder/O root:WinGlobals
-	NewDataFolder/O/S root:WinGlobals:srsstm_ControlVariables
+	NewDataFolder/O/S root:WinGlobals:SRSSTMControl
 	
 	// Create a global string that can be set to "yes" if the user wants to load all their data into a single data folder
 	// e.g., if they are loading multiple STS measurements taken at the same point.
+	// "yes" "no"
 	String/G commonDataFolder
 	if (strlen(commonDataFolder)==0)
 		commonDataFolder = "no"
 	endif
 	
+	// controls whether background subtraction performed automatically.  
+	// "none" "linewise" "plane"
 	String/G defaultBackground
 	if (strlen(defaultBackground)==0)
 		defaultBackground = "none"
+	endif
+	
+	// Whether or not to automatically display images upon loading
+	// "yes" "no"
+	String/G autoDisplay
+	if (strlen(autoDisplay)==0)
+		autoDisplay = "yes"
 	endif
 
 	SetDataFolder saveDF
@@ -881,9 +891,12 @@ Function subtractLinewise(graphname)
 	Variable i=0
 	for (i=0; i<yPts; i+=1)
 		lineWave  = imgW[p][i]
-		CurveFit/N/Q/NTHR=0 line  lineWave /D=linefitWave
-		lineWave=lineWave - linefitWave
-		imgW[][i] = lineWave[p]
+		// check that data exists and if so do the fit and subtract, if not do nothing
+		if ( numtype(sum(lineWave)==0) )
+			CurveFit/N/Q/NTHR=0 line  lineWave /D=linefitWave
+			lineWave=lineWave - linefitWave
+			imgW[][i] = lineWave[p]
+		endif
 	endfor
 
 	// Clean up

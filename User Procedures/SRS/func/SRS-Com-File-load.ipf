@@ -90,7 +90,7 @@ Function SRSLoadData(pathStr,filenameStr)
 	
 	// CREATE a data folder containing variables for controlling the behaviour of the programme,
 	// e.g., determining whether or not to load all data in a single data folder, or separate DFs.
-	VariablesForProgramControl()
+	createSRSControlVariables()
 	
 	String ext = ParseFilePath(4, filenameStr, ":", 0, 0)
 	
@@ -1061,11 +1061,20 @@ Function SRSFlatFileLoad(pathStr,filenameStr)
 	
 	// Move to DF containing the data
 	SetDataFolder dataDF
-	
+
+// SHOULD MAKE THIS VARIABLE GLOBAL IN SRSSTMCONTROL VARIABLES	
 	// Delete unused matrix information if RETAIN_MATRIX_INFO not set
 	if ( RETAIN_MATRIX_INFO != 1 )
 		KillDataFolder matrix_info
 	endif
+	
+	// Automatically display images and CITS if loading from flat file format
+	SVAR autoDisplay = root:WinGlobals:SRSSTMControl:autoDisplay
+	if ( cmpstr(autoDisplay,"yes")==0)
+		Print "display", dataDF
+		displayAllData()
+	endif
+	
 	
 	// Move to original DF
 	//SetDataFolder saveDF
@@ -2020,7 +2029,7 @@ Function/S FlatRenameWaveAndDF()
 	endif	
 
 	// get this gloable variable to determine whether to load the data into separate or common
-	SVAR commonDFcontrol = root:WinGlobals:srsstm_ControlVariables:commonDataFolder
+	SVAR commonDFcontrol = root:WinGlobals:SRSSTMControl:commonDataFolder
 	
 	// the code below will load all data into the same DF if commonDataFolder string set to "yes"
 	if ( cmpstr(commonDFcontrol,"yes")==0 )

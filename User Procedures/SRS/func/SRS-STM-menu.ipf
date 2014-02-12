@@ -89,11 +89,15 @@ Menu "STM"
 		End
 		"-"
 		Submenu "Global Programme Control"
-			"Load all data into MyData", VariablesForProgramControl(); root:WinGlobals:srsstm_ControlVariables:commonDataFolder="yes";
-			"Load data into separate datafolders", VariablesForProgramControl(); root:WinGlobals:srsstm_ControlVariables:commonDataFolder="no"
+			"Load all data into MyData", createSRSControlVariables(); root:WinGlobals:SRSSTMControl:commonDataFolder="yes";
+			"Load data into separate datafolders", createSRSControlVariables(); root:WinGlobals:SRSSTMControl:commonDataFolder="no"
 			"-"
-			"Auto background subtraction: plane", VariablesForProgramControl(); root:WinGlobals:srsstm_ControlVariables:defaultBackground="plane";
-			"Auto background subtraction: linewise", VariablesForProgramControl(); root:WinGlobals:srsstm_ControlVariables:defaultBackground="linewise";
+			"Auto background subtraction: none", createSRSControlVariables(); root:WinGlobals:SRSSTMControl:defaultBackground="none";
+			"Auto background subtraction: plane", createSRSControlVariables(); root:WinGlobals:SRSSTMControl:defaultBackground="plane";
+			"Auto background subtraction: linewise", createSRSControlVariables(); root:WinGlobals:SRSSTMControl:defaultBackground="linewise";
+			"-"
+			"Auto-display image: on", createSRSControlVariables(); root:WinGlobals:SRSSTMControl:autoDisplay="yes";
+			"Auto-display image: off", createSRSControlVariables(); root:WinGlobals:SRSSTMControl:autoDisplay="no";
 		End
 		"-"
 		"About", SRSSTMAbout()

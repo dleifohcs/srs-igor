@@ -105,6 +105,60 @@ Function displayData()
 End
 
 
+
+//-----------------------------------------------------------------
+// This function looks for 2D or 3D data waves in the current data folder and attempts to display them (all)
+Function displayAllData()
+
+	// Get current data folder
+	DFREF saveDF = GetDataFolderDFR()	  // Save
+	String imgDF = GetDataFolder(1)  // This is the DF that holds the wave data
+
+	// List (2D) waves in current data folder
+	String w2dList =  WaveList("*",";","DIMS:2") 
+	Variable w2dNum = ItemsInList(w2dList)
+
+	// List (3D) waves in current data folder
+	String w3dList =  WaveList("*",";","DIMS:3") 
+	Variable w3dNum = ItemsInList(w3dList)
+
+	// Join 2D and 3D wave lists
+	String wList = w2dList+w3dList 
+	Variable wNum = w2dNum + w3dNum
+	
+	if (wNum!=0)  // check that at least one 2D or 3D data set exists 
+	
+		String imgWStr
+		Variable i
+	
+		// display all 2D and 3D waves in folder 		
+		for (i=0; i<wNum; i+=1)
+		
+			imgWStr= StringFromList(i,wList,";") 
+			
+			String imgWFullStr= imgDF+PossiblyQuoteName(imgWStr)
+	
+			// Create Wave assignment for image
+			Wave imgW= $imgWFullStr
+
+			// Display the data
+			if (WaveDims(imgW)<3)
+				// if a 2D wave then do the following
+				imgDisplay(imgWStr)
+			else
+				// if a 3D wave then do the following
+				img3dDisplay(imgWStr)
+			endif
+		endfor
+	else
+		Print "Error: no 2D or 3D image data found in the current data folder"
+	endif
+		
+	// Return to original data folder
+	SetDataFolder saveDF	
+End
+
+
 //-----------------------------------------------------------------
 // This function creates a pop-up window requesting the user to choose an image
 // from the list of images or 3D data sets in the current data folder
@@ -128,7 +182,7 @@ Function imgDisplay(imgWStr)
 	String imgWStr
 	
 	// get global variable on automatic background subtraction preference
-	SVAR autoBackground = root:WinGlobals:srsstm_ControlVariables:defaultBackground
+	SVAR autoBackground = root:WinGlobals:SRSSTMControl:defaultBackground
 	
 	// Get current data folder
 	DFREF saveDF = GetDataFolderDFR()	  // Save
@@ -169,6 +223,9 @@ Function imgDisplay(imgWStr)
 	
 	// set minimum to zero
 	doSomethingWithData("subtractMin")
+	
+	// Autoposition window
+	AutoPositionWindow
 	
 	// Return to starting data folder
 	SetDataFolder saveDF
@@ -266,7 +323,7 @@ Function imgGraphPretty(graphName)
 	endif
 	
 	// Modify image size
-	ModifyGraph/W=$graphName  width=350
+	ModifyGraph/W=$graphName  width=300
 	DoUpdate // this resizes the graph window.  The following line make the graph resizable again.
 	ModifyGraph/W=$graphName  width=0
 	ModifyGraph/W=$graphName  height={Aspect,1}
