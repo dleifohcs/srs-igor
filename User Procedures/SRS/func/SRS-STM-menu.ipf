@@ -24,7 +24,7 @@
 //------------------------------------------------------------------------------------------------------------------------------------#pragma rtGlobals=1		// Use modern global access method.
 
 
-Menu "STM"
+Menu "STM", dynamic
 	
 		"Display an image or CITS/F10", displayData()
 		Submenu "Colour Scale Control"
@@ -89,18 +89,153 @@ Menu "STM"
 		End
 		"-"
 		Submenu "Global Programme Control"
-			"Load all data into MyData", createSRSControlVariables(); root:WinGlobals:SRSSTMControl:commonDataFolder="yes";
-			"Load data into separate datafolders", createSRSControlVariables(); root:WinGlobals:SRSSTMControl:commonDataFolder="no"
+			setControlMenuItem("commonDataFolder"), toggleCommonDataFolderState()
 			"-"
-			"Auto background subtraction: none", createSRSControlVariables(); root:WinGlobals:SRSSTMControl:defaultBackground="none";
-			"Auto background subtraction: plane", createSRSControlVariables(); root:WinGlobals:SRSSTMControl:defaultBackground="plane";
-			"Auto background subtraction: linewise", createSRSControlVariables(); root:WinGlobals:SRSSTMControl:defaultBackground="linewise";
+			setControlMenuItem("autoBGnone"), setdefaultBackground("none")
+			setControlMenuItem("autoBGplane"), setdefaultBackground("plane")
+			setControlMenuItem("autoBGlinewise"), setdefaultBackground("linewise")
 			"-"
-			"Auto-display image: on", createSRSControlVariables(); root:WinGlobals:SRSSTMControl:autoDisplay="yes";
-			"Auto-display image: off", createSRSControlVariables(); root:WinGlobals:SRSSTMControl:autoDisplay="no";
+			setControlMenuItem("autoDisplay"), toggleAutoDisplay("yes")
 		End
 		"-"
 		"About", SRSSTMAbout()
 
 End
 
+
+// set global variable for programme control
+Function toggleCommonDataFolderState()
+	createSRSControlVariables()
+	SVAR commonDataFolder = root:WinGlobals:SRSSTMControl:commonDataFolder
+	if (cmpstr(commonDataFolder,"yes")==0)
+		commonDataFolder = "no"
+	else
+		commonDataFolder = "yes"
+		// Turn off autodisplay if loading into MyData , since otherwise will display multiples of same images. 
+		SVAR autoDisplay = root:WinGlobals:SRSSTMControl:autoDisplay
+		autoDisplay = "no"
+	endif
+End
+
+// set global variable for programme control
+// "none"; "plane"; "linewise"
+Function setdefaultBackground(state)
+	String state
+	createSRSControlVariables()
+	SVAR autoBGnone = root:WinGlobals:SRSSTMControl:autoBGnone
+	SVAR autoBGplane = root:WinGlobals:SRSSTMControl:autoBGplane
+	SVAR autoBGlinewise = root:WinGlobals:SRSSTMControl:autoBGlinewise
+	strswitch(state)
+		case "none":
+			autoBGnone = "yes"
+			autoBGplane = "no"
+			autoBGlinewise = "no"
+			break
+		case "plane":
+			autoBGnone = "no"
+			autoBGplane = "yes"
+			autoBGlinewise = "no"
+			break
+		case "linewise":
+			autoBGnone = "no"
+			autoBGplane = "no"
+			autoBGlinewise = "yes"
+			break
+		default:
+			autoBGnone = "yes"
+			autoBGplane = "no"
+			autoBGlinewise = "no"
+			break
+	endswitch
+End
+
+// set global variable for programme control
+Function toggleAutoDisplay()
+	createSRSControlVariables()
+	SVAR autoDisplay = root:WinGlobals:SRSSTMControl:autoDisplay
+	if (cmpstr(autoDisplay,"yes")==0)
+		autoDisplay = "no"
+	else
+		autoDisplay = "yes"
+	endif
+End
+
+// This function dynamically creates menu text depending on the state of the global programma control variables.
+Function/S setControlMenuItem(controlVariable)
+	String controlVariable
+	SVAR state = root:WinGlobals:SRSSTMControl:$controlVariable
+	
+	String returnStr= " "
+	
+	strswitch(controlVariable)
+		case "autoDisplay":
+			strswitch(state)
+				case "yes":
+					returnStr = "Auto-display flat images on load!"+num2char(18) 
+					break
+				case "no":
+					returnStr = "Auto-display flat images on load"
+					break
+				default:
+					returnStr = "error 1"
+					break
+			endswitch
+			break		
+		case "autoBGnone":
+			strswitch(state)
+				case "yes":
+					returnStr = "Auto background subtraction: none!"+num2char(18) 
+					break
+				case "no":
+					returnStr = "Auto background subtraction: none"
+					break
+				default:
+					returnStr = "error 1"
+					break
+			endswitch
+			break		
+		case "autoBGplane":
+			strswitch(state)
+				case "yes":
+					returnStr = "Auto background subtraction: plane!"+num2char(18) 
+					break
+				case "no":
+					returnStr = "Auto background subtraction: plane"
+					break
+				default:
+					returnStr = "error 1"
+					break
+			endswitch
+			break		
+		case "autoBGlinewise":
+			strswitch(state)
+				case "yes":
+					returnStr = "Auto background subtraction: linewise!"+num2char(18) 
+					break
+				case "no":
+					returnStr = "Auto background subtraction: linewise"
+					break
+				default:
+					returnStr = "error 1"
+					break
+			endswitch
+			break		
+		case "commonDataFolder":
+			strswitch(state)
+				case "yes":
+					returnStr = "Load all flat files into MyData!"+num2char(18) 
+					break
+				case "no":
+					returnStr = "Load all flat files into MyData"
+					break
+				default:
+					returnStr = "error 1"
+					break
+			endswitch
+			break		
+		default:
+			returnStr = "error 2"
+			break
+	endswitch
+	return returnStr
+End

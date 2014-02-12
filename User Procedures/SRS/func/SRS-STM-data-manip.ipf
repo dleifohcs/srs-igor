@@ -744,9 +744,19 @@ Function createSRSControlVariables()
 	
 	// controls whether background subtraction performed automatically.  
 	// "none" "linewise" "plane"
-	String/G defaultBackground
-	if (strlen(defaultBackground)==0)
-		defaultBackground = "none"
+	String/G autoBGnone
+	if (strlen(autoBGnone)==0)
+		autoBGnone = "yes"
+	endif
+	
+	String/G autoBGplane
+	if (strlen(autoBGPlane)==0)
+		autoBGPlane = "no"
+	endif
+	
+	String/G autoBGlinewise
+	if (strlen(autoBGlinewise)==0)
+		autoBGlinewise = "no"
 	endif
 	
 	// Whether or not to automatically display images upon loading
