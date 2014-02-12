@@ -27,6 +27,7 @@
 Menu "STM", dynamic
 	
 		"Display an image or CITS/F10", displayData()
+		"Display all images in data folder", displayAllData()
 		Submenu "Colour Scale Control"
 			"Change colour", doSomethingWithData("changeColour")
 			"Set range to default", updateColourRange("")
@@ -89,13 +90,12 @@ Menu "STM", dynamic
 		End
 		"-"
 		Submenu "Global Programme Control"
+			setControlMenuItem("autoDisplay"), toggleAutoDisplay()
 			setControlMenuItem("commonDataFolder"), toggleCommonDataFolderState()
 			"-"
 			setControlMenuItem("autoBGnone"), setdefaultBackground("none")
 			setControlMenuItem("autoBGplane"), setdefaultBackground("plane")
-			setControlMenuItem("autoBGlinewise"), setdefaultBackground("linewise")
-			"-"
-			setControlMenuItem("autoDisplay"), toggleAutoDisplay("yes")
+			setControlMenuItem("autoBGlinewise"), setdefaultBackground("linewise")		
 		End
 		"-"
 		"About", SRSSTMAbout()
@@ -114,6 +114,20 @@ Function toggleCommonDataFolderState()
 		// Turn off autodisplay if loading into MyData , since otherwise will display multiples of same images. 
 		SVAR autoDisplay = root:WinGlobals:SRSSTMControl:autoDisplay
 		autoDisplay = "no"
+	endif
+End
+
+// set global variable for programme control
+Function toggleAutoDisplay()
+	createSRSControlVariables()
+	SVAR autoDisplay = root:WinGlobals:SRSSTMControl:autoDisplay
+	if (cmpstr(autoDisplay,"yes")==0)
+		autoDisplay = "no"
+	else
+		autoDisplay = "yes"
+		// turn off the MyData folder option if doing autodisplay
+		SVAR commonDataFolder = root:WinGlobals:SRSSTMControl:commonDataFolder
+		commonDataFolder = "no"
 	endif
 End
 
@@ -149,20 +163,11 @@ Function setdefaultBackground(state)
 	endswitch
 End
 
-// set global variable for programme control
-Function toggleAutoDisplay()
-	createSRSControlVariables()
-	SVAR autoDisplay = root:WinGlobals:SRSSTMControl:autoDisplay
-	if (cmpstr(autoDisplay,"yes")==0)
-		autoDisplay = "no"
-	else
-		autoDisplay = "yes"
-	endif
-End
 
 // This function dynamically creates menu text depending on the state of the global programma control variables.
 Function/S setControlMenuItem(controlVariable)
 	String controlVariable
+	createSRSControlVariables()
 	SVAR state = root:WinGlobals:SRSSTMControl:$controlVariable
 	
 	String returnStr= " "
@@ -171,10 +176,10 @@ Function/S setControlMenuItem(controlVariable)
 		case "autoDisplay":
 			strswitch(state)
 				case "yes":
-					returnStr = "Auto-display flat images on load!"+num2char(18) 
+					returnStr = "Auto-display flat-file images when loading!"+num2char(18) 
 					break
 				case "no":
-					returnStr = "Auto-display flat images on load"
+					returnStr = "Auto-display flat-file images when loading"
 					break
 				default:
 					returnStr = "error 1"

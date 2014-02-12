@@ -181,9 +181,6 @@ End
 Function imgDisplay(imgWStr)
 	String imgWStr
 	
-	// get global variable on automatic background subtraction preference
-	SVAR autoBackground = root:WinGlobals:SRSSTMControl:defaultBackground
-	
 	// Get current data folder
 	DFREF saveDF = GetDataFolderDFR()	  // Save
 	String imgDF = GetDataFolder(1)  // This is the DF that holds the 2D image wave data
@@ -203,29 +200,22 @@ Function imgDisplay(imgWStr)
 	// Adjust graph size etc.
 	doSomethingWithData("makeImgPretty")
 	
+	// get global variable on automatic background subtraction preference
+	SVAR autoBGplane = root:WinGlobals:SRSSTMControl:autoBGplane
+	SVAR autoBGlinewise = root:WinGlobals:SRSSTMControl:autoBGlinewise
+	
 	// automatic background subtraction
-	strswitch(autoBackground)
-		case "none":
-			// do nothing
-			break
-		case "linewise":
-			// plane correct
-			doSomethingWithData("subtractlinewise")
-			break
-		case "plane":
-			// plane correct
-			doSomethingWithData("subtractplane")
-			break
-		default:
-			// do nothing
-			break
-	endswitch
+	if ( cmpstr(autoBGlinewise,"yes")==0 )
+		doSomethingWithData("subtractlinewise")
+	elseif (cmpstr(autoBGlinewise,"yes")==0 )
+		doSomethingWithData("subtractplane")
+	endif
 	
 	// set minimum to zero
 	doSomethingWithData("subtractMin")
 	
 	// Autoposition window
-	AutoPositionWindow
+	AutoPositionWindow/E
 	
 	// Return to starting data folder
 	SetDataFolder saveDF
@@ -323,15 +313,15 @@ Function imgGraphPretty(graphName)
 	endif
 	
 	// Modify image size
-	ModifyGraph/W=$graphName  width=300
-	DoUpdate // this resizes the graph window.  The following line make the graph resizable again.
-	ModifyGraph/W=$graphName  width=0
+	ModifyGraph/W=$graphName  width=200
+	//DoUpdate // this resizes the graph window.  The following line make the graph resizable again.
 	ModifyGraph/W=$graphName  height={Aspect,1}
 	ModifyGraph/W=$graphName  fSize=9,font="Arial"
 	ModifyGraph/W=$graphName  axThick=0.8
 	ModifyGraph/W=$graphName  standoff=0
 	DoUpdate
-	
+	ModifyGraph/W=$graphName width=0,height={Aspect,1}
+	DoUpdate	
 End
 
 
@@ -383,6 +373,8 @@ Function imgScaleBar(graphName)
 	ColorScale/W=$graphName/C/Z=1/N=text0/F=0/A=LT/X=102/Y=0 image=$imgWStr, width=barWidth
 	ColorScale/C/N=text0 "\Z09\\U"
 	ColorScale/C/N=text0 font="Arial",fsize=09
+	DoUpdate
+	ModifyGraph/W=$graphName width=0
 	DoUpdate
 End
 

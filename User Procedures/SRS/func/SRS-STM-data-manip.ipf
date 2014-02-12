@@ -306,12 +306,12 @@ Function doSomethingWithData(actionType)
 
 				case "makeImgPretty":
 
-					// Change graph size, etc., so that it looks nice
-					imgGraphPretty(graphName)
-					
 					// Add a z-scale
 					imgScaleBar(graphName)
-					
+
+					// Change graph size, etc., so that it looks nice
+					imgGraphPretty(graphName)
+										
 					// Apply a colour scale to the image
 					changeColour(graphName,colour="Autumn")
 
