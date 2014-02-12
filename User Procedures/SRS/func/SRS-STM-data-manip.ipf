@@ -892,7 +892,7 @@ Function subtractLinewise(graphname)
 	for (i=0; i<yPts; i+=1)
 		lineWave  = imgW[p][i]
 		// check that data exists and if so do the fit and subtract, if not do nothing
-		if ( numtype(sum(lineWave)==0) )
+		if ( numtype(sum(lineWave))==0 )
 			CurveFit/N/Q/NTHR=0 line  lineWave /D=linefitWave
 			lineWave=lineWave - linefitWave
 			imgW[][i] = lineWave[p]
