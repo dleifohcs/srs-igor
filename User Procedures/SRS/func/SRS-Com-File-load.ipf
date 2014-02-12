@@ -1738,16 +1738,19 @@ Function FlatAddInfo2Wave()
 				break
 			case "Alternate_Voltage":
 				Valt_num = i
-				V_alt_found = 1 // set this flag to 1 if the alternate value is found
+				V_alt_found = 1 // set this flag to 1 if the alternate value is found ** NOTE, this actually doesn't mean anything since the value can exist but not have been aplied.  look at Enable_Alternatre_Preamp_range instead
 				break
 			default:
 				break
 		endswitch
 	endfor
-	
+
 	// This is in case no "alternate" value exists
-	if ( V_alt_found == 0 )
+	if ( cmpstr(V_valW[3],"false") == 0 ) // alternate voltage is not used.
 		Valt_num = V_num
+		if (cmpstr(V_nameW[3],"Enable_Alternate_Preamp_Range")!=0 )
+			Print "WARNING: looks like flat file format has been changed and the alternatve bias may not be correct"
+		endif
 	endif
 	
 	// get the bias values
@@ -1796,8 +1799,11 @@ Function FlatAddInfo2Wave()
 	endfor
 	
 	// This is in case no "alternate" value exists
-	if ( Reg_alt_found == 0 )
+	if ( cmpstr(Reg_valW[35],"false") == 0 )  // alternate regulation not used
 		Regalt_num = Reg_num
+		if (cmpstr(Reg_nameW[35],"Enable_Alternate_Setpoint_1")!=0 )
+			Print "Warning: please check that the alternate regulation current is correct"
+		endif
 	endif
 
 	// get the regulator values
