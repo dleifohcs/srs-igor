@@ -207,7 +207,7 @@ Function imgDisplay(imgWStr)
 	// automatic background subtraction
 	if ( cmpstr(autoBGlinewise,"yes")==0 )
 		doSomethingWithData("subtractlinewise")
-	elseif (cmpstr(autoBGlinewise,"yes")==0 )
+	elseif (cmpstr(autoBGplane,"yes")==0 )
 		doSomethingWithData("subtractplane")
 	endif
 	
