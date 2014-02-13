@@ -111,6 +111,9 @@ Function doSomethingWithData(actionType)
 	// Get current data folder
 	DFREF saveDF = GetDataFolderDFR()	  // Save
 	
+	// create the global control variables if they don't exist (required for example in setting the default image colours)
+	createSRSControlVariables()
+	
 	// Get name of top graph
 	String graphName= WinName(0,1)
 	
@@ -311,9 +314,12 @@ Function doSomethingWithData(actionType)
 
 					// Change graph size, etc., so that it looks nice
 					imgGraphPretty(graphName)
-										
+					
+					// get default image colour
+					SVAR defaultImageColours = root:WinGlobals:SRSSTMControl:defaultImageColours
+Print "defaultImageColours", defaultImageColours							
 					// Apply a colour scale to the image
-					changeColour(graphName,colour="Autumn")
+					changeColour(graphName,colour=defaultImageColours)
 
 					// Add information panel
 					imgAddInfo(graphName)
@@ -345,6 +351,11 @@ Function doSomethingWithData(actionType)
 					changeColour(graphName,changeScale="no")
 					break
 					
+				case "changeDefaultColour":
+					
+					changeDefaultImageColour()
+					break
+					
 				default:
 					Print "Error, unknown manipulationType"
 					break
@@ -353,12 +364,11 @@ Function doSomethingWithData(actionType)
 		else 
 				Print "Data must be 2 or 3 dimensional.  Stopping."
 		endif
+		//bring the graph containing the data to the front
+		DoWindow/F $graphName 
 	else
 		Print "Error: no data window"
 	endif
-	
-	//bring the graph containing the data to the front
-	DoWindow/F $graphName 
 
 	// Move back to the original data folder
 	SetDataFolder saveDF
@@ -742,30 +752,39 @@ Function createSRSControlVariables()
 		commonDataFolder = "no"
 	endif
 	
-	// controls whether background subtraction performed automatically.  
-	// "none" "linewise" "plane"
-	String/G autoBGnone
-	if (strlen(autoBGnone)==0)
-		autoBGnone = "yes"
-	endif
-	
-	String/G autoBGplane
-	if (strlen(autoBGPlane)==0)
-		autoBGPlane = "no"
-	endif
-	
-	String/G autoBGlinewise
-	if (strlen(autoBGlinewise)==0)
-		autoBGlinewise = "no"
-	endif
-	
 	// Whether or not to automatically display images upon loading
 	// "yes" "no"
 	String/G autoDisplay
 	if (strlen(autoDisplay)==0)
 		autoDisplay = "yes"
 	endif
+	
+	// control autobackground options
+	String/G autoBGnone
+	if (strlen(autoBGnone)==0)
+		autoBGnone = "no"
+	endif
+	// plane
+	String/G autoBGplane
+	if (strlen(autoBGPlane)==0)
+		autoBGPlane = "yes"
+	endif
+	// linewise
+	String/G autoBGlinewise
+	if (strlen(autoBGlinewise)==0)
+		autoBGlinewise = "no"
+	endif
 
+	String/G defaultImageColours
+	if (strlen(defaultImageColours)==0)
+		defaultImageColours = "Autumn"
+	endif
+
+	String/G coloursList
+	if (strlen(coloursList)==0)
+		coloursList = "Autumn;Defect1;GoldOrange;PinkScale;Bicolor;Defect2;Grasshopper;Red2;Blue2;Expfast1;GrayBinary1;Rust;BlueBlackYellow;Expfast2;GrayBinary2;Sailing;BlueExp;Expmult1;GrayBinary3;Strawberry;BlueLog;Expmult2;GrayExp;Sunset;BlueRedGreen2;Expmult3;Green2;Thunderbolt;BlueRedGreen3;Expmult4;Green3;Titanium;SRSBBR;SRSBBY"
+	endif
+	
 	SetDataFolder saveDF
 End
 

@@ -50,6 +50,9 @@ Function changeColour(graphName,[colour,cMin,cMax,changeScale])
 	// Get current data folder
 	DFREF saveDF = GetDataFolderDFR()	  // Save
 	
+	// create global control variables if they do not exist (e.g., used for colour tables list)
+	createSRSControlVariables()
+	
 	// Move to the data folder containing the global variables for the graph
 	SetDataFolder root:WinGlobals:$graphName // should already be in this data folder, but include this to be sure
 	
@@ -72,7 +75,7 @@ Function changeColour(graphName,[colour,cMin,cMax,changeScale])
 	if ( ParamIsDefault(colour) ) // if colour parameter not given open a dialogue
 		
 		// a list of colour tables
-		String cList =  "Autumn;Defect1;GoldOrange;PinkScale;Bicolor;Defect2;Grasshopper;Red2;Blue2;Expfast1;GrayBinary1;Rust;BlueBlackYellow;Expfast2;GrayBinary2;Sailing;BlueExp;Expmult1;GrayBinary3;Strawberry;BlueLog;Expmult2;GrayExp;Sunset;BlueRedGreen2;Expmult3;Green2;Thunderbolt;BlueRedGreen3;Expmult4;Green3;Titanium;SRSBBR;SRSBBY"
+		SVAR cList =  root:WinGlobals:SRSSTMControl:coloursList
 		Variable cNum = ItemsInList(cList)
 
 		// get input from user
@@ -136,6 +139,43 @@ Function changeColour(graphName,[colour,cMin,cMax,changeScale])
 		KillStrings/Z S_path, S_fileName, S_waveNames
 	
 	endif  // end of "doNothing" conditional
+
+	// Return to DF
+	SetDataFolder saveDF
+End
+
+
+
+//------------------------------------------------------------------------------------------------------------------------------------
+// if [graphSuffix] is included then the colour profile is also applied to the graph window with name graphName+graphSuffix
+Function changeDefaultImageColour([colour])
+	String colour 
+	
+	// Get current data folder
+	DFREF saveDF = GetDataFolderDFR()	  // Save
+	
+	// create global variables if they don't exist (e.g., used for colour table list)
+	createSRSControlVariables()
+	
+	// Get the global variable ctabName if it exists
+	SVAR defaultImageColours = root:WinGlobals:SRSSTMControl:defaultImageColours
+	
+	// Check if a colour name is given in the function call.  If not then we are going to open a user dialogue.
+	// note: if the intention is not to change colours then the function should be called with "colour=keep"
+	if ( ParamIsDefault(colour) ) // if colour parameter not given open a dialogue
+		
+		// a list of colour tables
+		SVAR cList =  root:WinGlobals:SRSSTMControl:coloursList
+		Variable cNum = ItemsInList(cList)
+
+		// get input from user
+		colour= ctabChooseDialog(cList,cNum,cDefault=defaultImageColours)
+
+	endif
+
+	if (cmpstr(colour,"none")!=0) 
+		defaultImageColours = colour
+	endif	
 
 	// Return to DF
 	SetDataFolder saveDF

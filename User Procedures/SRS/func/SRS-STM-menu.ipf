@@ -95,7 +95,9 @@ Menu "STM", dynamic
 			"-"
 			setControlMenuItem("autoBGnone"), setdefaultBackground("none")
 			setControlMenuItem("autoBGplane"), setdefaultBackground("plane")
-			setControlMenuItem("autoBGlinewise"), setdefaultBackground("linewise")		
+			setControlMenuItem("autoBGlinewise"), setdefaultBackground("linewise")	
+			"-"
+			setControlMenuItemDefaultColour(), doSomethingWithData("changeDefaultColour")
 		End
 		"-"
 		"About", SRSSTMAbout()
@@ -243,4 +245,10 @@ Function/S setControlMenuItem(controlVariable)
 			break
 	endswitch
 	return returnStr
+End
+
+Function/S setControlMenuItemDefaultColour()
+	SVAR defaultImageColours = root:WinGlobals:SRSSTMControl:defaultImageColours
+	
+	return "Change default image colours ["+defaultImageColours+"]"
 End
