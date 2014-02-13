@@ -736,6 +736,11 @@ Function createSRSControlVariables()
 	
 	DFREF saveDF = GetDataFolderDFR()	  // Save
 	
+	if ( DataFolderExists("root:WinGlobals:SRSSTMControl") )
+		return 1
+		// do nothing and exit the function
+	endif
+
 	NewDataFolder/O root:WinGlobals
 	NewDataFolder/O/S root:WinGlobals:SRSSTMControl
 	

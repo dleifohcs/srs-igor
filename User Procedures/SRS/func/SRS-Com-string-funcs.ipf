@@ -455,3 +455,27 @@ Function/S StringByKeyIndexed(instance,matchStr,listStr,[sepChar])
 	return returnStr
 	
 End
+
+
+
+
+
+
+
+
+
+// This is a numerical, not a string function, but I'm putting it in this procedure file for the moment
+// since I do not have one of these for numerical things...
+Function roundSignificant(val,N)	// round val to N significant figures
+	Variable val			// input value to round
+	Variable N			// number of significant figures
+
+	if (val==0 || numtype(val))
+		return val
+	endif
+	Variable is,tens
+	is = sign(val) 
+	val = abs(val)
+	tens = 10^(N-floor(log(val))-1)
+	return is*round(val*tens)/tens
+End

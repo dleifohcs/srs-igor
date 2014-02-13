@@ -296,10 +296,17 @@ Function updateColourRangeDialogue(graphName)
 	// Make wave assignment to the data
 	Wave imgW= $imgWFullStr
 	
-	minVal = WaveMin(imgW)
-	maxVal = WaveMax(imgW)
+	// The ctable wave has been created and put in the appropriate WinGlobals location with the global variables and so can be assigned
+	Wave ctab
+	
+	minVal = dimoffset(ctab,0)
+	maxVal = dimdelta(ctab,0)*dimsize(ctab,0)
 	rangeVal =  maxVal - minVal
 	rangeValOriginal = rangeVal
+	
+	minVal = roundSignificant(minVal,3)
+	maxVal = roundSignificant(maxVal,3)
+	rangeVal = roundSignificant(rangeVal,3)
 	
 	Prompt minVal, "Z-scale minimum: " // 
 	Prompt maxVal, "Z-scale maximum: " // 
@@ -310,7 +317,7 @@ Function updateColourRangeDialogue(graphName)
       	Print "Warning: User cancelled dialogue"
       	return -1                     // User canceled
       else // set the scale
-      	if ( (rangeVal - rangeValOriginal)/rangeValOriginal < 0.001 )  // i.e., the range was not changed
+      	if ( abs((rangeVal - rangeValOriginal)/rangeValOriginal) < 0.001 )  // i.e., the range was not changed
       		// do nothing
       	else
       		maxVal = minVal + rangeVal
