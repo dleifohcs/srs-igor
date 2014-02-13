@@ -317,7 +317,7 @@ Function doSomethingWithData(actionType)
 					
 					// get default image colour
 					SVAR defaultImageColours = root:WinGlobals:SRSSTMControl:defaultImageColours
-Print "defaultImageColours", defaultImageColours							
+							
 					// Apply a colour scale to the image
 					changeColour(graphName,colour=defaultImageColours)
 
@@ -349,11 +349,6 @@ Print "defaultImageColours", defaultImageColours
 				case "changeColour":
 					
 					changeColour(graphName,changeScale="no")
-					break
-					
-				case "changeDefaultColour":
-					
-					changeDefaultImageColour()
 					break
 					
 				default:

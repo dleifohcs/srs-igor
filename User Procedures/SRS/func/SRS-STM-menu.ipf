@@ -32,6 +32,8 @@ Menu "STM", dynamic
 			"Change colour", doSomethingWithData("changeColour")
 			"Set range to default", updateColourRange("")
 			"-"
+			setControlMenuItemDefaultColour(), changeDefaultImageColour()
+			"-"
 			"Decrease Brightness"+"/F3", incrementColourScale("","increase","both")
 			"Increase Brightness"+"/F4", incrementColourScale("","decrease","both")
 			"Decrease Contrast"+"/SF3", incrementColourScale("","increase","range")
@@ -42,6 +44,7 @@ Menu "STM", dynamic
 			"Increase scale maximum"+"/OF4", incrementColourScale("","increase","max")
 			"Decrease scale minimum"+"/SOF3", incrementColourScale("","decrease","min")
 			"Increase scale minimum"+"/SOF4", incrementColourScale("","increase","min")
+			
 
 		End
 		
@@ -96,8 +99,6 @@ Menu "STM", dynamic
 			setControlMenuItem("autoBGnone"), setdefaultBackground("none")
 			setControlMenuItem("autoBGplane"), setdefaultBackground("plane")
 			setControlMenuItem("autoBGlinewise"), setdefaultBackground("linewise")	
-			"-"
-			setControlMenuItemDefaultColour(), doSomethingWithData("changeDefaultColour")
 		End
 		"-"
 		"About", SRSSTMAbout()
