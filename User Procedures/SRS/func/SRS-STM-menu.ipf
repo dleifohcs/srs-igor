@@ -252,8 +252,7 @@ Function/S setControlMenuItem(controlVariable)
 End
 
 Function/S setControlMenuItemDefaultColour()
-	SVAR defaultImageColours = root:WinGlobals:SRSSTMControl:defaultImageColours
-	
 	createSRSControlVariables()
+	SVAR defaultImageColours = root:WinGlobals:SRSSTMControl:defaultImageColours
 	return "Change default image colours ["+defaultImageColours+"]"
 End
