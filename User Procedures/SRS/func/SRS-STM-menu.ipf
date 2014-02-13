@@ -28,11 +28,14 @@ Menu "STM", dynamic
 	
 		"Display an image or CITS/F10", displayData()
 		"Display all images in data folder", displayAllData()
+		"-"
 		Submenu "Colour Scale Control"
-			"Change colour", doSomethingWithData("changeColour")
-			"Set range to default", updateColourRange("")
-			"-"
+			"Change colour palette", doSomethingWithData("changeColour")
 			setControlMenuItemDefaultColour(), changeDefaultImageColour()
+			"-"
+			"Set z-range to default", updateColourRange("")
+			"Set z-range manually", updateColourRangeDialogue("")
+			"-"
 			"-"
 			"Decrease Brightness"+"/F3", incrementColourScale("","increase","both")
 			"Increase Brightness"+"/F4", incrementColourScale("","decrease","both")

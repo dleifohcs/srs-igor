@@ -32,6 +32,7 @@
 // Function changeColour(graphName,[colour,cMin,cMax,changeScale])
 // Function/S ctabChooseDialog(cList,cNum,[cDefault])
 // Function updateColourRange(graphName,[minVal,maxVal,changeScale])
+// Function updateColourRangeDialogue(graphName)
 // Function incrementColourScale(graphName,change,what)
 //
 //------------------------------------------------------------------------------------------------------------------------------------
@@ -203,9 +204,10 @@ End
 
 //------------------------------------------------------------------------------------------------------------------------------------
 // Uses the colour table saved in the global variable folder for the data window
-Function updateColourRange(graphName,[minVal,maxVal,changeScale])
+// If Range is set then this will override the "maxVal" variable
+Function updateColourRange(graphName,[minVal,maxVal,Range,changeScale])
 	String graphName,changeScale
-	Variable minVal, maxVal
+	Variable minVal, maxVal, Range
 	Variable rangeVal
 	
 	// Get current data folder
@@ -247,10 +249,15 @@ Function updateColourRange(graphName,[minVal,maxVal,changeScale])
 		else 							// minVal given in function call
 			Variable/G ctabwMin = minVal
 		endif
-		if ( ParamIsDefault(maxVal) )  	// minVal not given in function call
-			Variable/G ctabwMax = WaveMax(imgW) - 0.05*rangeVal
-		else 							// minVal given in function call
-			Variable/G ctabwMax = maxVal
+		// If Range is set then this will override the "maxVal" variable
+		if ( paramIsDefault(Range) )
+			if ( ParamIsDefault(maxVal) )  	// minVal not given in function call
+				Variable/G ctabwMax = WaveMax(imgW) - 0.05*rangeVal
+			else 							// minVal given in function call
+				Variable/G ctabwMax = maxVal
+			endif
+		else
+			Variable/G ctabwMax = ctabwMin + Range
 		endif
 	endif 
 	
@@ -260,7 +267,60 @@ Function updateColourRange(graphName,[minVal,maxVal,changeScale])
 	// Apply colour table to the image being displayed
 	ModifyImage/W=$graphName $imgWStr cindex=root:WinGlobals:$(graphName):ctab
 	
-	Print "Min= ", ctabwMin, "Max= ", ctabwMax, "Range= ", (ctabwMax-ctabwMin
+	Print "Min= ", ctabwMin, "Max= ", ctabwMax, "Range= ", (ctabwMax-ctabwMin)
+	// Move back to original DF
+	SetDataFolder saveDF
+End
+
+
+//------------------------------------------------------------------------------------------------------------------------------------
+// User dialogue for manually setting the colour range
+Function updateColourRangeDialogue(graphName)
+	String graphName
+	Variable minVal, maxVal, rangeVal, rangeValOriginal
+	
+	// Get current data folder
+	DFREF saveDF = GetDataFolderDFR()	  // Save
+	
+	// If graphName not given (i.e., ""), then get name of the top graph window
+	if ( strlen(graphName)==0 )
+			graphName= WinName(0,1)
+	endif
+	
+	// Move to the data folder containing the global variables for the graph
+	SetDataFolder root:WinGlobals:$graphName // should already be in this data folder, but include this to be sure
+	
+	// Get the global variable for this graph (these were set in the manipulateData procedure)
+	String/G imgWFullStr		// data folder plus wave name
+	
+	// Make wave assignment to the data
+	Wave imgW= $imgWFullStr
+	
+	minVal = WaveMin(imgW)
+	maxVal = WaveMax(imgW)
+	rangeVal =  maxVal - minVal
+	rangeValOriginal = rangeVal
+	
+	Prompt minVal, "Z-scale minimum: " // 
+	Prompt maxVal, "Z-scale maximum: " // 
+	Prompt rangeVal, "Z-scale range (overrides maximum): " // 
+	DoPrompt "Set colour scale", minVal, maxVal, rangeVal
+	
+	if (V_Flag)
+      	Print "Warning: User cancelled dialogue"
+      	return -1                     // User canceled
+      else // set the scale
+      	if ( (rangeVal - rangeValOriginal)/rangeValOriginal < 0.001 )  // i.e., the range was not changed
+      		// do nothing
+      	else
+      		maxVal = minVal + rangeVal
+      	endif
+     		
+     		Print "updateColourRange(\"\",minVal="+num2str(minVal)+",maxVal="+num2str(maxVal)+")"
+      	updateColourRange(graphName,minVal=minVal,maxVal=maxVal)
+      	
+   	endif
+	
 	// Move back to original DF
 	SetDataFolder saveDF
 End
