@@ -108,8 +108,9 @@ End
 
 //-----------------------------------------------------------------
 // This function looks for 2D or 3D data waves in the current data folder and attempts to display them (all)
-Function displayAllData()
-
+Function displayAllData([autoBG])
+	String autoBG
+	
 	// Get current data folder
 	DFREF saveDF = GetDataFolderDFR()	  // Save
 	String imgDF = GetDataFolder(1)  // This is the DF that holds the wave data
@@ -145,6 +146,17 @@ Function displayAllData()
 			if (WaveDims(imgW)<3)
 				// if a 2D wave then do the following
 				imgDisplay(imgWStr)
+				
+				if ( ParamIsDefault(autoBG) )
+					// do nothing
+				else
+					// automatic background subtraction
+					if ( cmpstr(autoBG,"linewise")==0 )
+						doSomethingWithData("subtractlinewise")
+					elseif (cmpstr(autoBG,"plane")==0 )
+						doSomethingWithData("subtractplane")
+					endif
+				endif
 			else
 				// if a 3D wave then do the following
 				img3dDisplay(imgWStr)
@@ -199,20 +211,6 @@ Function imgDisplay(imgWStr)
 	
 	// Adjust graph size etc.
 	doSomethingWithData("makeImgPretty")
-	
-	// get global variable on automatic background subtraction preference
-	SVAR autoBGplane = root:WinGlobals:SRSSTMControl:autoBGplane
-	SVAR autoBGlinewise = root:WinGlobals:SRSSTMControl:autoBGlinewise
-	
-	// automatic background subtraction
-	if ( cmpstr(autoBGlinewise,"yes")==0 )
-		doSomethingWithData("subtractlinewise")
-	elseif (cmpstr(autoBGplane,"yes")==0 )
-		doSomethingWithData("subtractplane")
-	endif
-	
-	// set minimum to zero
-	doSomethingWithData("subtractMin")
 	
 	// Autoposition window
 	AutoPositionWindow/E

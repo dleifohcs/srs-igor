@@ -1068,12 +1068,29 @@ Function SRSFlatFileLoad(pathStr,filenameStr)
 		KillDataFolder matrix_info
 	endif
 	
+	// get global variable on automatic background subtraction preference
+	SVAR autoBGplane = root:WinGlobals:SRSSTMControl:autoBGplane
+	SVAR autoBGlinewise = root:WinGlobals:SRSSTMControl:autoBGlinewise
+	String autoBG
+	
+	// automatic background subtraction
+	if ( cmpstr(autoBGlinewise,"yes")==0 )
+		autoBG = "linewise"
+	elseif (cmpstr(autoBGplane,"yes")==0 )
+		autoBG = "plane"
+	endif
+	
 	// Automatically display images and CITS if loading from flat file format
 	SVAR autoDisplay = root:WinGlobals:SRSSTMControl:autoDisplay
 	if ( cmpstr(autoDisplay,"yes")==0)
 		Print "display", dataDF
-		displayAllData()
+		displayAllData(autoBG=autoBG)
 	endif
+	
+
+	
+	// set minimum to zero
+	doSomethingWithData("subtractMin")
 	
 	
 	// Move to original DF
