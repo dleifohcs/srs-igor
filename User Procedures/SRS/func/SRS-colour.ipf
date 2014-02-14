@@ -215,7 +215,6 @@ Function updateColourRange(graphName,[minVal,maxVal,Range,changeScale])
 	
 	// If graphName not given (i.e., ""), then get name of the top graph window
 	if ( strlen(graphName)==0 )
-	
 			graphName= WinName(0,1)
 	endif
 	
@@ -237,13 +236,14 @@ Function updateColourRange(graphName,[minVal,maxVal,Range,changeScale])
 		changeScale="yes"
 	endif
 	
+	rangeVal = WaveMax(imgW)  - WaveMin(imgW)
+	
 	if ( cmpstr(changeScale,"no")==0 )	// this allows the colour to be changed while keeping the scale scaling
 		// keep the current scaling on the colour wave
 		Variable/G ctabwMin
 		Variable/G ctabwMax
 	else		// change the colour scaling
 		// Min and max of the image wave for colour table scaling
-		rangeVal = WaveMax(imgW) - WaveMin(imgW)
 		if ( ParamIsDefault(minVal) )  	// minVal not given in function call
 			Variable/G ctabwMin = WaveMin(imgW) + 0.1*rangeVal
 		else 							// minVal given in function call
@@ -252,7 +252,7 @@ Function updateColourRange(graphName,[minVal,maxVal,Range,changeScale])
 		// If Range is set then this will override the "maxVal" variable
 		if ( paramIsDefault(Range) )
 			if ( ParamIsDefault(maxVal) )  	// minVal not given in function call
-				Variable/G ctabwMax = WaveMax(imgW) - 0.05*rangeVal
+				Variable/G ctabwMax = WaveMax(imgW) -0.05*rangeVal
 			else 							// minVal given in function call
 				Variable/G ctabwMax = maxVal
 			endif
@@ -260,7 +260,7 @@ Function updateColourRange(graphName,[minVal,maxVal,Range,changeScale])
 			Variable/G ctabwMax = ctabwMin + Range
 		endif
 	endif 
-	
+
 	// Set the colour scale range to match the data range
 	SetScale/I x ctabwMin, ctabwMax,"", ctab
 	
@@ -299,30 +299,29 @@ Function updateColourRangeDialogue(graphName)
 	// The ctable wave has been created and put in the appropriate WinGlobals location with the global variables and so can be assigned
 	Wave ctab
 	
-	minVal = dimoffset(ctab,0)
-	maxVal = dimdelta(ctab,0)*dimsize(ctab,0)
+	minVal = leftx(ctab)
+	maxVal = rightx(ctab)
 	rangeVal =  maxVal - minVal
-	rangeValOriginal = rangeVal
 	
-	minVal = roundSignificant(minVal,3)
-	maxVal = roundSignificant(maxVal,3)
-	rangeVal = roundSignificant(rangeVal,3)
+//	minVal = roundSignificant(minVal,3)
+//	maxVal = roundSignificant(maxVal,3)
+//	rangeVal = roundSignificant(rangeVal,3)
+	rangeValOriginal = rangeVal
 	
 	Prompt minVal, "Z-scale minimum: " // 
 	Prompt maxVal, "Z-scale maximum: " // 
-	Prompt rangeVal, "Z-scale range (overrides maximum): " // 
+	Prompt rangeVal, "Z-scale range (overrides maximum if changed): " // 
 	DoPrompt "Set colour scale", minVal, maxVal, rangeVal
 	
+	if ( rangeVal !=rangeValOriginal )
+		maxVal = minVal + rangeVal
+	endif
+
 	if (V_Flag)
       	Print "Warning: User cancelled dialogue"
       	return -1                     // User canceled
       else // set the scale
-      	if ( abs((rangeVal - rangeValOriginal)/rangeValOriginal) < 0.001 )  // i.e., the range was not changed
-      		// do nothing
-      	else
-      		maxVal = minVal + rangeVal
-      	endif
-     		
+      	     		
      		Print "updateColourRange(\"\",minVal="+num2str(minVal)+",maxVal="+num2str(maxVal)+")"
       	updateColourRange(graphName,minVal=minVal,maxVal=maxVal)
       	
