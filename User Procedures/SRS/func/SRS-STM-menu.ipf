@@ -61,10 +61,13 @@ Menu "STM", dynamic
 			"Plane from ROI", doSomethingWithData("subtractplaneROI")
 			"Linewise", doSomethingWithData("subtractlinewise")
 			"Set minimum to zero", doSomethingWithData("subtractMin")
+			"Shift image Z-axis manually",shiftImageZDialogue("")
 		End
 		"-"
 		Submenu "Analysis"
 			"Line Profile  [2d and 3d data]/F6", doSomethingWithData("lineprofile")
+			"Remove line profile", removeLineProfile("")
+			"-"
 			"Point from CITS/F7", doSomethingWithData("STSfromCITS")
 		End
 		

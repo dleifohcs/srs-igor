@@ -38,6 +38,7 @@
 // Line profile from data
 //------------------------------
 // Function lineProfile(graphname)
+// Function removeLineProfile(graphName)
 // Function makeLineProfile(graphname)
 // Function updateLineProfile(graphname)
 //
@@ -512,6 +513,22 @@ Function lineProfile(graphname)
 
 End
 
+//--------------------------------------------------------------------------------------------------------------
+// Remove line profile.
+Function removeLineProfile(graphName)
+	String graphName
+	
+	if ( cmpstr(graphName,"")==0 )
+		// Get name of top graph
+		graphName= WinName(0,1)
+	endif
+
+	Cursor/K A
+	Cursor/K B
+	
+	RemoveFromGraph/Z lineprofy
+	
+End
 
 //--------------------------------------------------------------------------------------------------------------
 // Called from "CursorMoved" and "lineProfile"
@@ -889,6 +906,80 @@ Function subtractMin(graphname)
 	// Return to saved data folder
 	SetDataFolder saveDF
 End
+
+	
+//--------------------------------------------------------------------------------------------------------------
+// shiftImageZ
+Function shiftImageZ(graphname,shift)
+	String graphname
+	Variable shift
+		
+	// Get current data folder
+	DFREF saveDF = GetDataFolderDFR()	  // Save
+
+	if ( cmpstr(graphname,"")==0 )
+		// Get name of top graph
+		graphName= WinName(0,1)
+	endif
+		
+	// Move to the data folder containing the global variables for the graph
+	SetDataFolder root:WinGlobals:$graphName // should already be in this data folder, but include this to be sure
+	
+	// Get the global variable for this graph (these were set in the manipulateData procedure)
+	String/G imgDF			// data folder containing the data shown on the graph
+	String/G imgWStr		// name of the wave shown on the graph (an image or 3D data set; e.g. STM or CITS)
+	String/G imgWFullStr		// data folder plus wave name
+	
+	// Make wave assignment to the data
+	Wave imgW= $imgWFullStr
+	
+	imgW= imgW - shift
+
+	// Return to saved data folder
+	SetDataFolder saveDF
+End
+
+
+//------------------------------------------------------------------------------------------------------------------------------------
+// User dialogue for manually setting the colour range
+Function shiftImageZDialogue(graphName)
+	String graphName
+	Variable shift=0
+	
+	// Get current data folder
+	DFREF saveDF = GetDataFolderDFR()	  // Save
+	
+	// If graphName not given (i.e., ""), then get name of the top graph window
+	if ( strlen(graphName)==0 )
+			graphName= WinName(0,1)
+	endif
+	
+	// Move to the data folder containing the global variables for the graph
+	SetDataFolder root:WinGlobals:$graphName // should already be in this data folder, but include this to be sure
+	
+	// Get the global variable for this graph (these were set in the manipulateData procedure)
+	String/G imgWFullStr		// data folder plus wave name
+	
+	// Make wave assignment to the data
+	Wave imgW= $imgWFullStr
+	
+	Prompt shift, "Shift value: " // 
+	DoPrompt "Shift image Z", shift
+
+	if (V_Flag)
+      	Print "Warning: User cancelled dialogue"
+      	return -1                     // User canceled
+      else // 
+      	     		
+     		Print "shiftImageZ(\""+graphName+"\","+num2str(shift)+")"
+      	shiftImageZ(graphName,shift)
+      	
+   	endif
+	
+	// Move back to original DF
+	SetDataFolder saveDF
+End
+
 
 	
 //--------------------------------------------------------------------------------------------------------------
