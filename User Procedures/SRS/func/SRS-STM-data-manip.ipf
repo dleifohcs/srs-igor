@@ -284,10 +284,7 @@ Function doSomethingWithData(actionType)
 					break
 					
 				case "mConvolution":
-				
-					// Make a back up copy of the original data in a data folder of the same name
-					backupData(graphName,"M")  // the string in the second variable is appended to wave name after backup up the original data
-					
+
 					// Function convolving a matrix with the data
 					matrixConvolveData(graphName)
 
@@ -1372,8 +1369,7 @@ Function matrixConvolveData(graphName)
 
 	// If graphName not given (i.e., ""), then get name of the top graph window
 	if ( strlen(graphName)==0 )
-	
-			graphName= WinName(0,1)
+		graphName= WinName(0,1)
 	endif
 	
 	// Get current data folder
@@ -1451,6 +1447,7 @@ End
 Function makeKernel(graphName,dim)
 	String graphName
 	Variable dim
+	Variable normalisation
 	
 	// Get current data folder
 	DFREF saveDF = GetDataFolderDFR()	  // Save DF
@@ -1458,71 +1455,82 @@ Function makeKernel(graphName,dim)
 	// Move to the data folder containing the global variables for the graph
 	SetDataFolder root:WinGlobals:$graphName
 	
-				
+	// this is the letter for adding to the wavename
+	String convTypeLetter="X"
+		
 	// Prompt user for smoothing factor
 	Variable kernelSize=5
 	Prompt kernelSize, "Please enter side length, n, of the (nxn) kernel: " 
 		
 	String kernelName
 	Prompt kernelName,"Kernel type",popup,TraceNameList("",";",1) 
-	Prompt kernelName,"Kernel type: ",popup,"sinc; none"
+	Prompt kernelName,"Kernel type: ",popup,"Smoothing (isotropic sinc);Laplacian (images);none"
 	DoPrompt "Make kernel", kernelSize, kernelName
 	
-	if (V_Flag) // User canceled
-		
+	if (V_Flag) // User canceled so quit
 		Print "Warning: User cancelled"         
-		kernelName= "none"
+		return -1
+	endif 
 	
-	endif			
-		
 	if (dim==3) // 3d wave
 		
 		Make/O/N=(kernelSize,kernelSize,kernelSize) sKernel // first create the convolution kernel 
-		SetScale/I x -5,5,"", sKernel
-		SetScale/I y -5,5,"", sKernel 	// Equivalent to rect(2*fx)*rect(2*fy) in the spatial frequency domain. 
-		SetScale/I z -5,5,"", sKernel
+		SetScale/I x -kernelSize,kernelSize,"", sKernel
+		SetScale/I y -kernelSize,kernelSize, "", sKernel 	// Equivalent to rect(2*fx)*rect(2*fy) in the spatial frequency domain. 
+		SetScale/I z -kernelSize,kernelSize,"", sKernel
 
 		strswitch( kernelName )
-		
-			case "sinc":
-			
+			case "Smoothing (isotropic sinc)":
+				convTypeLetter = "S"
 				sKernel=sinc(x/2)*sinc(y/2)*sinc(z/2)
+				normalisation= Sum(sKernel)
+				sKernel= sKernel/normalisation
 				break
-			
-			default:  //unitary		
-			
-				Make/O/N=(1,1,1) sKernel //  create a unitary kernel (2d)
+			case "Laplacian (images)":
+				Print "Warning: Wave is 3D; aborting"
+				Make/O/N=(1,1,1) sKernel //  
 				sKernel=1
 				break
-
+			default:  //unitary		
+				Make/O/N=(1,1,1) sKernel //  
+				sKernel=1
+				normalisation= Sum(sKernel)
+				sKernel= sKernel/normalisation
+				break
 		endswitch
 		
 	else // 2d wave
 	
 		Make/O/N=(kernelSize,kernelSize) sKernel // first create the convolution kernel 
-		SetScale/I x -5,5,"", sKernel
-		SetScale/I y -5,5,"", sKernel 	// Equivalent to rect(2*fx)*rect(2*fy) in the spatial frequency domain. 
+		SetScale/I x -kernelSize,kernelSize,"", sKernel
+		SetScale/I y -kernelSize,kernelSize,"", sKernel 	// Equivalent to rect(2*fx)*rect(2*fy) in the spatial frequency domain. 
 
 		strswitch( kernelName )
-		
-			case "sinc":
-			
+			case "Smoothing (isotropic sinc)":
+				convTypeLetter = "S"
 				sKernel=sinc(x/2)*sinc(y/2)
+				normalisation= Sum(sKernel)
+				sKernel= sKernel/normalisation
 				break
-			
+			case "Laplacian (images)":  
+				convTypeLetter = "L"
+				Make/O/N=(3,3) sKernel //  create a unitary kernel (2d)
+				sKernel[][]={{0,-1,0},{-1,4,-1},{0,-1,0}}
+				break
 			default:  //unitary		
-			
 				Make/O/N=(1,1) sKernel //  create a unitary kernel (2d)
 				sKernel=1
+				normalisation= Sum(sKernel)
+				sKernel= sKernel/normalisation
 				break
-				
 		endswitch
 	endif
-				
-	// Normalise the kernel
-	Variable normalisation= Sum(sKernel)
-	sKernel= sKernel/normalisation
-
+	
+	
+	// Back up the data and add letter to new data.  Ideally we would do this elsewhere, but this is the easiest place to do it
+	// given that this is where we create the different types of kernels for matrix convolution
+	backupData(graphName,convTypeLetter)  // the string in the second variable is appended to wave name after backup up the original data		
+	
 	// Return to original DF
 	SetDataFolder saveDF
 End
