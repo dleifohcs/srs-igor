@@ -1462,10 +1462,14 @@ Function makeKernel(graphName,dim)
 	Variable kernelSize=5
 	Prompt kernelSize, "Please enter side length, n, of the (nxn) kernel: " 
 		
+	Variable kernelParam=2
+	Prompt kernelParam, "Please enter sigma (used in Laplacian of Gaussian): " 
+	
 	String kernelName
 	Prompt kernelName,"Kernel type",popup,TraceNameList("",";",1) 
-	Prompt kernelName,"Kernel type: ",popup,"Smoothing (isotropic sinc);Laplacian (images);none"
-	DoPrompt "Make kernel", kernelSize, kernelName
+	Prompt kernelName,"Kernel type: ",popup,"Smoothing (isotropic sinc);Laplacian of Gaussian;Laplacian (3x3);none"
+	
+	DoPrompt "Make kernel", kernelSize, kernelName, kernelParam
 	
 	if (V_Flag) // User canceled so quit
 		Print "Warning: User cancelled"         
@@ -1486,12 +1490,8 @@ Function makeKernel(graphName,dim)
 				normalisation= Sum(sKernel)
 				sKernel= sKernel/normalisation
 				break
-			case "Laplacian (images)":
-				Print "Warning: Wave is 3D; aborting"
-				Make/O/N=(1,1,1) sKernel //  
-				sKernel=1
-				break
 			default:  //unitary		
+				Print "Warning: This option does not apply to 3D data sets; doing nothing and exiting"
 				Make/O/N=(1,1,1) sKernel //  
 				sKernel=1
 				normalisation= Sum(sKernel)
@@ -1512,10 +1512,18 @@ Function makeKernel(graphName,dim)
 				normalisation= Sum(sKernel)
 				sKernel= sKernel/normalisation
 				break
-			case "Laplacian (images)":  
+			case "Laplacian (3x3)":  
 				convTypeLetter = "L"
 				Make/O/N=(3,3) sKernel //  create a unitary kernel (2d)
-				sKernel[][]={{0,-1,0},{-1,4,-1},{0,-1,0}}
+				sKernel[][]={{-1,-1,-1},{-1,8,-1},{-1,-1,-1}}
+				break
+			case "Laplacian of Gaussian":  
+				SetScale/I x -kernelSize/2,kernelSize/2,"", sKernel
+				SetScale/I y -kernelSize/2,kernelSize/2, "", sKernel 	
+				convTypeLetter = "LoG"
+				Variable sigma=kernelParam
+				sKernel=(1 - (x^2 + y^2)/(2*sigma^2) ) * Exp(- (x^2 + y^2)/(2*sigma^2) )
+				imgDisplay("sKernel")
 				break
 			default:  //unitary		
 				Make/O/N=(1,1) sKernel //  create a unitary kernel (2d)
