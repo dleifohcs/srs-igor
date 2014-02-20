@@ -1078,6 +1078,8 @@ Function SRSFlatFileLoad(pathStr,filenameStr)
 		autoBG = "linewise"
 	elseif (cmpstr(autoBGplane,"yes")==0 )
 		autoBG = "plane"
+	else
+		autoBG = "none"
 	endif
 	
 	// Automatically display images and CITS if loading from flat file format
@@ -1087,10 +1089,8 @@ Function SRSFlatFileLoad(pathStr,filenameStr)
 		displayAllData(autoBG=autoBG)
 	endif
 	
-
-	
 	// set minimum to zero
-	doSomethingWithData("subtractMin")
+	//doSomethingWithData("subtractMin")
 	
 	
 	// Move to original DF

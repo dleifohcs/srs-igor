@@ -1585,7 +1585,15 @@ Function quickSaveImage([symbolicPath,imageType])
 					
 					// Get current data folder
 					DFREF saveDF = GetDataFolderDFR()	  // Save
-	
+					
+					String tmpDFname = "root:WinGlobals:"+graphName
+					if ( DataFolderExists(tmpDFname) )
+						// do nothing (will carry on after this if statement
+					else
+						// not an SRSSTM image window so quit
+						Print "Error: This does not appear to be an image window (SRSSTM)"
+						break
+					endif
 					// Move to the created data folder for the graph window
 					SetDataFolder root:WinGlobals:$graphName
 					
