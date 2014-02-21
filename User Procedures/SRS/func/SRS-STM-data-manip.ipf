@@ -1845,7 +1845,7 @@ Function fftfilterimage(graphName)
 	// Mirror the magnitude wave before displaying
 	Variable rowsFull = (rows-1)*2
 	Make/O/N=(rowsFull,cols) fullFFTMag
-	fullFFTMag[0,rows-1][] = FFTmag[rows-p-1][q]
+	fullFFTMag[0,rows-1][] = FFTmag[rows-p-1][cols-q-1]
 	fullFFTMag[rows,rowsFull][] = FFTmag[p-rows][q]
 	// Display the full magnitude wave
 //	imgDisplay("fullFFTMag")
