@@ -150,6 +150,11 @@ Function doSomethingWithData(actionType)
 			// Note that it is important to still be in the datafolder root:WinGlobals:$graphName 
 			// when these functions are called since they load  
 			strswitch (actionType)
+			
+				case "fftfilter":
+					fftfilterimage(graphName)
+					break
+					
 				case "lineprofile":
 						
 					// Establish link between cursor positions and CursorMoved fn. 
@@ -1787,4 +1792,62 @@ Function imageArithmetic(graphname)
 	 
 	// Move back to the original data folder
 	SetDataFolder saveDF
+End
+
+
+
+
+
+
+Function fftfilterimage(graphName)
+	String graphName
+	
+	Variable sigma
+	
+	// Get current data folder
+	DFREF saveDF = GetDataFolderDFR()	  // Save
+	
+	// Move to the data folder containing the global variables for the graph
+	SetDataFolder root:WinGlobals:$graphName // should already be in this data folder, but include this to be sure
+	
+	// Get the global variable for this graph (these were set in the manipulateData procedure)
+	String/G imgDF			// data folder containing the data shown on the graph
+	String/G imgWStr		// name of the wave shown on the graph (an image or 3D data set; e.g. STM or CITS)
+	String/G imgWFullStr		// data folder plus wave name
+	
+	// Make wave assignment to the data
+	Wave/C imgW= $imgWFullStr
+	
+	// Create name for FFT wave
+	String imgWFFTStr= graphName+"_FFT"
+	
+	// Compute the 2D FFT and put output in new wave
+	FFT/DEST=$imgWFFTStr imgW
+	Wave imgFFT = $imgWFFTStr
+	
+	// Determine size of the FFT
+	Variable rows = DimSize(imgFFT,0)
+	Variable cols = DimSize(imgFFT,1)
+	
+	// Make the filter wave to convolute with the FFT before taking the inverse FFT
+	Make/O/N=(rows,cols) filterWave
+	filterWave[][cols/2,cols-1] = Exp ( - ( (q-cols/2)^2 + p^2 ) / 500)
+	filterWave[][0,cols/2 ] = Exp ( - ( (cols/2-q)^2 + p^2 ) /500)
+	
+	//Duplicate/O imgFFT, filteredImgFFT
+	
+	MatrixOp/O filteredImgFFT = imgFFT * filterWave
+	IFFT/DEST=filteredImg filteredImgFFT
+	
+	// Generate a magnitude FFT wave for display
+	MatrixOp/O FFTmag = mag(imgFFT)
+	
+	// Mirror the magnitude wave before displaying
+	Variable rowsFull = (rows-1)*2
+	Make/O/N=(rowsFull,cols) fullFFTMag
+	fullFFTMag[0,rows-1][] = FFTmag[rows-p-1][q]
+	fullFFTMag[rows,rowsFull][] = FFTmag[p-rows][q]
+	// Display the full magnitude wave
+//	imgDisplay("fullFFTMag")
+	
 End
