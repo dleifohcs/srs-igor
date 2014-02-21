@@ -34,8 +34,9 @@ Menu "STM", dynamic
 			"Change image colour", doSomethingWithData("changeColour")
 			setControlMenuItemDefaultColour(), changeDefaultImageColour()
 			"-"
-			"Set z-range to default", updateColourRange("")
-			"Set z-range from histogram", updateColourRangeByHist("")
+			"Set z-range: default", updateColourRange("")
+			"Set z-range: Gaussian fit to histogram", updateColourRangeByHist("",type="gauss")
+			"Set z-range: Exponential fit to histogram", updateColourRangeByHist("",type="exp")
 			"Set z-range manually", updateColourRangeDialogue("")
 			"-"
 			"-"

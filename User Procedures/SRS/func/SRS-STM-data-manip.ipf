@@ -1848,6 +1848,7 @@ Function fftfilterimage(graphName)
 	fullFFTMag[0,rows-1][] = FFTmag[rows-p-1][cols-q-1]
 	fullFFTMag[rows,rowsFull][] = FFTmag[p-rows][q]
 	// Display the full magnitude wave
-//	imgDisplay("fullFFTMag")
+	imgDisplay("fullFFTMag")
+	updateColourRangeByHist("",type="exp")
 	
 End

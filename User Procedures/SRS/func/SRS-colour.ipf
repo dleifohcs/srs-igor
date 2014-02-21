@@ -274,10 +274,9 @@ End
 
 
 //------------------------------------------------------------------------------------------------------------------------------------
-// Uses the colour table saved in the global variable folder for the data window
-// If Range is set then this will override the "maxVal" variable
-Function updateColourRangeByHist(graphName)
-	String graphName
+// type = { gauss , exp }
+Function updateColourRangeByHist(graphName, [type])
+	String graphName, type
 	
 	// Get current data folder
 	DFREF saveDF = GetDataFolderDFR()	  // Save
@@ -306,13 +305,36 @@ Function updateColourRangeByHist(graphName)
 	Wave histW = $histName
 	Histogram/B=1 imgW, histW
 	
-	display1D(histName)
-	CurveFit/M=2/W=0 gauss, $histName/D
-	KillWindow $WinName(0,1)
-	Wave W_coef
+	if ( paramisdefault(type) )
+		type = "gauss"
+	endif
 	
-	Variable x0 = W_coef[2]
-	Variable width = W_coef[3]
+	display1D(histName)
+	
+	Variable x0, width
+	strswitch(type)
+		case "gauss":
+			CurveFit/M=2/W=0 gauss, $histName/D
+			Wave W_coef
+			x0 = W_coef[2]
+			width = W_coef[3]
+			break
+		case "exp":
+			CurveFit/M=2/W=0 exp, $histName/D
+			Wave W_coef
+			x0 = 5/W_coef[2]
+			width = 5/W_coef[2]
+			break
+		default: // same as gauss
+			CurveFit/M=2/W=0 gauss, $histName/D
+			Wave W_coef
+			x0 = W_coef[2]
+			width = W_coef[3]
+			break
+	endswitch
+			
+//	KillWindow $WinName(0,1)
+	
 	
 	Variable/G ctabwMin = x0 - width
 	Variable/G ctabwMax = x0 + width
