@@ -152,7 +152,20 @@ Function doSomethingWithData(actionType)
 			strswitch (actionType)
 			
 				case "fftfilter":
-					fftfilterimage(graphName)
+				
+					// Make a back up copy of the original data in a data folder of the same name
+					backupData(graphName,"F")  // the string in the second variable is appended to wave name after backup up the original data
+					
+					Variable sigma = 500
+					Prompt sigma, "FFT parameter: " // 
+					DoPrompt "Please enter parameter for FFT filtering", sigma
+
+					if (V_Flag)
+      					Print "Warning: User cancelled FFT dialogue"
+      			      else // 
+ 						// FFT
+						fftfilterimage(graphName,1)
+					endif			
 					break
 					
 				case "lineprofile":
@@ -1796,12 +1809,11 @@ End
 
 
 
-
-
-
-Function fftfilterimage(graphName)
+//----------------------------------------------------------
+// Calculate FFT, filter the FFT, calculate the IFFT
+//----------------------------------------------------------
+Function fftfilterimage(graphName,sigma)
 	String graphName
-	
 	Variable sigma
 	
 	// Get current data folder
@@ -1819,11 +1831,20 @@ Function fftfilterimage(graphName)
 	Wave/C imgW= $imgWFullStr
 	
 	// Create name for FFT wave
-	String imgWFFTStr= graphName+"_FFT"
+	String imgFFTStr= imgWStr+"FFT"
 	
-	// Compute the 2D FFT and put output in new wave
-	FFT/DEST=$imgWFFTStr imgW
-	Wave imgFFT = $imgWFFTStr
+	// Compute the 2D FFT
+	FFT/DEST=$imgFFTStr imgW
+	Wave imgFFT = $imgFFTStr
+	
+	String magFFTStr
+	
+	// create a new wave with the full magnitude spectrum and get the name of that wave
+	magFFTStr = mirrorFFT(imgFFTStr)
+	
+	// Display the FFT
+	imgDisplay(magFFTStr)
+	updateColourRangeByHist("",type="exp")
 	
 	// Determine size of the FFT
 	Variable rows = DimSize(imgFFT,0)
@@ -1834,21 +1855,61 @@ Function fftfilterimage(graphName)
 	filterWave[][cols/2,cols-1] = Exp ( - ( (q-cols/2)^2 + p^2 ) / 500)
 	filterWave[][0,cols/2 ] = Exp ( - ( (cols/2-q)^2 + p^2 ) /500)
 	
-	//Duplicate/O imgFFT, filteredImgFFT
+	// Create name for the filtered wave
+	String imgFilteredStr= imgWStr+"F"
 	
-	MatrixOp/O filteredImgFFT = imgFFT * filterWave
-	IFFT/DEST=filteredImg filteredImgFFT
+	// Filter the FFT
+	MatrixOp/O ImgFFTfiltered = imgFFT * filterWave
 	
-	// Generate a magnitude FFT wave for display
-	MatrixOp/O FFTmag = mag(imgFFT)
+	// Compute filtered image via inverse FFT
+	IFFT/DEST=$imgFilteredStr ImgFFTfiltered
+	Wave imgFiltered = $imgFilteredStr
 	
-	// Mirror the magnitude wave before displaying
-	Variable rowsFull = (rows-1)*2
-	Make/O/N=(rowsFull,cols) fullFFTMag
-	fullFFTMag[0,rows-1][] = FFTmag[rows-p-1][cols-q-1]
-	fullFFTMag[rows,rowsFull][] = FFTmag[p-rows][q]
-	// Display the full magnitude wave
-	imgDisplay("fullFFTMag")
+	// replace original wave with the filtered one
+	imgW = imgFiltered
+	
+	// create a new wave with the full magnitude spectrum and get the name of that wave
+	String magFFTfilteredStr
+	magFFTfilteredStr = mirrorFFT("ImgFFTfiltered")
+	
+	// Display the FFT
+	imgDisplay(magFFTfilteredStr)
 	updateColourRangeByHist("",type="exp")
 	
+	
+	KillWaves filterWave, ImgFFTfiltered
+
+End
+
+
+// creates a full image of FFT magnitude from a computed FFT image spectrum 
+// The function will create the FFTmagnitude in the local directory and return 
+// the local name of the wave
+Function/S mirrorFFT(imgFFTStr)
+	String imgFFTStr
+
+	// Create wave reference to the FFT wave	
+	Wave imgFFT = $imgFFTStr
+	
+	// Determine size of the FFT
+	Variable rows = DimSize(imgFFT,0)
+	Variable cols = DimSize(imgFFT,1)
+	
+	// Create name for the mirrored FFT Magnitude wave
+	String magFFTStr = imgFFTStr+"M"
+		
+	// Generate a magnitude FFT wave for display
+	MatrixOp/O magFFT = mag(imgFFT)
+	Wave magFFT
+
+	// Mirror the magnitude wave before displaying
+	Variable rowsFull = (rows-1)*2
+	Make/O/N=(rowsFull,cols) $magFFTStr
+	Wave mirroredMagFFT = $magFFTStr
+	
+	mirroredMagFFT[0,rows-1][] = magFFT[rows-p-1][cols-q-1]
+	mirroredMagFFT[rows,rowsFull][] = magFFT[p-rows][q]
+	
+	KillWaves magFFT
+	return magFFTStr
 End

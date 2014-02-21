@@ -78,6 +78,7 @@ Menu "STM", dynamic
 			"Differentiate CITS", doSomethingWithData("differentiateCITS")
 			"Smooth CITS along z-axis", doSomethingWithData("smoothZ")
 			"Matrix convolution [2d and 3d data]",  doSomethingWithData("mConvolution")
+			"FFT Filter beta", doSomethingWithData("FFTFilter")
 		End
 
 		"-"
