@@ -25,15 +25,17 @@
 
 
 Menu "STM", dynamic
-	
-		"Display an image or CITS/F10", displayData()
-		"Display all images in data folder", displayAllData()
-		"-"
-		Submenu "Colour Scale Control"
-			"Change colour palette", doSomethingWithData("changeColour")
+		Submenu "Display"
+			"Display 2D or 3D data/F10", displayData()
+			"Display all in data folder", displayAllData()
+		End		
+
+		Submenu "Colours"
+			"Change image colour", doSomethingWithData("changeColour")
 			setControlMenuItemDefaultColour(), changeDefaultImageColour()
 			"-"
 			"Set z-range to default", updateColourRange("")
+			"Set z-range from histogram", updateColourRangeByHist("")
 			"Set z-range manually", updateColourRangeDialogue("")
 			"-"
 			"-"
@@ -47,8 +49,6 @@ Menu "STM", dynamic
 			"Increase scale maximum"+"/OF4", incrementColourScale("","increase","max")
 			"Decrease scale minimum"+"/SOF3", incrementColourScale("","decrease","min")
 			"Increase scale minimum"+"/SOF4", incrementColourScale("","increase","min")
-			
-
 		End
 		
 		"-"
@@ -257,5 +257,5 @@ End
 Function/S setControlMenuItemDefaultColour()
 	createSRSControlVariables()
 	SVAR defaultImageColours = root:WinGlobals:SRSSTMControl:defaultImageColours
-	return "Change default image colours ["+defaultImageColours+"]"
+	return "Change default colours ["+defaultImageColours+"]"
 End

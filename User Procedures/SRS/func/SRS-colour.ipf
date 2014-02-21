@@ -274,6 +274,63 @@ End
 
 
 //------------------------------------------------------------------------------------------------------------------------------------
+// Uses the colour table saved in the global variable folder for the data window
+// If Range is set then this will override the "maxVal" variable
+Function updateColourRangeByHist(graphName)
+	String graphName
+	
+	// Get current data folder
+	DFREF saveDF = GetDataFolderDFR()	  // Save
+	
+	// If graphName not given (i.e., ""), then get name of the top graph window
+	if ( strlen(graphName)==0 )
+			graphName= WinName(0,1)
+	endif
+	
+	// Move to the data folder containing the global variables for the graph
+	SetDataFolder root:WinGlobals:$graphName // should already be in this data folder, but include this to be sure
+	
+	// The ctable wave has been created and put in the appropriate WinGlobals location with the global variables and so can be assigned
+	Wave ctab
+	
+	// Get the global variable for this graph (these were set in the manipulateData procedure)
+	String/G imgWFullStr		// data folder plus wave name
+	String/G imgWStr		// data folder plus wave name
+	
+	// Make wave assignment to the data
+	Wave imgW= $imgWFullStr
+	
+	// generate a histogram from the image data	
+	String/G histName = imgWStr+"_HIST"
+	Make/N=100/O $histName
+	Wave histW = $histName
+	Histogram/B=1 imgW, histW
+	
+	display1D(histName)
+	CurveFit/M=2/W=0 gauss, $histName/D
+	KillWindow $WinName(0,1)
+	Wave W_coef
+	
+	Variable x0 = W_coef[2]
+	Variable width = W_coef[3]
+	
+	Variable/G ctabwMin = x0 - width
+	Variable/G ctabwMax = x0 + width
+	
+	// Set the colour scale range to match the data range
+	SetScale/I x ctabwMin, ctabwMax,"", ctab
+	
+	// Apply colour table to the image being displayed
+	ModifyImage/W=$graphName $imgWStr cindex=root:WinGlobals:$(graphName):ctab
+	
+	Print "Min= ", ctabwMin, "Max= ", ctabwMax, "Range= ", (ctabwMax-ctabwMin)
+	// Move back to original DF
+	SetDataFolder saveDF
+End
+
+
+
+//------------------------------------------------------------------------------------------------------------------------------------
 // User dialogue for manually setting the colour range
 Function updateColourRangeDialogue(graphName)
 	String graphName
