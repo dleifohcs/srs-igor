@@ -1830,6 +1830,30 @@ Function fftfilterimage(graphName,sigma)
 	// Make wave assignment to the data
 	Wave/C imgW= $imgWFullStr
 	
+	// check dimensions of the image
+	// Determine size of the image
+	Variable ImgRows = DimSize(imgW,0)
+	Variable ImgCols = DimSize(imgW,1)
+	
+	Variable cropimageflag = 0 // use this as a flag to determined whether we need to create a new image
+	if ( mod(ImgRows,2)==1 )
+		Variable ImgRowsCrop = ImgRows - 1
+		cropimageflag = 1
+	endif
+	
+	if ( mod(ImgCols,2)==1 )
+		Variable ImgColsCrop = ImgCols - 1
+		cropimageflag = 1
+	endif
+	
+	if (cropimageflag==1)
+		// Move to the image data folder to replace the image with the one of even sides for the FFT
+		SetDataFolder imgDF 
+		Redimension/N=(ImgRowsCrop,ImgColsCrop) imgW
+		SetDataFolder root:WinGlobals:$graphName 
+	endif
+	
+	
 	// Create name for FFT wave
 	String imgFFTStr= imgWStr+"FFT"
 	

@@ -1864,6 +1864,7 @@ Function FlatAddInfo2Wave()
 		Note/NOCR dataW, "Comment:"+comment+";"
 		
 	else // 2D or 3D waves
+
 		// Get the data waves
 		Wave dataFU
 		Wave dataBU
@@ -1874,10 +1875,10 @@ Function FlatAddInfo2Wave()
 		// Add the information to the wave notes
 		
 		// Create name	
-		Note/NOCR dataFU, "Name:"+channel_name+" "+num2str(run_cycle)+"-"+num2str(scan_cycle)+" Forward Up;"
-		Note/NOCR dataBU, "Name:"+channel_name+" "+num2str(run_cycle)+"-"+num2str(scan_cycle)+" Backward Up;"
-		Note/NOCR dataFD, "Name:"+channel_name+" "+num2str(run_cycle)+"-"+num2str(scan_cycle)+" Forward Down;"
-		Note/NOCR dataBD, "Name:"+channel_name+" "+num2str(run_cycle)+"-"+num2str(scan_cycle)+" Backward Down;"
+		Note/NOCR dataFU, "Name:"+channel_name+" "+num2str(run_cycle)+"-"+num2str(scan_cycle)+" FU;"
+		Note/NOCR dataBU, "Name:"+channel_name+" "+num2str(run_cycle)+"-"+num2str(scan_cycle)+" BU;"
+		Note/NOCR dataFD, "Name:"+channel_name+" "+num2str(run_cycle)+"-"+num2str(scan_cycle)+" FD;"
+		Note/NOCR dataBD, "Name:"+channel_name+" "+num2str(run_cycle)+"-"+num2str(scan_cycle)+" BD;"
 	
 		// Create DF name	
 		Note/NOCR dataFU, "DFName:"+channel_name+" "+num2str(run_cycle)+"-"+num2str(scan_cycle)+";"
