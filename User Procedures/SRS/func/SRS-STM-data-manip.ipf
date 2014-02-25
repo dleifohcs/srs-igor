@@ -814,7 +814,15 @@ Function createSRSControlVariables()
 
 	String/G coloursList
 	if (strlen(coloursList)==0)
-		coloursList = "Autumn;Defect1;GoldOrange;PinkScale;Bicolor;Defect2;Grasshopper;Red2;Blue2;Expfast1;GrayBinary1;Rust;BlueBlackYellow;Expfast2;GrayBinary2;Sailing;BlueExp;Expmult1;GrayBinary3;Strawberry;BlueLog;Expmult2;GrayExp;Sunset;BlueRedGreen2;Expmult3;Green2;Thunderbolt;BlueRedGreen3;Expmult4;Green3;Titanium;SRSBBR;SRSBBY"
+		coloursList = "Autumn"
+		coloursList = coloursList+";BlueExp;Blue2;SRSBlue;SRSBlue2"
+		coloursList = coloursList+";SRSBBR;SRSBBY"
+		coloursList = coloursList+";BlueBlackYellow"
+		coloursList = coloursList+";Defect1;Defect2"
+		coloursList = coloursList+";GoldOrange;PinkScale;Bicolor;Grasshopper;Red2;Expfast1;GrayBinary1;Rust"
+		coloursList = coloursList+"Expfast2;GrayBinary2;Sailing;Expmult1;GrayBinary3;Strawberry;BlueLog;Expmult2"
+		coloursList = coloursList+";GrayExp;Sunset;BlueRedGreen2"
+		coloursList = coloursList+";Expmult3;Green2;Thunderbolt;BlueRedGreen3;Expmult4;Green3;Titanium"
 	endif
 	
 	SetDataFolder saveDF
@@ -1432,6 +1440,7 @@ Function matrixConvolveData(graphName)
 	// Make the kernel for the manipulation
 	makeKernel(graphName,dim)
 	
+	
 	// Convert the data to single precision floating point
 	Redimension/S dataW // to avoid integer truncation
 	
@@ -1440,19 +1449,14 @@ Function matrixConvolveData(graphName)
 	Wave convolvedW= M_Convolution
 
 	if (WaveExists(citsImgW)==1)  // 3d data
-	
 		// copy the data to the appropriate place
 		dataW= convolvedW
 		KillWaves/Z M_Convolution
 		// refresh the data displays
 		refresh3dData(graphName)
-	
 	else
-		// probably need to refresh 2d data
-		
+		// probably need to refresh 2d data ?
 	endif
-	
-
 	
 	// return to DF	
 	SetDataFolder saveDF
@@ -1480,12 +1484,12 @@ Function makeKernel(graphName,dim)
 	Variable kernelSize=5
 	Prompt kernelSize, "Please enter side length, n, of the (nxn) kernel: " 
 		
-	Variable kernelParam=2
-	Prompt kernelParam, "Please enter sigma (used in Laplacian of Gaussian): " 
+	Variable kernelParam=1
+	Prompt kernelParam, "Please enter kernel variable parameter" 
 	
 	String kernelName
 	Prompt kernelName,"Kernel type",popup,TraceNameList("",";",1) 
-	Prompt kernelName,"Kernel type: ",popup,"Smoothing (isotropic sinc);Laplacian of Gaussian;Laplacian (3x3);none"
+	Prompt kernelName,"Kernel type: ",popup,"Gaussian;Laplacian (3);Laplacian (5);none"
 	
 	DoPrompt "Make kernel", kernelSize, kernelName, kernelParam
 	
@@ -1494,54 +1498,54 @@ Function makeKernel(graphName,dim)
 		return -1
 	endif 
 	
+	Variable limitXYZ = (kernelSize-1)/2
+	
 	if (dim==3) // 3d wave
 		
 		Make/O/N=(kernelSize,kernelSize,kernelSize) sKernel // first create the convolution kernel 
-		SetScale/I x -kernelSize,kernelSize,"", sKernel
-		SetScale/I y -kernelSize,kernelSize, "", sKernel 	// Equivalent to rect(2*fx)*rect(2*fy) in the spatial frequency domain. 
-		SetScale/I z -kernelSize,kernelSize,"", sKernel
-
-		strswitch( kernelName )
-			case "Smoothing (isotropic sinc)":
-				convTypeLetter = "S"
-				sKernel=sinc(x/2)*sinc(y/2)*sinc(z/2)
-				normalisation= Sum(sKernel)
-				sKernel= sKernel/normalisation
-				break
-			default:  //unitary		
-				Print "Warning: This option does not apply to 3D data sets; doing nothing and exiting"
-				Make/O/N=(1,1,1) sKernel //  
-				sKernel=1
-				normalisation= Sum(sKernel)
-				sKernel= sKernel/normalisation
-				break
-		endswitch
+		SetScale/I x -limitXYZ,limitXYZ,"", sKernel
+		SetScale/I y -limitXYZ,limitXYZ, "", sKernel 	// Equivalent to rect(2*fx)*rect(2*fy) in the spatial frequency domain. 
+		SetScale/I z -limitXYZ,limitXYZ,"", sKernel
+Print "WARNING: DOES NOTHING - STEVEN FIX THIS!"
+//		strswitch( kernelName )
+//			case "Gaussian":
+//				convTypeLetter = "G"
+//				sKernel=sinc(x/2)*sinc(y/2)*sinc(z/2)
+//				normalisation= Sum(sKernel)
+//				sKernel= sKernel/normalisation
+//				break
+//			default:  //unitary		
+//				Print "Warning: This option does not apply to 3D data sets; doing nothing and exiting"
+//				Make/O/N=(1,1,1) sKernel //  
+//				sKernel=1
+//				normalisation= Sum(sKernel)
+//				sKernel= sKernel/normalisation
+//				break
+//		endswitch
 		
 	else // 2d wave
 	
 		Make/O/N=(kernelSize,kernelSize) sKernel // first create the convolution kernel 
-		SetScale/I x -kernelSize,kernelSize,"", sKernel
-		SetScale/I y -kernelSize,kernelSize,"", sKernel 	// Equivalent to rect(2*fx)*rect(2*fy) in the spatial frequency domain. 
+		
+		SetScale/I x -limitXYZ,limitXYZ,"", sKernel
+		SetScale/I y -limitXYZ,limitXYZ,"", sKernel 	// Equivalent to rect(2*fx)*rect(2*fy) in the spatial frequency domain. 
 
 		strswitch( kernelName )
-			case "Smoothing (isotropic sinc)":
-				convTypeLetter = "S"
-				sKernel=sinc(x/2)*sinc(y/2)
+			case "Gaussian":
+				convTypeLetter = "G"
+				sKernel = Exp(- (x^2 + y^2)/(2*kernelParam^2) )
 				normalisation= Sum(sKernel)
 				sKernel= sKernel/normalisation
 				break
-			case "Laplacian (3x3)":  
+			case "Laplacian (3)":  
 				convTypeLetter = "L"
-				Make/O/N=(3,3) sKernel //  create a unitary kernel (2d)
+				Make/O/N=(3,3) sKernel 
 				sKernel[][]={{-1,-1,-1},{-1,8,-1},{-1,-1,-1}}
 				break
-			case "Laplacian of Gaussian":  
-				SetScale/I x -kernelSize/2,kernelSize/2,"", sKernel
-				SetScale/I y -kernelSize/2,kernelSize/2, "", sKernel 	
-				convTypeLetter = "LoG"
-				Variable sigma=kernelParam
-				sKernel=(1 - (x^2 + y^2)/(2*sigma^2) ) * Exp(- (x^2 + y^2)/(2*sigma^2) )
-				imgDisplay("sKernel")
+			case "Laplacian (5)":  
+				convTypeLetter = "L"
+				Make/O/N=(5,5) sKernel 
+				sKernel[][]={{-10,-5,-2,-1,-2,-5,-10},{-5,0,3,4,3,0,-5},{-2,3,6,7,6,3,-2},{-1,4,7,8,7,4,-1},{-2,3,6,7,6,3,-2},{-5,0,3,4,3,0,-5},{-10,-5,-2,-1,-2,-5,-10}}
 				break
 			default:  //unitary		
 				Make/O/N=(1,1) sKernel //  create a unitary kernel (2d)
@@ -1550,7 +1554,10 @@ Function makeKernel(graphName,dim)
 				sKernel= sKernel/normalisation
 				break
 		endswitch
+		// show the kernel
+		imgDisplay("sKernel")
 	endif
+	
 	
 	
 	// Back up the data and add letter to new data.  Ideally we would do this elsewhere, but this is the easiest place to do it
