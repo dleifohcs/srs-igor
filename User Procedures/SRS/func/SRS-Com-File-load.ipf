@@ -1816,12 +1816,15 @@ Function FlatAddInfo2Wave()
 	endfor
 	
 	// This is in case no "alternate" value exists
-	if ( cmpstr(Reg_valW[35],"false") == 0 )  // alternate regulation not used
-		Regalt_num = Reg_num
-		if (cmpstr(Reg_nameW[35],"Enable_Alternate_Setpoint_1")!=0 )
-			Print "Warning: please check that the alternate regulation current is correct"
+	// find the entry called "Enable_Alternate_Setpoint_1"
+	for ( i =0; i< DimSize(Reg_valW,0); i+=1 )
+		if ( cmpstr(Reg_NameW[i],"Enable_Alternate_Setpoint_1") == 1 )
+			if ( cmpstr(Reg_valW[i],"false") == 0 )
+				Regalt_num = Reg_num
+			endif 
+			break  // stop after the first instance
 		endif
-	endif
+	endfor
 
 	// get the regulator values
 	String Reg = Reg_valW[Reg_num]
