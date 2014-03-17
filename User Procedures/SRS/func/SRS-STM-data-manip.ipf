@@ -164,7 +164,7 @@ Function doSomethingWithData(actionType)
       					Print "Warning: User cancelled FFT dialogue"
       			      else // 
  						// FFT
-						fftfilterimage(graphName,1)
+						fftfilterimage(graphName,sigma)
 					endif			
 					break
 					
