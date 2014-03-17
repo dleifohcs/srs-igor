@@ -69,6 +69,8 @@ Menu "STM", dynamic
 			"Line Profile  [2d and 3d data]/F6", doSomethingWithData("lineprofile")
 			"Remove line profile", removeLineProfile("")
 			"-"
+			"Display image FFT", doSomethingWithData("FFT")
+			"-"
 			"Point from CITS/F7", doSomethingWithData("STSfromCITS")
 		End
 		
