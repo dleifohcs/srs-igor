@@ -22,27 +22,33 @@
 //    along with this library.  If not, see <http://www.gnu.org/licenses/>.
 //
 //------------------------------------------------------------------------------------------------------------------------------------
-#pragma rtGlobals=1		
+#pragma rtGlobals=1
 
+// Load procedures from the following files
 
-//------------------------------------------------------------------------------------------------------------------------------------
-// Procedure files for common use
+// Common
 #include "SRS-Com-linetrace-funcs"
 #include "SRS-Com-string-funcs"
 
-
-//------------------------------------------------------------------------------------------------------------------------------------
 // File Handlng
 #include "SRS-Com-File-load"
 
-//------------------------------------------------------------------------------------------------------------------------------------
 // Line trace - general
 #include "SRS-Com-linetrace-menu"
 
-//------------------------------------------------------------------------------------------------------------------------------------
+// STM / STS / CITS
+#include "SRS-colour"
+#include "SRS-STM-disp-img"
+#include "SRS-STM-data-manip"
+
 // SPECS
 #include "SRS-SPECS-menu"
 #include "SRS-SPECS-manip"
 
 // KANE fitting
 #include "KOD-SPECS-special-funcs"
+
+// Create the menu
+#include "SRS-Com-linetrace-menu"
+//#include "SRS-STM-menu"
+#include "SRS-SPECS-menu"

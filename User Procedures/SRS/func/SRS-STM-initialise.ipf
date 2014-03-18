@@ -33,12 +33,21 @@
 // File Handlng
 #include "SRS-Com-File-load"
 
+// Line trace - general
+#include "SRS-Com-linetrace-menu"
+
 // STM / STS / CITS
-#include "SRS-STM-menu"
 #include "SRS-colour"
 #include "SRS-STM-disp-img"
 #include "SRS-STM-data-manip"
 
-//------------------------------------------------------------------------------------------------------------------------------------
-// Line trace - general
+// SPECS
+#include "SRS-SPECS-manip"
+
+// KANE fitting
+#include "KOD-SPECS-special-funcs"
+
+// Create the menu
 #include "SRS-Com-linetrace-menu"
+#include "SRS-STM-menu"
+//#include "SRS-SPECS-menu"

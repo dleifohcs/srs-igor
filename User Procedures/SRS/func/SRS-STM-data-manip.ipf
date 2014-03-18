@@ -769,6 +769,11 @@ Function CursorMovedForGraph(info, cursNum)
 	return result
 End
 
+
+
+
+
+
 //--------------------------------------------------------------------------------------------------------------
 Function createSRSControlVariables()
 	
@@ -833,6 +838,8 @@ Function createSRSControlVariables()
 	
 	SetDataFolder saveDF
 End
+
+
 
 //--------------------------------------------------------------------------------------------------------------
 // PLANE SUBTRACT
