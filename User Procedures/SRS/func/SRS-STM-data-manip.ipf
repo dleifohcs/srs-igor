@@ -151,6 +151,15 @@ Function doSomethingWithData(actionType)
 			// when these functions are called since they load  
 			strswitch (actionType)
 			
+				case "rotateImg":
+					
+					// Make a back up copy of the original data in a data folder of the same name
+					backupData(graphName,"R")  // the string in the second variable is appended to wave name after backup up the original data
+					
+					// FFT
+					rotateImg(graphName)			
+					break
+				
 				case "FFT":
 				
 					// FFT
@@ -1855,14 +1864,24 @@ Function FFTimage(graphName)
 	// Determine size of the image
 	Variable ImgRows = DimSize(imgW,0)
 	Variable ImgCols = DimSize(imgW,1)
-	
+
+	Variable cropimageflag = 0 // use this as a flag to determined whether we need to create a new image
+	Variable ImgRowsCrop = ImgRows
+	Variable ImgColsCrop = ImgCols
 	// if either cols or rows are odd then make them even by subtracting 1
 	if ( mod(ImgRows,2)==1 )
-		ImgRows -= 1
+		ImgRowsCrop -= 1
+		cropimageflag = 1
 	endif
 	
 	if ( mod(ImgCols,2)==1 )
-		ImgCols -= 1
+		ImgColsCrop -= 1
+		cropimageflag = 1
+	endif
+	
+	if (cropimageflag==1)
+		// Move to the image data folder to replace the image with the one of even sides for the FFT
+		Redimension/N=(ImgRowsCrop,ImgColsCrop) imgW
 	endif
 	
 	// Create name for FFT wave
@@ -2009,7 +2028,7 @@ Function fftfilterimage(graphName,sigma)
 	String magFFTStr
 	
 	// create a new wave with the full magnitude spectrum and get the name of that wave
-	magFFTStr = mirrorFFT(imgFFTStr)
+//	magFFTStr = mirrorFFT(imgFFTStr)
 	
 	// Display the FFT
 	imgDisplay(magFFTStr)
@@ -2039,7 +2058,7 @@ Function fftfilterimage(graphName,sigma)
 	
 	// create a new wave with the full magnitude spectrum and get the name of that wave
 	String magFFTfilteredStr
-	magFFTfilteredStr = mirrorFFT("ImgFFTfiltered")
+//	magFFTfilteredStr = mirrorFFT("ImgFFTfiltered")
 	
 	// Display the FFT
 	imgDisplay(magFFTfilteredStr)
@@ -2051,34 +2070,43 @@ Function fftfilterimage(graphName,sigma)
 End
 
 
-// creates a full image of FFT magnitude from a computed FFT image spectrum 
-// The function will create the FFTmagnitude in the local directory and return 
-// the local name of the wave
-Function/S mirrorFFT(imgFFTStr)
-	String imgFFTStr
 
-	// Create wave reference to the FFT wave	
-	Wave imgFFT = $imgFFTStr
+
+
+//----------------------------------------------------------
+// Calculate FFT, filter the FFT, calculate the IFFT
+//----------------------------------------------------------
+Function rotateImg(graphName)
+	String graphName
 	
-	// Determine size of the FFT
-	Variable rows = DimSize(imgFFT,0)
-	Variable cols = DimSize(imgFFT,1)
+	// Get current data folder
+	DFREF saveDF = GetDataFolderDFR()	  // Save
 	
-	// Create name for the mirrored FFT Magnitude wave
-	String magFFTStr = imgFFTStr+"M"
+	// Move to the data folder containing the global variables for the graph
+	SetDataFolder root:WinGlobals:$graphName // should already be in this data folder, but include this to be sure
+	
+	// Get the global variable for this graph (these were set in the manipulateData procedure)
+	String/G imgDF			// data folder containing the data shown on the graph
+	String/G imgWStr		// name of the wave shown on the graph (an image or 3D data set; e.g. STM or CITS)
+	String/G imgWFullStr		// data folder plus wave name
+	
+	// From this point work in the original data folder where the data is
+	SetDataFolder imgDF 
+	
+	// Make wave assignment to the data  (/C designates complex wave)
+	Wave imgW= $imgWFullStr
+	
+	Variable angle=0
+	Prompt angle, "Enter Rotation Angle"
+	DoPrompt "Image rotation", angle
 		
-	// Generate a magnitude FFT wave for display
-	MatrixOp/O magFFT = mag(imgFFT)
-	Wave magFFT
+	ImageRotate/E=0/O/A=(angle) imgW
 
-	// Mirror the magnitude wave before displaying
-	Variable rowsFull = (rows-1)*2
-	Make/O/N=(rowsFull,cols) $magFFTStr
-	Wave mirroredMagFFT = $magFFTStr
-	
-	mirroredMagFFT[0,rows-1][] = magFFT[rows-p-1][cols-q-1]
-	mirroredMagFFT[rows,rowsFull][] = magFFT[p-rows][q]
-	
-	KillWaves magFFT
-	return magFFTStr
 End
+
+
+
+
+
+
+
