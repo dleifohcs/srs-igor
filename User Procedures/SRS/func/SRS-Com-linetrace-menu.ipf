@@ -34,7 +34,7 @@ Menu "Line Trace"
 		"Display a wave/5", display1DWaves("one")
 		help = {"Display a single 1D wave from the current data folder in a new graph window"}
 	
-		"Append a wave/6", display1DWaves("appendone")
+		"Append a wave", display1DWaves("appendone")
 		help = {"Append a single 1D wave from the current data folder to the top graph window"}
 	
 		"-"

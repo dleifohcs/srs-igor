@@ -943,6 +943,7 @@ Function prettyXPS()
 		MakeTracesDifferentColours("SpectrumBlack")
 		DoUpdate
 		Legend/C/N=text0/F=0
+		ModifyGraph width=0,height=0
 		DoUpdate
 	endif
 End
@@ -970,6 +971,7 @@ Function prettyNEXAFS()
 		MakeTracesDifferentColours("YellowHot256")
 		DoUpdate
 		Legend/C/N=text0/F=0
+		ModifyGraph width=0,height=0
 		DoUpdate
 	endif
 End

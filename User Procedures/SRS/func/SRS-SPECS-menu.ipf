@@ -50,11 +50,11 @@ Menu "NEXAFS"
 	End
 	"-"
 	Submenu "Batch scripts"
-		"Process NEXAFS, constant pre-edge/2", display1DWaves("oneDN"); AutoPositionWindow/E/m=0; doSomethingWithSpecsData("leadingAvgSubtraction"); doSomethingWithSpecsData("postEdgeNormalisation")
+		"Display DN NEXAFS then process with constant pre-edge/2", display1DWaves("oneDN"); AutoPositionWindow/E/m=0; doSomethingWithSpecsData("leadingAvgSubtraction"); doSomethingWithSpecsData("postEdgeNormalisation")
 	End
 	"-"
 	Submenu "Make pretty"
-		"NEXAFS axes/5", prettyNEXAFS()
+		"NEXAFS axes", prettyNEXAFS()
 		"-"
 		"Carbon energy range", SetAxis/A bottom 280, 320; setNEXAFSyAxis()
 		"Nitrogen energy range", SetAxis/A bottom 393, 420; setNEXAFSyAxis(); MakeTracesDifferentColours("CyanMagenta")

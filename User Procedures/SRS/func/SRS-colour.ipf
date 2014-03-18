@@ -333,7 +333,7 @@ Function updateColourRangeByHist(graphName, [type])
 			break
 	endswitch
 			
-//	KillWindow $WinName(0,1)
+	KillWindow $WinName(0,1)
 	
 	
 	Variable/G ctabwMin = x0 - width
