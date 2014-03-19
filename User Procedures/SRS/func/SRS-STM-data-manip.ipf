@@ -405,7 +405,7 @@ End
 // This is called from the manipulateData function when user asks for a line profile of the current graph
 Function lineProfile(graphname)
 	String graphname
-	
+
 	// Get current data folder
 	DFREF saveDF = GetDataFolderDFR()	  // Save
 	
@@ -659,6 +659,22 @@ Function makeLineProfile(graphname)
 			
 	endif 	// end of "isNaN" checking
 
+	// output cursor info to command line
+	Variable lineAngle = (180/pi) * atan ( (lineprofy[1] - lineprofy[0]) / (lineprofx[1] - lineprofx[0]) )
+	if ( (lineprofx[1] - lineprofx[0]) < 0 && (lineprofy[1] - lineprofy[0]) > 0 )
+		lineAngle = 180 + lineAngle
+	endif
+	if ( (lineprofx[1] - lineprofx[0]) < 0 && (lineprofy[1] - lineprofy[0]) < 0 )
+		lineAngle = 180 + lineAngle
+	endif
+	if ( (lineprofx[1] - lineprofx[0]) > 0 && (lineprofy[1] - lineprofy[0]) < 0 )
+		lineAngle = 360 + lineAngle
+	endif
+	
+	Variable lineLength = sqrt ( (lineprofy[1] - lineprofy[0])^2 + (lineprofx[1] - lineprofx[0])^2 )
+		
+	Print "Length=", lineLength, imgWXUnit+"  Angle=", lineAngle, "degrees"
+	
 	// move back to original DF
 	SetDataFolder saveDF
 End
