@@ -151,6 +151,15 @@ Function doSomethingWithData(actionType)
 			// when these functions are called since they load  
 			strswitch (actionType)
 			
+				case "cropImg":
+					
+					// Make a back up copy of the original data in a data folder of the same name
+					backupData(graphName,"C")  // the string in the second variable is appended to wave name after backup up the original data
+					
+					// FFT
+					cropImg(graphName)			
+					break
+					
 				case "rotateImg":
 					
 					// Make a back up copy of the original data in a data folder of the same name
@@ -2090,7 +2099,7 @@ End
 
 
 //----------------------------------------------------------
-// Calculate FFT, filter the FFT, calculate the IFFT
+// rotate
 //----------------------------------------------------------
 Function rotateImg(graphName)
 	String graphName
@@ -2118,6 +2127,72 @@ Function rotateImg(graphName)
 		
 	ImageRotate/E=0/O/A=(angle) imgW
 
+End
+
+
+//----------------------------------------------------------
+// crop to current view area
+//----------------------------------------------------------
+Function cropImg(graphName)
+	String graphName
+	
+	// Get current data folder
+	DFREF saveDF = GetDataFolderDFR()	  // Save
+	
+	// Move to the data folder containing the global variables for the graph
+	SetDataFolder root:WinGlobals:$graphName // should already be in this data folder, but include this to be sure
+	
+	// Get the global variable for this graph (these were set in the manipulateData procedure)
+	String/G imgDF			// data folder containing the data shown on the graph
+	String/G imgWStr		// name of the wave shown on the graph (an image or 3D data set; e.g. STM or CITS)
+	String/G imgWFullStr		// data folder plus wave name
+	
+	// From this point work in the original data folder where the data is
+	SetDataFolder imgDF 
+	
+	// Make wave assignment to the data  
+	Wave imgW= $imgWFullStr
+	
+	GetAxis/W=$graphName bottom
+	Variable Xmin = V_min
+	Variable Xmax = V_max
+	
+	GetAxis/W=$graphName left
+	Variable Ymin = V_min
+	Variable Ymax = V_max
+	
+	// Determine point number corresponding to axes min and max
+	Variable XminPoint =  (Xmin - DimOffset(imgW, 0))/DimDelta(imgW,0)
+	Variable XmaxPoint =  (Xmax - DimOffset(imgW, 0))/DimDelta(imgW,0)
+	Variable YminPoint =  (Ymin - DimOffset(imgW, 1))/DimDelta(imgW,1)
+	Variable YmaxPoint =  (Ymax - DimOffset(imgW, 1))/DimDelta(imgW,1)
+	Variable imgWmaxX = DimSize(imgW,0)
+	Variable imgWmaxY = DimSize(imgW,1)
+
+	DeletePoints/M=0 round(XmaxPoint), imgWmaxX, imgW
+	DeletePoints/M=1 round(YmaxPoint), imgWmaxY, imgW
+	DeletePoints/M=0 0, round(XminPoint), imgW
+	DeletePoints/M=1 0, round(YminPoint), imgW
+
+	SetAxis/A
+	
+//	Variable croppedImgXSize = round ( XmaxPoint - XminPoint )
+//	Variable croppedImgYSize = round ( YmaxPoint - YminPoint )
+	
+//	Variable croppedImgSize = 0 
+//	if ( croppedImgXSize >= croppedImgYSize )
+//		croppedImgSize = croppedImgXSize
+//	else
+//		croppedImgSize = croppedImgYSize
+//	endif
+
+//	Make/O/N=(croppedImgSize,croppedImgSize) croppedImg
+//	croppedImg = NaN
+//	croppedImg[0,croppedImgXSize][0,croppedImgYSize] = imgW[p+XminPoint][q+YminPoint]
+	
+//	KillWindow $GraphName
+//	KillWaves imgW
+//	Rename croppedImg, $imgWStr
 End
 
 

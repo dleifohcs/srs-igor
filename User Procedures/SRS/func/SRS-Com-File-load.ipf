@@ -1196,7 +1196,7 @@ End
 //------------------------------------------------------------------------------------
 // Redimension the axes (calls separate functions for images, sts, etc)
 //------------------------------------------------------------------------------------
-Function/S FlatRedimensionAxes()
+Function FlatRedimensionAxes()
 
 	// Save the current DF
 	String saveDF = GetDataFolder(1)

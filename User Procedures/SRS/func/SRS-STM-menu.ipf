@@ -82,6 +82,7 @@ Menu "STM", dynamic
 			"Matrix convolution [2d and 3d data]",  doSomethingWithData("mConvolution")
 			"FFT Filter beta", doSomethingWithData("FFTFilter")
 			"Rotate image by", doSomethingWithData("rotateImg")
+			"Crop image to current view area", doSomethingWithData("cropImg")
 		End
 
 		"-"
