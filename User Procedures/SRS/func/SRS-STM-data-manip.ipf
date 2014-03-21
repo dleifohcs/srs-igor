@@ -1935,77 +1935,28 @@ Function FFTimage(graphName)
 	
 	// display the FFT and update the contrast
 	imgDisplay(imgFFTStr)
+	String FFTgraphName= WinName(0,1)
+	changeColour(FFTgraphName,colour="BlueLog")
 	updateColourRangeByHist("",type="exp")
 	
-	// make wave
-//	Make/O/C /N=(ImgRows,ImgCols) $imgFFTStr
-//	Wave/C imgFFT = imgFFTStr
+	// further adjust colour scale
+	// Move to the data folder containing the global variables for the graph
+	SetDataFolder root:WinGlobals:$FFTgraphName 
 	
-//	imgFFT = imgW
+	// The ctable wave has been created and put in the appropriate WinGlobals location with the global variables and so can be assigned
+	Wave ctab
 	
-	// Compute the 2D FFT
-//	FFT imgFFT
+	Variable/G ctabwMin
+	Variable/G ctabwMax
+	Variable ctabRange= ctabwMax - ctabwMin
 	
-//	String magFFTStr
+	ctabwMin = ctabwMin - ctabRange
+	ctabwMax = ctabwMax + ctabRange
 	
-//	// create a new wave with the full magnitude spectrum and get the name of that wave
-//	magFFTStr = mirrorFFT(imgFFTStr)
+	// Update colour range
+	updateColourRange(FFTgraphName,minVal=ctabwMin,maxVal=ctabwMax)
 	
-//	// Display the FFT
-//	imgDisplay(magFFTStr)
-//	updateColourRangeByHist("",type="exp")
-	
-	// Determine size of the FFT
-//	Variable rows = DimSize(imgFFT,0)
-//	Variable cols = DimSize(imgFFT,1)
-	
-	// Make the filter wave to convolute with the FFT before taking the inverse FFT
-//	Make/O/N=(rows,cols) filterWave
-//	filterWave[][cols/2,cols-1] = Exp ( - ( (q-cols/2)^2 + p^2 ) / 500)
-//	filterWave[][0,cols/2 ] = Exp ( - ( (cols/2-q)^2 + p^2 ) /500)
-	
-	// Create name for the filtered wave
-//	String imgFilteredStr= imgWStr+"F"
-	
-	// Filter the FFT
-//	MatrixOp/O ImgFFTfiltered = imgFFT * filterWave
-	
-	// Compute filtered image via inverse FFT
-//	IFFT/DEST=$imgFilteredStr ImgFFTfiltered
-//	Wave imgFiltered = $imgFilteredStr
-	
-	// replace original wave with the filtered one
-//	imgW = imgFiltered
-	
-	// create a new wave with the full magnitude spectrum and get the name of that wave
-//	String magFFTfilteredStr
-//	magFFTfilteredStr = mirrorFFT("ImgFFTfiltered")
-	
-	// Display the FFT
-//	imgDisplay(magFFTfilteredStr)
-//	updateColourRangeByHist("",type="exp")
-	
-//	KillWaves filterWave, ImgFFTfiltered
-
 End
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 //----------------------------------------------------------

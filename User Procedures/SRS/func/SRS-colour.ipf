@@ -423,7 +423,6 @@ Function incrementColourScale(graphName,change,what)
 	
 	// If graphName not given then get name of the top graph window
 	if ( strlen(graphName)==0 )
-	
 			graphName= WinName(0,1)
 	endif
 	
