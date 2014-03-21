@@ -184,21 +184,24 @@ Function doSomethingWithData(actionType)
 					// FFT
 					FFTimage(graphName)			
 					break
-				
-				case "fftfilter":
-				
-					// Make a back up copy of the original data in a data folder of the same name
-					backupData(graphName,"F")  // the string in the second variable is appended to wave name after backup up the original data
 					
-					Variable sigma = 500
-					Prompt sigma, "FFT parameter: " // 
-					DoPrompt "Please enter parameter for FFT filtering", sigma
+				case "IFFT":
+				
+					// IFFT
+					IFFTimage(graphName)			
+					break
+				
+				case "FFTlowpass":
+
+					Variable cuttoff = 1
+					Prompt cuttoff, "FFT parameter: " // 
+					DoPrompt "Please enter parameter for FFT filtering", cuttoff
 
 					if (V_Flag)
       					Print "Warning: User cancelled FFT dialogue"
       			      else // 
- 						// FFT
-						fftfilterimage(graphName,sigma)
+ 						// FFT low pass filter
+						FFTlowpass(graphName,cuttoff)
 					endif			
 					break
 					
@@ -1227,15 +1230,20 @@ Function backupData(graphname,suffixStr)
 		String/G imgWStr
 		String/G imgWFullStr		// data folder plus wave name
 		
-		String/G databackupDF = imgDF+PossiblyQuoteName(imgWStr)
-		NewDataFolder/O $databackupDF
-		String/G backupDataStr= databackupDF+":"+PossiblyQuoteName(imgWStr)
-		Duplicate/O $imgWFullStr $backupDataStr
+		// Make a new DF to store a copy of the original data
+//		String/G databackupDF = imgDF+PossiblyQuoteName(imgWStr)
+//		NewDataFolder/O $databackupDF
+//		String/G backupDataStr= databackupDF+":"+PossiblyQuoteName(imgWStr)
+//		Duplicate/O $imgWFullStr $backupDataStr
 		
 		String newimgWStr = imgWStr+suffixStr
 		SetDataFolder $imgDF
-		KillWaves/Z 	$newimgWStr
-		Rename $imgWFullStr, $newimgWStr
+		Duplicate/O $imgWFullStr, $newimgWStr
+		
+		KillWindow $graphname
+		KillWaves/Z $imgWFullStr
+		
+		imgDisplay(newimgWStr)
 		
 		// Update global variables
 		imgWStr= newimgWStr
@@ -1928,6 +1936,166 @@ Function FFTimage(graphName)
 	Redimension/C imgFFT
 	
 	// Compute the FFT magnitude
+	FFT/out=1/DEST=imgFFT imgFFT
+	
+	// Convert the wave back to real so it can be displayed
+	//Redimension/R imgFFT
+	
+	// display the FFT and update the contrast
+	imgDisplay(imgFFTStr)
+	String FFTgraphName= WinName(0,1)
+	changeColour(FFTgraphName,colour="BlueLog")
+	updateColourRangeByHist("",type="exp")
+	
+	// further adjust colour scale
+	// Move to the data folder containing the global variables for the graph
+	SetDataFolder root:WinGlobals:$FFTgraphName 
+	
+	// The ctable wave has been created and put in the appropriate WinGlobals location with the global variables and so can be assigned
+	Wave ctab
+	
+	Variable/G ctabwMin
+	Variable/G ctabwMax
+	Variable ctabRange= ctabwMax - ctabwMin
+	
+	ctabwMin = ctabwMin - ctabRange
+	ctabwMax = ctabwMax + ctabRange
+	
+	// Update colour range
+	updateColourRange(FFTgraphName,minVal=ctabwMin,maxVal=ctabwMax)
+	
+End
+
+
+
+//----------------------------------------------------------
+// Calculate FFT, filter the FFT, calculate the IFFT
+//----------------------------------------------------------
+Function IFFTimage(graphName)
+	String graphName
+	
+	// Get current data folder
+	DFREF saveDF = GetDataFolderDFR()	  // Save
+	
+	// Move to the data folder containing the global variables for the graph
+	SetDataFolder root:WinGlobals:$graphName // should already be in this data folder, but include this to be sure
+	
+	// Get the global variable for this graph (these were set in the manipulateData procedure)
+	String/G imgDF			// data folder containing the data shown on the graph
+	String/G imgWStr		// name of the wave shown on the graph (an image or 3D data set; e.g. STM or CITS)
+	String/G imgWFullStr		// data folder plus wave name
+	
+	// From this point work in the original data folder where the data is
+	SetDataFolder imgDF 
+	
+	// Make wave assignment to the data  (/C designates complex wave)
+	Wave imgW= $imgWFullStr
+		
+	// Determine size of the image
+	Variable ImgRows = DimSize(imgW,0)
+	Variable ImgCols = DimSize(imgW,1)
+
+	Variable cropimageflag = 0 // use this as a flag to determined whether we need to create a new image
+	Variable ImgRowsCrop = ImgRows
+	Variable ImgColsCrop = ImgCols
+	// if either cols or rows are odd then make them even by subtracting 1
+	if ( mod(ImgRows,2)==1 )
+		ImgRowsCrop -= 1
+		cropimageflag = 1
+	endif
+	
+	if ( mod(ImgCols,2)==1 )
+		ImgColsCrop -= 1
+		cropimageflag = 1
+	endif
+	
+	if (cropimageflag==1)
+		// Move to the image data folder to replace the image with the one of even sides for the FFT
+		Redimension/N=(ImgRowsCrop,ImgColsCrop) imgW
+	endif
+	
+	// Create name for FFT wave
+	String imgFFTStr= imgWStr+"I"
+	
+	// Duplicate the image wave and then make this a complex wave
+	Duplicate/O imgW, $imgFFTStr
+	Wave/C imgFFT= $imgFFTStr
+	Redimension/C imgFFT
+	
+	// Compute the FFT magnitude
+	IFFT/R/Z/DEST=imgFFT imgFFT
+	
+	// Convert the wave back to real so it can be displayed
+	//Redimension/R imgFFT
+	
+	// display the FFT and update the contrast
+	imgDisplay(imgFFTStr)
+	String FFTgraphName= WinName(0,1)
+	changeColour(FFTgraphName,colour="Autumn")
+	updateColourRangeByHist("",type="gaussian")
+
+	
+End
+
+
+
+
+//----------------------------------------------------------
+// Calculate FFT, filter the FFT, calculate the IFFT
+//----------------------------------------------------------
+Function FFTlowpass(graphName,sigma)
+	String graphName
+	Variable sigma
+	
+	// Get current data folder
+	DFREF saveDF = GetDataFolderDFR()	  // Save
+	
+	// Move to the data folder containing the global variables for the graph
+	SetDataFolder root:WinGlobals:$graphName // should already be in this data folder, but include this to be sure
+	
+	// Get the global variable for this graph (these were set in the manipulateData procedure)
+	String/G imgDF			// data folder containing the data shown on the graph
+	String/G imgWStr		// name of the wave shown on the graph (an image or 3D data set; e.g. STM or CITS)
+	String/G imgWFullStr		// data folder plus wave name
+	
+	// From this point work in the original data folder where the data is
+	SetDataFolder imgDF 
+	
+	// Make wave assignment to the data
+	Wave/C imgW= $imgWFullStr
+	
+	// Determine size of the image
+	Variable ImgRows = DimSize(imgW,0)
+	Variable ImgCols = DimSize(imgW,1)
+
+	Variable cropimageflag = 0 // use this as a flag to determined whether we need to create a new image
+	Variable ImgRowsCrop = ImgRows
+	Variable ImgColsCrop = ImgCols
+	// if either cols or rows are odd then make them even by subtracting 1
+	if ( mod(ImgRows,2)==1 )
+		ImgRowsCrop -= 1
+		cropimageflag = 1
+	endif
+	
+	if ( mod(ImgCols,2)==1 )
+		ImgColsCrop -= 1
+		cropimageflag = 1
+	endif
+	
+	if (cropimageflag==1)
+		// Move to the image data folder to replace the image with the one of even sides for the FFT
+		Redimension/N=(ImgRowsCrop,ImgColsCrop) imgW
+	endif
+		
+	// Create name for FFT wave
+	String imgFFTStr= imgWStr+"F"
+	
+	// Duplicate the image wave and then make this a complex wave
+	Duplicate/O imgW, $imgFFTStr
+	Wave/C imgFFT= $imgFFTStr
+	Redimension/C imgFFT
+	
+	// Compute the FFT magnitude
 	FFT/out=3/DEST=imgFFT imgFFT
 	
 	// Convert the wave back to real so it can be displayed
@@ -1956,13 +2124,66 @@ Function FFTimage(graphName)
 	// Update colour range
 	updateColourRange(FFTgraphName,minVal=ctabwMin,maxVal=ctabwMax)
 	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	// Determine size of the FFT
+//	Variable rows = DimSize(imgFFT,0)
+//	Variable cols = DimSize(imgFFT,1)
+	
+	// Make the filter wave to convolute with the FFT before taking the inverse FFT
+//	Make/O/N=(rows,cols) filterWave
+//	filterWave[][cols/2,cols-1] = Exp ( - ( (q-cols/2)^2 + p^2 ) / 500)
+//	filterWave[][0,cols/2 ] = Exp ( - ( (cols/2-q)^2 + p^2 ) /500)
+	
+	// Create name for the filtered wave
+//	String imgFilteredStr= imgWStr+"F"
+	
+	// Filter the FFT
+//	MatrixOp/O ImgFFTfiltered = imgFFT * filterWave
+	
+	// Compute filtered image via inverse FFT
+//	IFFT/DEST=$imgFilteredStr ImgFFTfiltered
+//	Wave imgFiltered = $imgFilteredStr
+	
+	// replace original wave with the filtered one
+//	imgW = imgFiltered
+	
+	// create a new wave with the full magnitude spectrum and get the name of that wave
+//	String magFFTfilteredStr
+//	magFFTfilteredStr = mirrorFFT("ImgFFTfiltered")
+	
+	// Display the FFT
+//	imgDisplay(magFFTfilteredStr)
+//	updateColourRangeByHist("",type="exp")
+	
+	
+//	KillWaves filterWave, ImgFFTfiltered
+
 End
+
 
 
 //----------------------------------------------------------
 // Calculate FFT, filter the FFT, calculate the IFFT
 //----------------------------------------------------------
-Function fftfilterimage(graphName,sigma)
+Function FFTlowpassOLD(graphName,sigma)
 	String graphName
 	Variable sigma
 	

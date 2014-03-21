@@ -69,8 +69,6 @@ Menu "STM", dynamic
 			"Line Profile  [2d and 3d data]/F6", doSomethingWithData("lineprofile")
 			"Remove line profile", removeLineProfile("")
 			"-"
-			"Display image FFT", doSomethingWithData("FFT")
-			"-"
 			"Point from CITS/F7", doSomethingWithData("STSfromCITS")
 		End
 		
@@ -80,7 +78,6 @@ Menu "STM", dynamic
 			"Differentiate CITS", doSomethingWithData("differentiateCITS")
 			"Smooth CITS along z-axis", doSomethingWithData("smoothZ")
 			"Matrix convolution [2d and 3d data]",  doSomethingWithData("mConvolution")
-			"FFT Filter beta", doSomethingWithData("FFTFilter")
 			"Rotate image by", doSomethingWithData("rotateImg")
 			"Crop image to current view area", doSomethingWithData("cropImg")
 			"Pad image with NaNs to give equal axes", doSomethingWithData("equalAxes")
@@ -88,6 +85,15 @@ Menu "STM", dynamic
 		End
 
 		"-"
+		Submenu "FFT"
+			"Calculate image FFT", doSomethingWithData("FFT")
+			"Calculate image inverse FFT", doSomethingWithData("IFFT")
+			"-"
+			"FFT Low Pass Filter", doSomethingWithData("FFTlowpass")
+		End
+		
+		"-"
+			
 		Submenu "Save image"
 			"Save image Window as JPEG to Desktop/F2",quickSaveImage(symbolicPath="UserDesktop",imageType="JPEG")
 			"Save image Window as JPEG to Documents",quickSaveImage(symbolicPath="UserDocuments",imageType="JPEG")
