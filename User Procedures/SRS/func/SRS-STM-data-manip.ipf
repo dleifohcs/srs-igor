@@ -151,6 +151,11 @@ Function doSomethingWithData(actionType)
 			// when these functions are called since they load  
 			strswitch (actionType)
 			
+				case "upSampleImage":  // x and y axes the same; pad with zeros
+					
+					upSampleImage(graphName)			
+					break
+					
 				case "equalAxes":  // x and y axes the same; pad with zeros
 					
 					equalAxes(graphName)			
@@ -170,7 +175,7 @@ Function doSomethingWithData(actionType)
 					// Make a back up copy of the original data in a data folder of the same name
 					backupData(graphName,"R")  // the string in the second variable is appended to wave name after backup up the original data
 					
-					// FFT
+					// rotate
 					rotateImg(graphName)			
 					break
 				
@@ -2203,7 +2208,7 @@ End
 
 
 //----------------------------------------------------------
-// crop to current view area
+// pad image with NaNs so axes are equal
 //----------------------------------------------------------
 Function equalAxes(graphName)
 	String graphName
@@ -2259,3 +2264,35 @@ End
 
 
 
+
+//----------------------------------------------------------
+// 
+//----------------------------------------------------------
+Function upSampleImage(graphName)
+	String graphName
+	
+	// Get current data folder
+	DFREF saveDF = GetDataFolderDFR()	  // Save
+	
+	// Move to the data folder containing the global variables for the graph
+	SetDataFolder root:WinGlobals:$graphName // should already be in this data folder, but include this to be sure
+	
+	// Get the global variable for this graph (these were set in the manipulateData procedure)
+	String/G imgDF			// data folder containing the data shown on the graph
+	String/G imgWStr		// name of the wave shown on the graph (an image or 3D data set; e.g. STM or CITS)
+	String/G imgWFullStr		// data folder plus wave name
+	
+	// From this point work in the original data folder where the data is
+	SetDataFolder imgDF 
+	
+	// Make wave assignment to the data  
+	Wave imgW= $imgWFullStr
+	
+	Variable factor=2
+	Prompt factor, "Enter the upscale factor (1 + number of new points between each old point)"
+	DoPrompt "Resample image", factor
+	
+	Resample/Dim=0/Up=(factor) imgW
+	Resample/Dim=1/Up=(factor) imgW
+		
+End

@@ -84,6 +84,7 @@ Menu "STM", dynamic
 			"Rotate image by", doSomethingWithData("rotateImg")
 			"Crop image to current view area", doSomethingWithData("cropImg")
 			"Pad image with NaNs to give equal axes", doSomethingWithData("equalAxes")
+			"Upsample the image", doSomethingWithData("upSampleImage")
 		End
 
 		"-"
