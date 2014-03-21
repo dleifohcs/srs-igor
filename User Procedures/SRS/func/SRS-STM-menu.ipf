@@ -83,6 +83,7 @@ Menu "STM", dynamic
 			"FFT Filter beta", doSomethingWithData("FFTFilter")
 			"Rotate image by", doSomethingWithData("rotateImg")
 			"Crop image to current view area", doSomethingWithData("cropImg")
+			"Pad image with NaNs to give equal axes", doSomethingWithData("equalAxes")
 		End
 
 		"-"

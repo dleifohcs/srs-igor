@@ -151,12 +151,17 @@ Function doSomethingWithData(actionType)
 			// when these functions are called since they load  
 			strswitch (actionType)
 			
+				case "equalAxes":  // x and y axes the same; pad with zeros
+					
+					equalAxes(graphName)			
+					break
+				
 				case "cropImg":
 					
 					// Make a back up copy of the original data in a data folder of the same name
 					backupData(graphName,"C")  // the string in the second variable is appended to wave name after backup up the original data
 					
-					// FFT
+					// crop
 					cropImg(graphName)			
 					break
 					
@@ -2195,6 +2200,59 @@ Function cropImg(graphName)
 //	Rename croppedImg, $imgWStr
 End
 
+
+
+//----------------------------------------------------------
+// crop to current view area
+//----------------------------------------------------------
+Function equalAxes(graphName)
+	String graphName
+	
+	// Get current data folder
+	DFREF saveDF = GetDataFolderDFR()	  // Save
+	
+	// Move to the data folder containing the global variables for the graph
+	SetDataFolder root:WinGlobals:$graphName // should already be in this data folder, but include this to be sure
+	
+	// Get the global variable for this graph (these were set in the manipulateData procedure)
+	String/G imgDF			// data folder containing the data shown on the graph
+	String/G imgWStr		// name of the wave shown on the graph (an image or 3D data set; e.g. STM or CITS)
+	String/G imgWFullStr		// data folder plus wave name
+	
+	// From this point work in the original data folder where the data is
+	SetDataFolder imgDF 
+	
+	// Make wave assignment to the data  
+	Wave imgW= $imgWFullStr
+	
+	Variable imgWmaxX = DimSize(imgW,0)
+	Variable imgWmaxY = DimSize(imgW,1)
+	
+	Variable sideLength = imgWmaxX
+	
+	if ( imgWmaxX < imgWmaxY )
+		sideLength = imgWmaxY
+	endif
+	
+	Make/O/N=(sideLength,sideLength) paddedImage
+	paddedImage = NaN
+	paddedImage[0,imgWmaxX-1][0,imgWmaxY-1] = imgW[p][q]
+	CopyScales/I imgW, paddedImage
+	
+	if ( imgWmaxX >= imgWmaxY )
+		SetScale/I y, DimOffset(imgW,0), DimDelta(imgW,0), paddedImage  // make y scale same as x scale
+	else 
+		SetScale/I x, DimOffset(imgW,1), DimDelta(imgW,1), paddedImage  // make x scale same as y scale
+	endif
+	
+	Note/NOCR paddedImage, note(imgW)
+	
+	KillWindow $graphName
+	KillWaves imgW
+	Rename paddedImage, $imgWStr
+	
+	imgDisplay(imgWStr)
+End
 
 
 
