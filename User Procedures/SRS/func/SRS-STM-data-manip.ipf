@@ -1931,15 +1931,14 @@ Function FFTimage(graphName)
 	String imgFFTStr= imgWStr+"F"
 	
 	// Duplicate the image wave and then make this a complex wave
-	Duplicate/O imgW, $imgFFTStr
-	Wave/C imgFFT= $imgFFTStr
-	Redimension/C imgFFT
+	//Duplicate/O imgW, $imgFFTStr
+	//Wave imgFFT= $imgFFTStr
+	Redimension/C imgW
 	
 	// Compute the FFT magnitude
-	FFT/out=1/DEST=imgFFT imgFFT
+	FFT/MAG/DEST=$imgFFTStr imgW
 	
-	// Convert the wave back to real so it can be displayed
-	//Redimension/R imgFFT
+	Redimension/R imgW
 	
 	// display the FFT and update the contrast
 	imgDisplay(imgFFTStr)
@@ -2019,11 +2018,11 @@ Function IFFTimage(graphName)
 	
 	// Duplicate the image wave and then make this a complex wave
 	Duplicate/O imgW, $imgFFTStr
-	Wave/C imgFFT= $imgFFTStr
-	Redimension/C imgFFT
+	Wave imgFFT= $imgFFTStr
+	Redimension imgFFT
 	
 	// Compute the FFT magnitude
-	IFFT/R/Z/DEST=imgFFT imgFFT
+	IFFT/Z/DEST=imgFFT imgFFT
 	
 	// Convert the wave back to real so it can be displayed
 	//Redimension/R imgFFT

@@ -86,8 +86,7 @@ Menu "STM", dynamic
 
 		"-"
 		Submenu "FFT"
-			"Calculate image FFT", doSomethingWithData("FFT")
-			"Calculate image inverse FFT", doSomethingWithData("IFFT")
+			"Display Magnitude FFT", doSomethingWithData("FFT")
 			"-"
 			"FFT Low Pass Filter", doSomethingWithData("FFTlowpass")
 		End
