@@ -86,7 +86,10 @@ Menu "STM", dynamic
 
 		"-"
 		Submenu "FFT"
-			"Display Magnitude FFT", doSomethingWithData("FFT")
+			"Calculate FFT magnitude", doSomethingWithData("FFTmag")
+			"Calculate FFT full", doSomethingWithData("FFT")
+			"-"
+			"IFFT", doSomethingWithData("IFFT")
 			"-"
 			"FFT Low Pass Filter", doSomethingWithData("FFTlowpass")
 		End

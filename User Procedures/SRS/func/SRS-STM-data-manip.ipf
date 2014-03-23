@@ -182,7 +182,13 @@ Function doSomethingWithData(actionType)
 				case "FFT":
 				
 					// FFT
-					FFTimage(graphName)			
+					FFTimage(graphName,"complex")			
+					break
+
+				case "FFTmag":
+				
+					// FFT
+					FFTimage(graphName,"mag")			
 					break
 					
 				case "IFFT":
@@ -1884,8 +1890,9 @@ End
 //----------------------------------------------------------
 // Calculate FFT, filter the FFT, calculate the IFFT
 //----------------------------------------------------------
-Function FFTimage(graphName)
-	String graphName
+Function FFTimage(graphName,type)
+	String graphName, type
+	
 	
 	// Get current data folder
 	DFREF saveDF = GetDataFolderDFR()	  // Save
@@ -1938,13 +1945,19 @@ Function FFTimage(graphName)
 	// Compute the FFT magnitude
 	FFT/MAG/DEST=$imgFFTStr imgW
 	
-	Redimension/R imgW
-	
 	// display the FFT and update the contrast
 	imgDisplay(imgFFTStr)
 	String FFTgraphName= WinName(0,1)
 	changeColour(FFTgraphName,colour="BlueLog")
 	updateColourRangeByHist("",type="exp")
+	
+	if ( cmpstr(type,"complex")==0 )
+		// Compute the full complex output FFT
+		FFT/DEST=$imgFFTStr imgW
+	endif
+	
+	// convert the original image back to real
+	Redimension/R imgW
 	
 	// further adjust colour scale
 	// Move to the data folder containing the global variables for the graph
@@ -1968,7 +1981,7 @@ End
 
 
 //----------------------------------------------------------
-// Calculate FFT, filter the FFT, calculate the IFFT
+// Calculate IFFT
 //----------------------------------------------------------
 Function IFFTimage(graphName)
 	String graphName
@@ -2014,23 +2027,23 @@ Function IFFTimage(graphName)
 	endif
 	
 	// Create name for FFT wave
-	String imgFFTStr= imgWStr+"I"
+	String imgIFFTStr= imgWStr+"I"
 	
 	// Duplicate the image wave and then make this a complex wave
-	Duplicate/O imgW, $imgFFTStr
-	Wave imgFFT= $imgFFTStr
-	Redimension imgFFT
+	Duplicate/O imgW, $imgIFFTStr
+	Wave imgIFFT= $imgIFFTStr
+	Redimension imgIFFT
 	
 	// Compute the FFT magnitude
-	IFFT/Z/DEST=imgFFT imgFFT
+	IFFT/C/DEST=imgIFFT imgIFFT
 	
 	// Convert the wave back to real so it can be displayed
-	//Redimension/R imgFFT
+	Redimension/R imgIFFT
 	
 	// display the FFT and update the contrast
-	imgDisplay(imgFFTStr)
-	String FFTgraphName= WinName(0,1)
-	changeColour(FFTgraphName,colour="Autumn")
+	imgDisplay(imgIFFTStr)
+	String IFFTgraphName= WinName(0,1)
+	changeColour(IFFTgraphName,colour="Autumn")
 	updateColourRangeByHist("",type="gaussian")
 
 	
