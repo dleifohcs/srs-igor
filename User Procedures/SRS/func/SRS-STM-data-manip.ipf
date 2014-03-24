@@ -200,14 +200,16 @@ Function doSomethingWithData(actionType)
 				case "FFTlowpass":
 
 					Variable cuttoff = 1
-					Prompt cuttoff, "FFT parameter: " // 
-					DoPrompt "Please enter parameter for FFT filtering", cuttoff
+					Prompt cuttoff, "Filter cut off" 
+					Variable width = 0.1
+					Prompt width, "Filter width " 
+					DoPrompt "Please enter parameter for FFT filtering", cuttoff, width
 
 					if (V_Flag)
       					Print "Warning: User cancelled FFT dialogue"
       			      else // 
  						// FFT low pass filter
-						FFTlowpass(graphName,cuttoff)
+						FFTlowpass(graphName,cuttoff,width)
 					endif			
 					break
 					
@@ -2055,9 +2057,9 @@ End
 //----------------------------------------------------------
 // Calculate FFT, filter the FFT, calculate the IFFT
 //----------------------------------------------------------
-Function FFTlowpass(graphName,sigma)
+Function FFTlowpass(graphName,cutoff,width)
 	String graphName
-	Variable sigma
+	Variable cutoff, width
 	
 	// Get current data folder
 	DFREF saveDF = GetDataFolderDFR()	  // Save
@@ -2079,90 +2081,13 @@ Function FFTlowpass(graphName,sigma)
 	// Determine size of the image
 	Variable ImgRows = DimSize(imgW,0)
 	Variable ImgCols = DimSize(imgW,1)
-
-	Variable cropimageflag = 0 // use this as a flag to determined whether we need to create a new image
-	Variable ImgRowsCrop = ImgRows
-	Variable ImgColsCrop = ImgCols
-	// if either cols or rows are odd then make them even by subtracting 1
-	if ( mod(ImgRows,2)==1 )
-		ImgRowsCrop -= 1
-		cropimageflag = 1
-	endif
 	
-	if ( mod(ImgCols,2)==1 )
-		ImgColsCrop -= 1
-		cropimageflag = 1
-	endif
+	// Make the filter wave to convolute with the FFT before taking the inverse FF
+	Make/O/N=(ImgRows,ImgCols) filterWave
+	CopyScales imgW, filterWave
 	
-	if (cropimageflag==1)
-		// Move to the image data folder to replace the image with the one of even sides for the FFT
-		Redimension/N=(ImgRowsCrop,ImgColsCrop) imgW
-	endif
-		
-	// Create name for FFT wave
-	String imgFFTStr= imgWStr+"F"
-	
-	// Duplicate the image wave and then make this a complex wave
-	Duplicate/O imgW, $imgFFTStr
-	Wave/C imgFFT= $imgFFTStr
-	Redimension/C imgFFT
-	
-	// Compute the FFT magnitude
-	FFT/out=3/DEST=imgFFT imgFFT
-	
-	// Convert the wave back to real so it can be displayed
-	Redimension/R imgFFT
-	
-	// display the FFT and update the contrast
-	imgDisplay(imgFFTStr)
-	String FFTgraphName= WinName(0,1)
-	changeColour(FFTgraphName,colour="BlueLog")
-	updateColourRangeByHist("",type="exp")
-	
-	// further adjust colour scale
-	// Move to the data folder containing the global variables for the graph
-	SetDataFolder root:WinGlobals:$FFTgraphName 
-	
-	// The ctable wave has been created and put in the appropriate WinGlobals location with the global variables and so can be assigned
-	Wave ctab
-	
-	Variable/G ctabwMin
-	Variable/G ctabwMax
-	Variable ctabRange= ctabwMax - ctabwMin
-	
-	ctabwMin = ctabwMin - ctabRange
-	ctabwMax = ctabwMax + ctabRange
-	
-	// Update colour range
-	updateColourRange(FFTgraphName,minVal=ctabwMin,maxVal=ctabwMax)
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	// Determine size of the FFT
-//	Variable rows = DimSize(imgFFT,0)
-//	Variable cols = DimSize(imgFFT,1)
-	
-	// Make the filter wave to convolute with the FFT before taking the inverse FFT
-//	Make/O/N=(rows,cols) filterWave
-//	filterWave[][cols/2,cols-1] = Exp ( - ( (q-cols/2)^2 + p^2 ) / 500)
-//	filterWave[][0,cols/2 ] = Exp ( - ( (cols/2-q)^2 + p^2 ) /500)
+	filterWave[][] = sqrt(x^2+y^2)
+	filterWave[][] = 1 / ( Exp((sqrt(x^2+y^2)-cutoff)/width) + 1)
 	
 	// Create name for the filtered wave
 //	String imgFilteredStr= imgWStr+"F"
@@ -2195,9 +2120,9 @@ End
 //----------------------------------------------------------
 // Calculate FFT, filter the FFT, calculate the IFFT
 //----------------------------------------------------------
-Function FFTlowpassOLD(graphName,sigma)
+Function FFTlowpassOLD(graphName,cutoff,width)
 	String graphName
-	Variable sigma
+	Variable cutoff, width
 	
 	// Get current data folder
 	DFREF saveDF = GetDataFolderDFR()	  // Save
