@@ -198,20 +198,9 @@ Function doSomethingWithData(actionType)
 					break
 				
 				case "FFTlowpass":
-
-					Variable cuttoff = 1
-					Prompt cuttoff, "Filter cut off" 
-					Variable width = 0.1
-					Prompt width, "Filter width " 
-					DoPrompt "Please enter parameter for FFT filtering", cuttoff, width
-
-					if (V_Flag)
-      					Print "Warning: User cancelled FFT dialogue"
-      			      else // 
- 						// FFT low pass filter
-						FFTlowpass(graphName,cuttoff,width)
-					endif			
-					break
+				
+					FFTlowpass(graphName)
+					break 
 					
 				case "lineprofile":
 						
@@ -702,8 +691,10 @@ Function makeLineProfile(graphname)
 	endif
 	
 	Variable lineLength = sqrt ( (lineprofy[1] - lineprofy[0])^2 + (lineprofx[1] - lineprofx[0])^2 )
-		
-	Print "Length=", lineLength, imgWXUnit+"  Angle=", lineAngle, "degrees"
+	
+	if (numtype(lineLength)==0 && numtype(lineAngle)==0)
+		Print "Length=", lineLength, imgWXUnit+"  Angle=", lineAngle, "degrees"
+	endif
 	
 	// move back to original DF
 	SetDataFolder saveDF
@@ -2057,8 +2048,9 @@ End
 //----------------------------------------------------------
 // Calculate FFT, filter the FFT, calculate the IFFT
 //----------------------------------------------------------
-Function FFTlowpass(graphName,cutoff,width)
+Function FFTlowpass(graphName)
 	String graphName
+	
 	Variable cutoff, width
 	
 	// Get current data folder
@@ -2086,8 +2078,56 @@ Function FFTlowpass(graphName,cutoff,width)
 	Make/O/N=(ImgRows,ImgCols) filterWave
 	CopyScales imgW, filterWave
 	
+	// get the max x and y values for the FFT to compute guess at filter params
+	Variable filterXmax = DimDelta(filterWave,0) * DimSize(filterWave,0)
+	Variable filterYmax = DimDelta(filterWave,1) * DimSize(filterWave,1)
+	Variable filterRange = max (filterXmax,filterYmax)
+	
+	// Ask user for filter parameters
+	cutoff=filterRange/5
+	width = filterRange/100
+	cutoff = 1/cutoff
+	width = 1/width
+	Prompt cutoff, "Filter cut off" 
+	Prompt width, "Filter width " 
+	DoPrompt "Please enter parameter for FFT filtering", cutoff, width
+
+	if (V_Flag)
+		Print "Warning: User cancelled FFT dialogue"
+		return -1
+ 	endif		
+ 	
+ 	cutoff = 1/cutoff
+	width = 1/width	
+								
 	filterWave[][] = sqrt(x^2+y^2)
 	filterWave[][] = 1 / ( Exp((sqrt(x^2+y^2)-cutoff)/width) + 1)
+	
+	// for the purposes of displaying the filtered FFT we are going to create a magnitude
+	// FFT, display that, then make this the complex FFT spectrum.  This is because the functions
+	// at present do not handle colour scaling when the data is complex.
+	
+	// Duplicate the FFT to a new one that will be filtered
+	String filteredFFTStr = imgWStr+"f"
+	Duplicate/O imgW, $filteredFFTStr
+	Wave filteredFFT = $filteredFFTStr
+	Redimension/R filteredFFT
+	filteredFFT = sqrt(magsqr(imgW))
+	imgDisplay(filteredFFTStr)
+	String filteredFFTgraphName= WinName(0,1)
+	changeColour(filteredFFTgraphName,colour="BlueLog")
+	updateColourRangeByHist("",type="exp")
+	
+	// now convert back to complex and calculate the filtered FFT
+//	redimension/C filterWave
+	redimension/C filteredFFT
+	MatrixOp/O filteredFFT = imgW * filterWave
+	
+	// for the purposes of displaying the filtered FFT we are going to create a magnitude
+	// FFT, display that, then make this the complex FFT spectrum.  This is because the functions
+	// at present do not handle colour scaling when the data is complex.
+	doSomethingWithData("IFFT")
+//	KillWindow filteredFFT
 	
 	// Create name for the filtered wave
 //	String imgFilteredStr= imgWStr+"F"
