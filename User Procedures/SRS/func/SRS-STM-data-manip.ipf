@@ -274,7 +274,7 @@ Function doSomethingWithData(actionType)
 					
 				case "imageArithmetic":
 					
-					imageArithmetic(graphName)
+					imageArithmetic("subtract")
 					
 					break
 					
@@ -1830,56 +1830,6 @@ Function killROI(graphname)
 End
 
 
-//--------------------------------------------------------------------------------------------------------------
-Function imageArithmetic(graphname)
-	String graphname
-	
-	// Get current data folder
-	DFREF saveDF = GetDataFolderDFR()	  // Save
-	String imgDF = GetDataFolder(1)  // This is the DF that holds the wave data
-
-	// List (2D) waves in current data folder
-	String wList =  WaveList("*",";","DIMS:2") 
-	Variable wNum = ItemsInList(wList)
-	
-	if (wNum>1)  // check that at least two 2D
-	
-		String imgWStr
-	
-		imgWStr= imgChooseDialog(wList,wNum)  // returns the image name, or "none" if user cancels
-
-
-//			imgWStr= StringFromList(0,wList,";")  // if there is only one image file don't bother asking the user
-
-		
-//		if (cmpstr(imgWStr,"none") != 0)  // check user did not cancel
-//			String imgWFullStr= imgDF+PossiblyQuoteName(imgWStr)
-//	
-//			// Create Wave assignment for image
-//			Wave imgW= $imgWFullStr//
-
-			// Display the data
-//			if (WaveDims(imgW)<3)
-				// if a 2D wave then do the following
-//				imgDisplay(imgWStr)
-//			else
-				// if a 3D wave then do the following
-//				img3dDisplay(imgWStr)
-//			endif
-//		else  // user cancelled
-//			Print "Image display cancelled by user" 
-//		endif
-	else
-		Print "Error: there are less than two image waves in this data folder"
-	endif
-		
-	 
-	// Move back to the original data folder
-	SetDataFolder saveDF
-End
-
-
-
 //----------------------------------------------------------
 // Calculate FFT, filter the FFT, calculate the IFFT
 //----------------------------------------------------------
@@ -2086,8 +2036,6 @@ Function FFTlowpass(graphName)
 	// Ask user for filter parameters
 	cutoff=filterRange/5
 	width = filterRange/100
-	cutoff = 1/cutoff
-	width = 1/width
 	Prompt cutoff, "Filter cut off" 
 	Prompt width, "Filter width " 
 	DoPrompt "Please enter parameter for FFT filtering", cutoff, width
@@ -2096,12 +2044,9 @@ Function FFTlowpass(graphName)
 		Print "Warning: User cancelled FFT dialogue"
 		return -1
  	endif		
- 	
- 	cutoff = 1/cutoff
-	width = 1/width	
 								
 	filterWave[][] = sqrt(x^2+y^2)
-	filterWave[][] = 1 / ( Exp((sqrt(x^2+y^2)-cutoff)/width) + 1)
+	filterWave[][] = 1 / ( Exp( (sqrt(x^2+y^2)-cutoff)/width ) + 1)
 	
 	// for the purposes of displaying the filtered FFT we are going to create a magnitude
 	// FFT, display that, then make this the complex FFT spectrum.  This is because the functions
@@ -2119,140 +2064,12 @@ Function FFTlowpass(graphName)
 	updateColourRangeByHist("",type="exp")
 	
 	// now convert back to complex and calculate the filtered FFT
-//	redimension/C filterWave
 	redimension/C filteredFFT
 	MatrixOp/O filteredFFT = imgW * filterWave
 	
-	// for the purposes of displaying the filtered FFT we are going to create a magnitude
-	// FFT, display that, then make this the complex FFT spectrum.  This is because the functions
-	// at present do not handle colour scaling when the data is complex.
 	doSomethingWithData("IFFT")
-//	KillWindow filteredFFT
-	
-	// Create name for the filtered wave
-//	String imgFilteredStr= imgWStr+"F"
-	
-	// Filter the FFT
-//	MatrixOp/O ImgFFTfiltered = imgFFT * filterWave
-	
-	// Compute filtered image via inverse FFT
-//	IFFT/DEST=$imgFilteredStr ImgFFTfiltered
-//	Wave imgFiltered = $imgFilteredStr
-	
-	// replace original wave with the filtered one
-//	imgW = imgFiltered
-	
-	// create a new wave with the full magnitude spectrum and get the name of that wave
-//	String magFFTfilteredStr
-//	magFFTfilteredStr = mirrorFFT("ImgFFTfiltered")
-	
-	// Display the FFT
-//	imgDisplay(magFFTfilteredStr)
-//	updateColourRangeByHist("",type="exp")
-	
-	
-//	KillWaves filterWave, ImgFFTfiltered
 
 End
-
-
-
-//----------------------------------------------------------
-// Calculate FFT, filter the FFT, calculate the IFFT
-//----------------------------------------------------------
-Function FFTlowpassOLD(graphName,cutoff,width)
-	String graphName
-	Variable cutoff, width
-	
-	// Get current data folder
-	DFREF saveDF = GetDataFolderDFR()	  // Save
-	
-	// Move to the data folder containing the global variables for the graph
-	SetDataFolder root:WinGlobals:$graphName // should already be in this data folder, but include this to be sure
-	
-	// Get the global variable for this graph (these were set in the manipulateData procedure)
-	String/G imgDF			// data folder containing the data shown on the graph
-	String/G imgWStr		// name of the wave shown on the graph (an image or 3D data set; e.g. STM or CITS)
-	String/G imgWFullStr		// data folder plus wave name
-	
-	// Make wave assignment to the data
-	Wave/C imgW= $imgWFullStr
-	
-	// check dimensions of the image
-	// Determine size of the image
-	Variable ImgRows = DimSize(imgW,0)
-	Variable ImgCols = DimSize(imgW,1)
-	
-	Variable cropimageflag = 0 // use this as a flag to determined whether we need to create a new image
-	if ( mod(ImgRows,2)==1 )
-		Variable ImgRowsCrop = ImgRows - 1
-		cropimageflag = 1
-	endif
-	
-	if ( mod(ImgCols,2)==1 )
-		Variable ImgColsCrop = ImgCols - 1
-		cropimageflag = 1
-	endif
-	
-	if (cropimageflag==1)
-		// Move to the image data folder to replace the image with the one of even sides for the FFT
-		SetDataFolder imgDF 
-		Redimension/N=(ImgRowsCrop,ImgColsCrop) imgW
-		SetDataFolder root:WinGlobals:$graphName 
-	endif
-	
-	
-	// Create name for FFT wave
-	String imgFFTStr= imgWStr+"FFT"
-	
-	// Compute the 2D FFT
-	FFT/DEST=$imgFFTStr imgW
-	Wave imgFFT = $imgFFTStr
-	
-	String magFFTStr
-	
-	// create a new wave with the full magnitude spectrum and get the name of that wave
-//	magFFTStr = mirrorFFT(imgFFTStr)
-	
-	// Display the FFT
-	imgDisplay(magFFTStr)
-	updateColourRangeByHist("",type="exp")
-	
-	// Determine size of the FFT
-	Variable rows = DimSize(imgFFT,0)
-	Variable cols = DimSize(imgFFT,1)
-	
-	// Make the filter wave to convolute with the FFT before taking the inverse FFT
-	Make/O/N=(rows,cols) filterWave
-	filterWave[][cols/2,cols-1] = Exp ( - ( (q-cols/2)^2 + p^2 ) / 500)
-	filterWave[][0,cols/2 ] = Exp ( - ( (cols/2-q)^2 + p^2 ) /500)
-	
-	// Create name for the filtered wave
-	String imgFilteredStr= imgWStr+"F"
-	
-	// Filter the FFT
-	MatrixOp/O ImgFFTfiltered = imgFFT * filterWave
-	
-	// Compute filtered image via inverse FFT
-	IFFT/DEST=$imgFilteredStr ImgFFTfiltered
-	Wave imgFiltered = $imgFilteredStr
-	
-	// replace original wave with the filtered one
-	imgW = imgFiltered
-	
-	// create a new wave with the full magnitude spectrum and get the name of that wave
-	String magFFTfilteredStr
-//	magFFTfilteredStr = mirrorFFT("ImgFFTfiltered")
-	
-	// Display the FFT
-	imgDisplay(magFFTfilteredStr)
-	updateColourRangeByHist("",type="exp")
-	
-	
-	KillWaves filterWave, ImgFFTfiltered
-
-End
-
 
 
 
@@ -2334,24 +2151,7 @@ Function cropImg(graphName)
 	DeletePoints/M=1 0, round(YminPoint), imgW
 
 	SetAxis/A
-	
-//	Variable croppedImgXSize = round ( XmaxPoint - XminPoint )
-//	Variable croppedImgYSize = round ( YmaxPoint - YminPoint )
-	
-//	Variable croppedImgSize = 0 
-//	if ( croppedImgXSize >= croppedImgYSize )
-//		croppedImgSize = croppedImgXSize
-//	else
-//		croppedImgSize = croppedImgYSize
-//	endif
 
-//	Make/O/N=(croppedImgSize,croppedImgSize) croppedImg
-//	croppedImg = NaN
-//	croppedImg[0,croppedImgXSize][0,croppedImgYSize] = imgW[p+XminPoint][q+YminPoint]
-	
-//	KillWindow $GraphName
-//	KillWaves imgW
-//	Rename croppedImg, $imgWStr
 End
 
 
@@ -2408,12 +2208,6 @@ Function equalAxes(graphName)
 	imgDisplay(imgWStr)
 End
 
-
-
-
-
-
-
 //----------------------------------------------------------
 // 
 //----------------------------------------------------------
@@ -2445,3 +2239,48 @@ Function upSampleImage(graphName)
 	Resample/Dim=1/Up=(factor) imgW
 		
 End
+
+
+
+//--------------------------------------------------------------------------------------------------------------
+Function imageArithmetic(type)
+	String type
+			
+	// Get current data folder
+	DFREF saveDF = GetDataFolderDFR()	  // Save
+	
+	// Get name of top graph
+	String graphName= WinName(0,1)
+	
+	// Check if there is a graph before doing anything
+	if( strlen(graphName) )
+
+		// Function to get user to choose two graph windows
+		String windowList= chooseWindowPair()
+	
+		if ( cmpStr(windowList,"none")==0 )
+			Print "Warning: cancelled by user"
+		else
+			// do arithmetic
+			String window1 = StringFromList(0,windowList)
+			String window2 = StringFromList(1,windowList)		
+			
+			GetWindow $window1, wavelist
+			Wave/T W_wavelist
+			String wave1Str = W_wavelist[0]
+		
+			GetWindow $window2, wavelist
+			Wave/T W_wavelist
+			String wave2Str = W_wavelist[0][1]
+Print wave1Str, wave2Str
+		endif
+	else
+		Print "Error: There is no top graph window"
+	Endif
+	
+	// Move to original data folder
+	SetDataFolder saveDF
+
+End
+
+

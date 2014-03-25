@@ -21,7 +21,9 @@
 //    You should have received a copy of the GNU General Public License
 //    along with this library.  If not, see <http://www.gnu.org/licenses/>.
 //
-//------------------------------------------------------------------------------------------------------------------------------------#pragma rtGlobals=1		// Use modern global access method.
+//------------------------------------------------------------------------------------------------------------------------------------
+#pragma rtGlobals=1		
+// Use modern global access method.
 
 
 Menu "STM", dynamic
@@ -53,16 +55,18 @@ Menu "STM", dynamic
 		End
 		
 		"-"
+		Submenu "Background subtraction"
+			"Plane", doSomethingWithData("subtractplane")
+			"Linewise", doSomethingWithData("subtractlinewise")
+			"-"
+			"Plane from ROI", doSomethingWithData("subtractplaneROI")
+			"-"
+			"Set minimum to zero", doSomethingWithData("subtractMin")
+			"Shift image Z-axis manually",shiftImageZDialogue("")
+		End
 		Submenu "Region of Interest"
 			"Create or Edit ROI", doSomethingWithData("createROI")
 			"Kill ROI", doSomethingWithData("killROI")
-		End
-		Submenu "Background subtraction"
-			"Plane", doSomethingWithData("subtractplane")
-			"Plane from ROI", doSomethingWithData("subtractplaneROI")
-			"Linewise", doSomethingWithData("subtractlinewise")
-			"Set minimum to zero", doSomethingWithData("subtractMin")
-			"Shift image Z-axis manually",shiftImageZDialogue("")
 		End
 		"-"
 		Submenu "Analysis"
@@ -74,24 +78,30 @@ Menu "STM", dynamic
 		
 		
 		"-"
-		Submenu "Manipulation"
+		Submenu "CITS tools"
 			"Differentiate CITS", doSomethingWithData("differentiateCITS")
 			"Smooth CITS along z-axis", doSomethingWithData("smoothZ")
-			"Matrix convolution [2d and 3d data]",  doSomethingWithData("mConvolution")
-			"Rotate image by", doSomethingWithData("rotateImg")
-			"Crop image to current view area", doSomethingWithData("cropImg")
+			"-"
+			"Matrix convolution",  doSomethingWithData("mConvolution")
+		End
+		"-"
+		Submenu "Image tools"
+			"Crop [to current view area]", doSomethingWithData("cropImg")
+			"Rotate", doSomethingWithData("rotateImg")
+			"-"
 			"Pad image with NaNs to give equal axes", doSomethingWithData("equalAxes")
 			"Upsample the image", doSomethingWithData("upSampleImage")
+			"-"
+			"Matrix convolution",  doSomethingWithData("mConvolution")
 		End
 
 		"-"
 		Submenu "FFT"
-			"Calculate FFT magnitude", doSomethingWithData("FFTmag")
-			"Calculate FFT full", doSomethingWithData("FFT")
+			//"Calculate FFT magnitude", doSomethingWithData("FFTmag")
+			"FFT [real -> complex]", doSomethingWithData("FFT")
+			"Inverse FFT [complex -> real]", doSomethingWithData("IFFT")
 			"-"
-			"IFFT", doSomethingWithData("IFFT")
-			"-"
-			"FFT Low Pass Filter", doSomethingWithData("FFTlowpass")
+			"Low Pass Filter a FFT window", doSomethingWithData("FFTlowpass")
 		End
 		
 		"-"
