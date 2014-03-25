@@ -372,8 +372,6 @@ Function imgScaleBar(graphName)
 	ColorScale/C/N=text0 "\Z09\\U"
 	ColorScale/C/N=text0 font="Arial",fsize=09
 	DoUpdate
-	ModifyGraph/W=$graphName width=0
-	DoUpdate
 End
 
 
@@ -482,11 +480,12 @@ Function img3DInfoPanel(graphName)
 	Variable imgWidth = imgRight-imgLeft
 
 	Variable barWidth = 0.05 *imgWidth 
-	Variable marginr = 0.5 * imgWidth
+	Variable marginl = 0.60 * imgWidth
+	Variable marginr = 0.40 * imgWidth
 		
 	// Adds blank margin space to the right of the image in order to leave space for the z-scale
 	// The z-scale bar will be created at 0.3 of the width of the image as it is displayed when this function is called
-	ModifyGraph/W=$graphName width=imgWidth, margin(right)=marginr
+	ModifyGraph/W=$graphName width=imgWidth, margin(left)=marginl, margin(right)=marginr
 	
 	// Get z information to set the limits on the variable panels
 	Variable/G zSize
@@ -497,7 +496,7 @@ Function img3DInfoPanel(graphName)
 	Variable biasMax= biasOffset + biasDelta * (zSize-1)
 	
 	GetWindow $graphName gsizeDC
-	Variable xPosForPanel= V_right+5
+	Variable xPosForPanel= V_left+5
 	
 	// Z Slice
 	SetVariable slicePanelVar,bodyWidth=60,pos={xPosForPanel,10},size={40,15},title="\JL Slice", proc=citsZPanelUpdate

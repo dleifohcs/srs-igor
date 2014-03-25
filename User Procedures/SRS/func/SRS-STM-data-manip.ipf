@@ -391,6 +391,10 @@ Function doSomethingWithData(actionType)
 					// Add information panel area
 					img3DInfoPanel(graphName)
 					
+					ModifyGraph width=194
+					DoUpdate
+					ModifyGraph width=0
+					
 					// Add image information (bias, current, etc.)
 					//imgAddInfo(graphName)
 
@@ -1504,7 +1508,6 @@ Function matrixConvolveData(graphName)
 	// Make the kernel for the manipulation
 	makeKernel(graphName,dim)
 	
-	
 	// Convert the data to single precision floating point
 	Redimension/S dataW // to avoid integer truncation
 	
@@ -1570,22 +1573,22 @@ Function makeKernel(graphName,dim)
 		SetScale/I x -limitXYZ,limitXYZ,"", sKernel
 		SetScale/I y -limitXYZ,limitXYZ, "", sKernel 	// Equivalent to rect(2*fx)*rect(2*fy) in the spatial frequency domain. 
 		SetScale/I z -limitXYZ,limitXYZ,"", sKernel
-Print "WARNING: DOES NOTHING - STEVEN FIX THIS!"
-//		strswitch( kernelName )
-//			case "Gaussian":
-//				convTypeLetter = "G"
-//				sKernel=sinc(x/2)*sinc(y/2)*sinc(z/2)
-//				normalisation= Sum(sKernel)
-//				sKernel= sKernel/normalisation
-//				break
-//			default:  //unitary		
-//				Print "Warning: This option does not apply to 3D data sets; doing nothing and exiting"
-//				Make/O/N=(1,1,1) sKernel //  
-//				sKernel=1
-//				normalisation= Sum(sKernel)
-//				sKernel= sKernel/normalisation
-//				break
-//		endswitch
+
+		strswitch( kernelName )
+			case "Gaussian":
+				convTypeLetter = "G"
+				sKernel=sinc(x/2)*sinc(y/2)*sinc(z/2)
+				normalisation= Sum(sKernel)
+				sKernel= sKernel/normalisation
+				break
+			default:  //unitary		
+				Print "Warning: This option does not apply to 3D data sets; doing nothing and exiting"
+				Make/O/N=(1,1,1) sKernel //  
+				sKernel=1
+				normalisation= Sum(sKernel)
+				sKernel= sKernel/normalisation
+				break
+		endswitch
 		
 	else // 2d wave
 	
