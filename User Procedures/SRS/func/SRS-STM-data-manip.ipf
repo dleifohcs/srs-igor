@@ -336,7 +336,9 @@ Function doSomethingWithData(actionType)
 					break
 					
 				case "mConvolution":
-
+					
+					backupData(graphName,"M")
+					
 					// Function convolving a matrix with the data
 					matrixConvolveData(graphName)
 
@@ -1190,8 +1192,6 @@ Function dispSTSfromCITS(graphname,)
 End
 
 
-
-
 //--------------------------------------------------------------------------------------------------------------
 // Create a backup wave in new data folder
 Function backupData(graphname,suffixStr)
@@ -1244,7 +1244,7 @@ Function backupData(graphname,suffixStr)
 		Duplicate/O $imgWFullStr, $newimgWStr
 		
 		KillWindow $graphname
-		KillWaves/Z $imgWFullStr
+//		KillWaves/Z $imgWFullStr
 		
 		imgDisplay(newimgWStr)
 		
@@ -1476,7 +1476,11 @@ Function matrixConvolveData(graphName)
 	String/G imgWStr
 	String/G imgDF
 	String/G imgWFullStr
-	
+
+Print "imgWStr=",imgWStr
+Print "imgDF=",imgDF
+Print "imgWFullStr",imgWFullStr
+
 	// create a variable for the dimensions of the data
 	Variable dim=-1
 	
@@ -1502,14 +1506,14 @@ Function matrixConvolveData(graphName)
 			
 		// set the dimension variable
 		dim=2
-		
+	
 	endif
 	
 	// Make the kernel for the manipulation
 	makeKernel(graphName,dim)
 	
 	// Convert the data to single precision floating point
-	Redimension/S dataW // to avoid integer truncation
+//	Redimension/S dataW // to avoid integer truncation
 	
 	// Use built in Igor function for matric convolution
 	MatrixConvolve sKernel dataW  // creates new wave M_Convolution
@@ -1629,7 +1633,7 @@ Function makeKernel(graphName,dim)
 	
 	// Back up the data and add letter to new data.  Ideally we would do this elsewhere, but this is the easiest place to do it
 	// given that this is where we create the different types of kernels for matrix convolution
-	backupData(graphName,convTypeLetter)  // the string in the second variable is appended to wave name after backup up the original data		
+//	backupData(graphName,convTypeLetter)  // the string in the second variable is appended to wave name after backup up the original data		
 	
 	// Return to original DF
 	SetDataFolder saveDF
@@ -1834,11 +1838,10 @@ End
 
 
 //----------------------------------------------------------
-// Calculate FFT, filter the FFT, calculate the IFFT
+// Calculate FFT
 //----------------------------------------------------------
 Function FFTimage(graphName,type)
 	String graphName, type
-	
 	
 	// Get current data folder
 	DFREF saveDF = GetDataFolderDFR()	  // Save
@@ -1978,10 +1981,11 @@ Function IFFTimage(graphName)
 	// Duplicate the image wave and then make this a complex wave
 	Duplicate/O imgW, $imgIFFTStr
 	Wave imgIFFT= $imgIFFTStr
-	Redimension imgIFFT
 	
 	// Compute the FFT magnitude
+	IFFT/C/DEST=dummyWave imgIFFT
 	IFFT/C/DEST=imgIFFT imgIFFT
+	CopyScales dummyWave, imgIFFT
 	
 	// Convert the wave back to real so it can be displayed
 	Redimension/R imgIFFT
@@ -1992,7 +1996,7 @@ Function IFFTimage(graphName)
 	changeColour(IFFTgraphName,colour="Autumn")
 	updateColourRangeByHist("",type="gaussian")
 
-	
+	KillWaves/Z filterWave
 End
 
 
