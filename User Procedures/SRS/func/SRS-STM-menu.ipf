@@ -30,8 +30,7 @@ Menu "STM", dynamic
 		Submenu "Display"
 			"Display 2D or 3D data/F10", displayData()
 			"Display all in data folder", displayAllData()
-		End		
-
+		End
 		Submenu "Colours"
 			"Change image colour", doSomethingWithData("changeColour")
 			setControlMenuItemDefaultColour(), changeDefaultImageColour()
@@ -45,57 +44,41 @@ Menu "STM", dynamic
 			"Decrease Brightness"+"/F3", incrementColourScale("","increase","both")
 			"Increase Brightness"+"/F4", incrementColourScale("","decrease","both")
 			"Decrease Contrast"+"/SF3", incrementColourScale("","increase","range")
-			"Increase Contrast"+"/SF4", incrementColourScale("","decrease","range")
-
+			"Increase Contrast"+"/SF4", incrementColourScale("","decrease","range")	
 			"-"
 			"Decrease scale maximum"+"/OF3", incrementColourScale("","decrease","max")
 			"Increase scale maximum"+"/OF4", incrementColourScale("","increase","max")
 			"Decrease scale minimum"+"/SOF3", incrementColourScale("","decrease","min")
 			"Increase scale minimum"+"/SOF4", incrementColourScale("","increase","min")
 		End
-		
-		"-"
-		Submenu "Background subtraction"
-			"Plane", doSomethingWithData("subtractplane")
-			"Linewise", doSomethingWithData("subtractlinewise")
-			"-"
-			"Plane from ROI", doSomethingWithData("subtractplaneROI")
-			"-"
-			"Set minimum to zero", doSomethingWithData("subtractMin")
-			"Shift image Z-axis manually",shiftImageZDialogue("")
-		End
-		Submenu "Region of Interest"
-			"Create or Edit ROI", doSomethingWithData("createROI")
-			"Kill ROI", doSomethingWithData("killROI")
-		End
-		"-"
-		Submenu "Analysis"
-			"Line Profile  [2d and 3d data]/F6", doSomethingWithData("lineprofile")
-			"Remove line profile", removeLineProfile("")
-			"-"
-			"Point from CITS/F7", doSomethingWithData("STSfromCITS")
-		End
-		
-		
-		"-"
-		Submenu "CITS tools"
-			"Differentiate CITS", doSomethingWithData("differentiateCITS")
-			"Smooth CITS along z-axis", doSomethingWithData("smoothZ")
-			"-"
-			"Matrix convolution",  doSomethingWithData("mConvolution")
-		End
 		"-"
 		Submenu "Image tools"
+			Submenu "Background subtraction"
+				"Plane", doSomethingWithData("subtractplane")
+				"Linewise", doSomethingWithData("subtractlinewise")
+				"-"
+				"Plane from ROI", doSomethingWithData("subtractplaneROI")
+				"-"
+				"Set minimum to zero", doSomethingWithData("subtractMin")
+				"Shift image Z-axis manually",shiftImageZDialogue("")
+			End
+			Submenu "Region of Interest"
+				"Create or Edit ROI", doSomethingWithData("createROI")
+				"Kill ROI", doSomethingWithData("killROI")
+			End
+			"-"
 			"Crop [to current view area]", doSomethingWithData("cropImg")
 			"Rotate", doSomethingWithData("rotateImg")
 			"-"
 			"Pad image with NaNs to give equal axes", doSomethingWithData("equalAxes")
-			"Upsample the image", doSomethingWithData("upSampleImage")
-			"-"
-			"Matrix convolution",  doSomethingWithData("mConvolution")
+			"Interpolate image [up-sample]", doSomethingWithData("upSampleImage")
 		End
-
-		"-"
+		Submenu "CITS tools"
+			"Differentiate CITS", doSomethingWithData("differentiateCITS")
+			"Smooth CITS along z-axis", doSomethingWithData("smoothZ")
+			"-"
+			"Point from CITS", doSomethingWithData("STSfromCITS")
+		End
 		Submenu "FFT"
 			//"Calculate FFT magnitude", doSomethingWithData("FFTmag")
 			"FFT [real -> complex]", doSomethingWithData("FFT")
@@ -104,9 +87,12 @@ Menu "STM", dynamic
 			"-"
 			"Low Pass Filter a FFT window", doSomethingWithData("FFTlowpass")
 		End
-		
+		Submenu "Line Profile"
+			"Line Profile", doSomethingWithData("lineprofile")
+			"Remove line profile", removeLineProfile("")		
+		End
+		"Matrix convolution",  doSomethingWithData("mConvolution")
 		"-"
-			
 		Submenu "Save image"
 			"Save image Window as JPEG to Desktop/F2",quickSaveImage(symbolicPath="UserDesktop",imageType="JPEG")
 			"Save image Window as JPEG to Documents",quickSaveImage(symbolicPath="UserDocuments",imageType="JPEG")
@@ -119,9 +105,8 @@ Menu "STM", dynamic
 			//"Quick save JPEG to Documents/SF2",quickSaveImage(symbolicPath="SRSDocuments")
 		End
 		"-"
-		
 		Submenu "Automated scripting"
-			"Batch process CITS", quickScript("CITSstandard")
+			"Batch process CITS from data folder", quickScript("CITSstandard")
 			"Batch process point STS folder", quickScript("STSstandard")
 		End
 		"-"
