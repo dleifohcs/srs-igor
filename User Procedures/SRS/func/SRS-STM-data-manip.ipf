@@ -1612,8 +1612,8 @@ Function makeKernel(graphName,dim)
 		sKernel3d[][][] = sKernel[p][q]
 		normalisation= Sum(sKernel3d)
 		sKernel3d= sKernel3d/normalisation
-		Rename sKernel, sKernel2d
-		Rename sKernel3d, sKernel
+		Duplicate/O sKernel, sKernel2d
+		Duplicate/O sKernel3d, sKernel
 		// show the 2D kernel
 		imgDisplay("sKernel2d")
 		updateColourRange("")
