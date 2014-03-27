@@ -1448,8 +1448,6 @@ Function refresh3dData(graphName)
 	
 	// Refresh line profile graph (if it exists)
 	
-
-	
 	// Return to saved DF
 	SetDataFolder saveDF
 	
@@ -1476,10 +1474,6 @@ Function matrixConvolveData(graphName)
 	String/G imgWStr
 	String/G imgDF
 	String/G imgWFullStr
-
-Print "imgWStr=",imgWStr
-Print "imgDF=",imgDF
-Print "imgWFullStr",imgWFullStr
 
 	// create a variable for the dimensions of the data
 	Variable dim=-1
@@ -1513,7 +1507,7 @@ Print "imgWFullStr",imgWFullStr
 	makeKernel(graphName,dim)
 	
 	// Convert the data to single precision floating point
-//	Redimension/S dataW // to avoid integer truncation
+	Redimension/S dataW // to avoid integer truncation
 	
 	// Use built in Igor function for matric convolution
 	MatrixConvolve sKernel dataW  // creates new wave M_Convolution
@@ -1526,7 +1520,7 @@ Print "imgWFullStr",imgWFullStr
 		// refresh the data displays
 		refresh3dData(graphName)
 	else
-		// probably need to refresh 2d data ?
+		// need to refresh 2d data ?
 	endif
 	
 	// return to DF	
@@ -1548,27 +1542,116 @@ Function makeKernel(graphName,dim)
 	// Move to the data folder containing the global variables for the graph
 	SetDataFolder root:WinGlobals:$graphName
 	
-	// this is the letter for adding to the wavename
-	String convTypeLetter="X"
-		
-	// Prompt user for smoothing factor
+	// set default parameters
 	Variable kernelSize=5
-	Prompt kernelSize, "Please enter side length, n, of the (nxn) kernel: " 
-		
 	Variable kernelParam=1
-	Prompt kernelParam, "Please enter kernel variable parameter" 
+	String kernelName = "Gaussian Smooth"
 	
-	String kernelName
-	Prompt kernelName,"Kernel type",popup,TraceNameList("",";",1) 
-	Prompt kernelName,"Kernel type: ",popup,"Gaussian;Laplacian (3);Laplacian (5);none"
+	// Get input from user
+	Prompt kernelSize, "Please enter side length, n, of the (nxn) kernel: " 
+	Prompt kernelName,"Kernel type: ",popup,"Gaussian Smooth;Laplacian (3x3);Laplacian (5x5);none"
 	
-	DoPrompt "Make kernel", kernelSize, kernelName, kernelParam
+	// Ask user what kernel to use
+	DoPrompt "Make kernel", kernelName
 	
-	if (V_Flag) // User canceled so quit
+	 // User canceled so quit
+	if (V_Flag)
 		Print "Warning: User cancelled"         
 		return -1
 	endif 
 	
+	 // User selected "none", so quit
+	if ( cmpstr(kernelName,"none")==0 )
+		Print "Warning: User cancelled"         
+		return -1
+	endif 
+	
+	// define min/max x and y axes for calculating kernel function
+	Variable limitXYZ = (kernelSize-1)/2
+	
+	// make the kernel
+	StrSwitch( kernelName )
+		case "Gaussian Smooth":
+			// ask for gaussian sharpness
+			Prompt kernelParam, "Enter c for Exp[-x^2/(2c^2)]" 
+			DoPrompt "Gaussian kernel parameters", kernelSize, kernelParam
+			
+			// make a 2D kernel
+			Make/O/N=(kernelSize,kernelSize) sKernel 
+			SetScale/I x -limitXYZ,limitXYZ,"", sKernel
+			SetScale/I y -limitXYZ,limitXYZ,"", sKernel 
+			sKernel = Exp(- (x^2 + y^2)/(2*kernelParam^2) )
+			normalisation= Sum(sKernel)
+			sKernel= sKernel/normalisation
+			break
+		default:
+			break
+	endSwitch
+
+	// convert the kernel to 3D if using 3D data
+	if ( dim == 3 )
+		Make/O/N=(kernelSize,kernelSize,kernelSize) sKernel3d
+		sKernel3d[][][] = sKernel[p][q]
+		normalisation= Sum(sKernel3d)
+		sKernel3d= sKernel3d/normalisation
+		Rename sKernel, sKernel2d
+		Rename sKernel3d, sKernel
+		// show the 2D kernel
+		imgDisplay("sKernel2d")
+	else 
+		// show the 2D kernel
+		imgDisplay("sKernel")
+	endif
+	
+			
+	
+	
+	// Return to original DF
+	SetDataFolder saveDF
+End
+
+
+
+//------------------------------------------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------------------------------------
+Function makeKernelOld(graphName,dim)
+	String graphName
+	Variable dim
+	Variable normalisation
+	
+	// Get current data folder
+	DFREF saveDF = GetDataFolderDFR()	  // Save DF
+	
+	// Move to the data folder containing the global variables for the graph
+	SetDataFolder root:WinGlobals:$graphName
+	
+	// set default parameters
+	Variable kernelSize=5
+	Variable kernelParam=1
+	String kernelName = "Gaussian Smooth"
+	
+	// Get input from user
+	Prompt kernelSize, "Please enter side length, n, of the (nxn) kernel: " 
+	Prompt kernelParam, "Please enter kernel variable parameter" 
+	Prompt kernelName,"Kernel type: ",popup,"Gaussian Smooth;Laplacian (3x3);Laplacian (5x5);none"
+	
+	// Ask user what kernel to use
+	DoPrompt "Make kernel", kernelName
+	
+	 // User canceled so quit
+	if (V_Flag)
+		Print "Warning: User cancelled"         
+		return -1
+	endif 
+	
+	 // User selected "none", so quit
+	if ( cmpstr(kernelName,"none")==0 )
+		Print "Warning: User cancelled"         
+		return -1
+	endif 
+	
+	// define min/max x and y axes for calculating kernel function
 	Variable limitXYZ = (kernelSize-1)/2
 	
 	if (dim==3) // 3d wave
@@ -1579,9 +1662,8 @@ Function makeKernel(graphName,dim)
 		SetScale/I z -limitXYZ,limitXYZ,"", sKernel
 
 		strswitch( kernelName )
-			case "Gaussian":
-				convTypeLetter = "G"
-				sKernel=sinc(x/2)*sinc(y/2)*sinc(z/2)
+			case "Gaussian Smooth":
+				sKernel = Exp(- (x^2 + y^2)/(2*kernelParam^2) )
 				normalisation= Sum(sKernel)
 				sKernel= sKernel/normalisation
 				break
@@ -1603,18 +1685,18 @@ Function makeKernel(graphName,dim)
 
 		strswitch( kernelName )
 			case "Gaussian":
-				convTypeLetter = "G"
+//				convTypeLetter = "G"
 				sKernel = Exp(- (x^2 + y^2)/(2*kernelParam^2) )
 				normalisation= Sum(sKernel)
 				sKernel= sKernel/normalisation
 				break
 			case "Laplacian (3)":  
-				convTypeLetter = "L"
+//				convTypeLetter = "L"
 				Make/O/N=(3,3) sKernel 
 				sKernel[][]={{-1,-1,-1},{-1,8,-1},{-1,-1,-1}}
 				break
 			case "Laplacian (5)":  
-				convTypeLetter = "L"
+//				convTypeLetter = "L"
 				Make/O/N=(5,5) sKernel 
 				sKernel[][]={{-10,-5,-2,-1,-2,-5,-10},{-5,0,3,4,3,0,-5},{-2,3,6,7,6,3,-2},{-1,4,7,8,7,4,-1},{-2,3,6,7,6,3,-2},{-5,0,3,4,3,0,-5},{-10,-5,-2,-1,-2,-5,-10}}
 				break
