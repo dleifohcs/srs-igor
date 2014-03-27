@@ -1520,7 +1520,9 @@ Function matrixConvolveData(graphName)
 		// refresh the data displays
 		refresh3dData(graphName)
 	else
-		// need to refresh 2d data ?
+		// rescale colour of image
+		DoWindow/F $graphName
+		updateColourRange("")
 	endif
 	
 	// return to DF	
@@ -1549,7 +1551,7 @@ Function makeKernel(graphName,dim)
 	
 	// Get input from user
 	Prompt kernelSize, "Please enter side length, n, of the (nxn) kernel: " 
-	Prompt kernelName,"Kernel type: ",popup,"Gaussian Smooth;Laplacian (3x3);Laplacian (5x5);none"
+	Prompt kernelName,"Kernel type: ",popup,"Gaussian Smooth;Laplacian (3x3);Laplacian (5x5);Laplacian (7x7);none"
 	
 	// Ask user what kernel to use
 	DoPrompt "Make kernel", kernelName
@@ -1584,7 +1586,23 @@ Function makeKernel(graphName,dim)
 			normalisation= Sum(sKernel)
 			sKernel= sKernel/normalisation
 			break
-		default:
+		case "Laplacian (3x3)":  
+			Make/O/N=(3,3) sKernel 
+			sKernel[][]={{-1,-1,-1},{-1,8,-1},{-1,-1,-1}}
+			break
+		case "Laplacian (5x5)":  
+			Make/O/N=(5,5) sKernel 
+			sKernel[][]={{0,0,-1,0,0},{0,-1,-2,-1,0},{-1,-2,17,-2,-1},{0,-1,-2,-1,0},{0,0,-1,0,0}}
+			break
+		case "Laplacian (7x7)":  
+			Make/O/N=(5,5) sKernel 
+			sKernel[][]={{-10,-5,-2,-1,-2,-5,-10},{-5,0,3,4,3,0,-5},{-2,3,6,7,6,3,-2},{-1,4,7,8,7,4,-1},{-2,3,6,7,6,3,-2},{-5,0,3,4,3,0,-5},{-10,-5,-2,-1,-2,-5,-10}}
+			break
+		default:  //unitary		
+			Make/O/N=(1,1) sKernel //  create a unitary kernel (2d)
+			sKernel=1
+			normalisation= Sum(sKernel)
+			sKernel= sKernel/normalisation
 			break
 	endSwitch
 
@@ -1598,14 +1616,13 @@ Function makeKernel(graphName,dim)
 		Rename sKernel3d, sKernel
 		// show the 2D kernel
 		imgDisplay("sKernel2d")
+		updateColourRange("")
 	else 
 		// show the 2D kernel
 		imgDisplay("sKernel")
+		updateColourRange("")
 	endif
-	
-			
-	
-	
+		
 	// Return to original DF
 	SetDataFolder saveDF
 End
