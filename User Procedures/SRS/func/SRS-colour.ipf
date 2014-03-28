@@ -391,8 +391,8 @@ Function updateColourRangeDialogue(graphName)
 	Prompt maxVal, "Z-scale maximum: " // 
 	Prompt rangeVal, "Z-scale range (overrides maximum if changed): " // 
 	DoPrompt "Set colour scale", minVal, maxVal, rangeVal
-	
-	if ( rangeVal !=rangeValOriginal )
+
+	if ( abs ((rangeValOriginal - rangeVal) / rangeValOriginal) > 0.001 )
 		maxVal = minVal + rangeVal
 	endif
 
