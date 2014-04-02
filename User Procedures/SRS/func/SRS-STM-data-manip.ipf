@@ -1993,6 +1993,12 @@ Function FFTimage(graphName,type)
 	// Compute the FFT magnitude
 	FFT/MAG/DEST=$imgFFTStr imgW
 	
+	// Check if FFT window already exists and kill it if it does
+	DoWindow/F $(imgFFTStr+"0")
+	if (V_flag!=0)
+		KillWindow $(imgFFTStr+"0")
+	endif
+	
 	// display the FFT and update the contrast
 	imgDisplay(imgFFTStr)
 	String FFTgraphName= WinName(0,1)
@@ -2089,6 +2095,12 @@ Function IFFTimage(graphName)
 	// Convert the wave back to real so it can be displayed
 	Redimension/R imgIFFT
 	
+	// Check if FFT window already exists and kill it if it does
+	DoWindow/F $(imgIFFTStr+"0")
+	if (V_flag!=0)
+		KillWindow $(imgIFFTStr+"0")
+	endif
+	
 	// display the FFT and update the contrast
 	imgDisplay(imgIFFTStr)
 	String IFFTgraphName= WinName(0,1)
@@ -2164,6 +2176,14 @@ Function FFTlowpass(graphName)
 	Wave filteredFFT = $filteredFFTStr
 	Redimension/R filteredFFT
 	filteredFFT = sqrt(magsqr(imgW))
+	
+	// Check if window already exists and kill it if it does
+	DoWindow/F $(filteredFFTStr+"0")
+	if (V_flag!=0)
+		KillWindow $(filteredFFTStr+"0")
+	endif
+	
+	// display
 	imgDisplay(filteredFFTStr)
 	String filteredFFTgraphName= WinName(0,1)
 	changeColour(filteredFFTgraphName,colour="BlueLog")
