@@ -201,7 +201,7 @@ Function imgDisplay(imgWStr)
 	Wave imgW= $imgWStr
 	
 	// Create a new blank graph window
-	Display/k=1/N=$imgWStr
+	Display/k=1/N=IMG
 	
 	// Show image in the display window
 	AppendImage imgW

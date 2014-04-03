@@ -163,9 +163,8 @@ Function doSomethingWithData(actionType)
 				
 				case "cropImg":
 					
-					// Make a back up copy of the original data in a data folder of the same name
-					backupData(graphName,"C")  // the string in the second variable is appended to wave name after backup up the original data
-					
+					// can't do conventional "backup" for crop since this resets the view area.
+								
 					// crop
 					cropImg(graphName)			
 					break
@@ -1198,7 +1197,7 @@ Function backupData(graphname,suffixStr)
 	String graphname, suffixStr
 	
 	// Get current data folder
-	DFREF saveDFbackup = GetDataFolderDFR()	  // Save
+	DFREF saveDF = GetDataFolderDFR()	  // Save
 	
 	// Move to the data folder containing the global variables for the graph
 	SetDataFolder root:WinGlobals:$graphName 
@@ -1254,7 +1253,7 @@ Function backupData(graphname,suffixStr)
 		
 	endif
 	
-	SetDataFolder saveDFbackup
+	SetDataFolder saveDF
 
 End
 	
@@ -1966,6 +1965,7 @@ Function FFTimage(graphName,type)
 	Variable cropimageflag = 0 // use this as a flag to determined whether we need to create a new image
 	Variable ImgRowsCrop = ImgRows
 	Variable ImgColsCrop = ImgCols
+	
 	// if either cols or rows are odd then make them even by subtracting 1
 	if ( mod(ImgRows,2)==1 )
 		ImgRowsCrop -= 1
@@ -2263,6 +2263,13 @@ Function cropImg(graphName)
 	Variable Ymin = V_min
 	Variable Ymax = V_max
 	
+	// Make wave duplicate for cropping
+	String cropWStr = imgWstr+"C"
+	Duplicate/O imgW, $cropWStr
+	
+	// reassign the wave reference to the new wave
+	Wave cropW=$cropWStr
+	
 	// Determine point number corresponding to axes min and max
 	Variable XminPoint =  (Xmin - DimOffset(imgW, 0))/DimDelta(imgW,0)
 	Variable XmaxPoint =  (Xmax - DimOffset(imgW, 0))/DimDelta(imgW,0)
@@ -2271,12 +2278,22 @@ Function cropImg(graphName)
 	Variable imgWmaxX = DimSize(imgW,0)
 	Variable imgWmaxY = DimSize(imgW,1)
 
-	DeletePoints/M=0 round(XmaxPoint), imgWmaxX, imgW
-	DeletePoints/M=1 round(YmaxPoint), imgWmaxY, imgW
-	DeletePoints/M=0 0, round(XminPoint), imgW
-	DeletePoints/M=1 0, round(YminPoint), imgW
+	DeletePoints/M=0 round(XmaxPoint), imgWmaxX, cropW
+	DeletePoints/M=1 round(YmaxPoint), imgWmaxY, cropW
+	DeletePoints/M=0 0, round(XminPoint), cropW
+	DeletePoints/M=1 0, round(YminPoint), cropW
 
-	SetAxis/A
+	// Check if FFT window already exists and kill it if it does
+	DoWindow/F $(graphName+"0")
+	if (V_flag!=0)
+		KillWindow $(graphName+"0")
+	endif
+	
+	// Display cropped wave
+	imgDisplay(cropWStr)
+	
+//	SetAxis/A
+//	DoUpdate
 
 End
 
