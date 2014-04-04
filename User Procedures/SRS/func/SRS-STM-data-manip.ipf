@@ -229,7 +229,7 @@ Function doSomethingWithData(actionType)
 				case "subtractplaneROI":
 					
 					// Make a back up copy of the original data in a data folder of the same name
-					backupData(graphName,"R")  // the string in the second variable is appended to wave name after backup up the original data
+//					backupData(graphName,"R")  // the string in the second variable is appended to wave name after backup up the original data
 					
 					// Function for removing a plane background
 					subtractPlane(graphName,ROI="yes")
