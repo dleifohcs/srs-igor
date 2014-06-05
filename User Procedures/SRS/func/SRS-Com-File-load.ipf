@@ -2337,22 +2337,67 @@ Function loadAccelerometer( pathStr, filenameStr )
 	Print "Loading accelerometer data"
 	LoadWave/A/J/D/W/O/K=0 pathStr+filenameStr
 	
-	String freqStrtmp = stringfromlist(0,S_waveNames)
-	String ampStrtmp = stringfromlist(1,S_waveNames)
-	Wave freqW = $freqStrtmp
-	Wave ampW = $ampStrtmp
+	Variable numWaves = itemsInList(S_waveNames) - 1
+
+	// The first wave is the frequency wave
+	String freqStr = stringfromlist(0,S_waveNames)
+	Wave freqW = $freqStr
 	
+	// First point a header (possibly time stamp, but not using this at the moment)
 	DeletePoints/M=0 0, 1, freqW
-	DeletePoints/M=0 0, 1, ampW
 	
+	// Find out what the min and max frequency values are
 	Variable freqmin = WaveMin(freqW)
 	Variable freqmax = WaveMax(freqW)
 	
-	SetScale/I x, freqmin, freqmax, "Hz", ampW
-	SetScale/I d, 0,1, "m/s", ampW
+	String ampStr
+	if (numWaves == 1)  // i.e., this is an averaged wave
+		ampStr = stringfromlist(1,S_waveNames)
+		Wave ampW = $ampStr
+
+		// First point a header (possibly time stamp, but not using this at the moment)
+		DeletePoints/M=0 0, 1, ampW
 	
-	ampW = ampW * 25.4 * 1e-3
+		// Set the scales and add units
+		SetScale/I x, freqmin, freqmax, "Hz", ampW
+		SetScale/I d, 0,1, "m/s", ampW
+	
+		// convert to m/s/sqrt(Hz)
+		ampW = ampW * 25.4 * 1e-3
+	
+		// Display the wave
+		display/k=1 ampW
+		ModifyGraph log=1
+		
+	elseif (numWaves > 1) // i.e., the file contains spectra as a function of time
+		Variable specLen = DimSize(freqW,0)
+
+		Make/O/N=(numWaves,specLen) img
+		Variable i
+		for (i = 1; i<numWaves; i+=1)
+			ampStr = stringfromlist(i,S_waveNames)
+			Wave ampW = $ampStr
+			// First point a header (possibly time stamp, but not using this at the moment)
+			DeletePoints/M=0 0, 1, ampW
+			img[i][] = ampW[q]
+			KillWaves ampW
+		endfor
+		
+		// Set the scales and add units
+		SetScale/I y, freqmin, freqmax, "Hz", img
+		SetScale/I d, 0,1, "m/s", img
+	
+		// convert to m/s/sqrt(Hz)
+		img = img * 25.4 * 1e-3
+		
+		// display
+		imgDisplay("img")
+		updateColourRangeByHist("",type="exp")
+		
+	endif 
+	
+	// Clean up
 	KillWaves freqW
-	display/k=1 ampW
-	ModifyGraph log=1
+	
+
 End
