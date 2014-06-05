@@ -120,6 +120,9 @@ Function SRSLoadData(pathStr,filenameStr)
 		case "asc":
 			loadNEXAFSASC2013( pathStr, filenameStr )
 			break
+		case "acc":
+			loadAccelerometer( pathStr, filenameStr )
+			break
 		case "14":
 			loadSEMITIPfort( pathStr, filenameStr, 14)
 			break
@@ -131,6 +134,18 @@ Function SRSLoadData(pathStr,filenameStr)
 			break
 		case "19":
 			loadSEMITIPfort( pathStr, filenameStr, 19 )
+			break
+		case "tf0":
+			loadScalaImage(pathStr, filenameStr)
+			break
+		case "tf1":
+			loadScalaImage(pathStr, filenameStr)
+			break
+		case "tb0":
+			loadScalaImage(pathStr, filenameStr)
+			break
+		case "tb1":
+			loadScalaImage(pathStr, filenameStr)
 			break
 		default:
 			returnVar = 0
@@ -2289,3 +2304,55 @@ Function loadSEMITIPfort( path, filename, fortNum)
 End
 
 
+
+// Quick and Dirty Load for Scala Data
+function loadScalaImage(path, filename)
+	String path, filename
+	
+	// Get current data folder
+	DFREF saveDF = GetDataFolderDFR()	  // Save
+	
+	// Make a new datafolder based on the filename
+	String DFnameFromFileName= removeBadChars(filename)
+	DFnameFromFileName= removeSpace(DFnameFromFileName)
+	NewDataFolder/O/S root:$DFnameFromFileName
+	
+	GBLoadWave/T={16,4}/N=myScalaImage/W=1 path+filename 
+	Wave myScalaImage0
+	Duplicate/O myScalaImage0, img
+	Variable datalength
+	redimension/N=(300,300) img
+	KillWaves myScalaImage0
+	
+	SetDataFolder saveDF
+end
+
+
+//------------------------------------------------------------------------------------------------------------------------------------
+// Load output from accelerometer labview programme
+//------------------------------------------------------------------------------------------------------------------------------------
+Function loadAccelerometer( pathStr, filenameStr )
+	String pathStr, filenameStr
+	
+	Print "Loading accelerometer data"
+	LoadWave/A/J/D/W/O/K=0 pathStr+filenameStr
+	
+	String freqStrtmp = stringfromlist(0,S_waveNames)
+	String ampStrtmp = stringfromlist(1,S_waveNames)
+	Wave freqW = $freqStrtmp
+	Wave ampW = $ampStrtmp
+	
+	DeletePoints/M=0 0, 1, freqW
+	DeletePoints/M=0 0, 1, ampW
+	
+	Variable freqmin = WaveMin(freqW)
+	Variable freqmax = WaveMax(freqW)
+	
+	SetScale/I x, freqmin, freqmax, "Hz", ampW
+	SetScale/I d, 0,1, "m/s", ampW
+	
+	ampW = ampW * 25.4 * 1e-3
+	KillWaves freqW
+	display/k=1 ampW
+	ModifyGraph log=1
+End
