@@ -951,8 +951,15 @@ Function subtractPlane(graphname,[ROI])
 	
 		Redimension/B/U imgWROI 			
 
+		WaveStats imgW
+		Variable rawImgAvg = V_avg
 		// Use in-built Igor function for plane removal
 		ImageRemoveBackground /O/R=imgWROI/P=1 imgW
+		imgW = imgW + rawImgAvg
+		
+		// Use in-built Igor function for plane removal
+		//ImageRemoveBackground /O/R=imgWROI/P=1 imgW
+		
 	else
 		Print "Warning: no background substraction performed.  Missing ROI wave?"
 	
