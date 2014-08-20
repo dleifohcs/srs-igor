@@ -2166,29 +2166,37 @@ Function loadWaveFunction( pathStr, filenameStr )
 	FBinRead/F=3 refNum, NORB
 	FBinRead/F=3 refNum, lenrec_end
 //	if ( VERBOSE )
-		PRINT "len rec start =", lenrec_start
+//		PRINT "len rec start =", lenrec_start
 		PRINT "NX = ", NX
 		PRINT "NY = ", NY
-		PRINT "NY = ", NZ
+		PRINT "NZ = ", NZ
 		PRINT "NORB = ", NORB
-		PRINT "len rec stop =", lenrec_end
+///		PRINT "len rec stop =", lenrec_end
 		PRINT " "
-		PRINT "READING EIGENVALUE"
+		PRINT "READING EIGENVALUES"
 //	endif
 	
 	// make wave to store eigenvalues
 	Make/O/N=(norb) eigenval
 	
+	// get file name without extension
+	String filenameStrNoExt = ParseFilePath(3, filenameStr, ":", 0, 0)
+	filenameStrNoExt = removeBadChars(filenameStrNoExt)
+	filenameStrNoExt = replaceHyphen(filenameStrNoExt)
+
 	// make wave to store wavefunction
 	xdata_len = 2*nx
 	ydata_len = 2*nx
-	Make/O/N=(xdata_len,ydata_len,norb) dataW
+	Make/O/N=(xdata_len,ydata_len,norb) $(filenameStrNoExt+"_wf")
+	Make/O/N=(xdata_len,ydata_len,norb) $(filenameStrNoExt+"_pd")
+	Wave wavefunction = $(filenameStrNoExt+"_wf")
+	Wave probdensity = $(filenameStrNoExt+"_pd")
 	
 	ie = 0 // eventually loop here
 	
 	for ( ie=0; ie < norb; ie +=1 )
 		// READ EIGENVALUE
-		FBinRead/F=3/b=3 refNum, lenrec_start
+		FBinRead/F=3 refNum, lenrec_start
 		FBinRead/F=5 refNum, dataPoint
 		FBinRead/F=3 refNum, lenrec_end
 		eigenval[ie] = dataPoint
@@ -2207,7 +2215,8 @@ Function loadWaveFunction( pathStr, filenameStr )
 			FBinRead/F=3 refNum, lenrec_start
 			for ( ix=0; ix < xdata_len; ix+= 1)
 				FBinRead/F=5 refNum, dataPoint
-				dataW[xdata_len-ix-1][ydata_len-iy-1][ie] = dataPoint*dataPoint / 1.6e-19
+				wavefunction[xdata_len-ix-1][ydata_len-iy-1][ie] = -dataPoint
+				probdensity[xdata_len-ix-1][ydata_len-iy-1][ie] = dataPoint*dataPoint
 			endfor // ix
 			FBinRead/F=3 refNum, lenrec_end
 		endfor	// iy	
@@ -2234,16 +2243,16 @@ Function loadWaveFunction( pathStr, filenameStr )
 	endif
 	String dummy
 	
-	
 	// Close data file
 	Close refNum 
+	
 End
 
 
 
 
 //------------------------------------------------------------------------------------------------------------------------------------
-// Load output from "schroedsolve"
+// Load output from 
 //------------------------------------------------------------------------------------------------------------------------------------
 Function loadSEMITIPfort( path, filename, fortNum)
 	String path, filename
