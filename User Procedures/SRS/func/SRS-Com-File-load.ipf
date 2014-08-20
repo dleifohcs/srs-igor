@@ -2151,7 +2151,7 @@ Function loadWaveFunction( pathStr, filenameStr )
 		return 1
 	endif
 	
-	Variable/G nx, ny, norb
+	Variable/G nx, ny, nz, norb
 	Variable lenrec_start, lenrec_end, dataPoint, xdata_len, ydata_len
 	
 	// READ HEADER
@@ -2159,20 +2159,22 @@ Function loadWaveFunction( pathStr, filenameStr )
 		PRINT " "
 		PRINT "READING HEADER INFORMATION"
 	endif
-	FBinRead/F=3/b=3 refNum, lenrec_start
-	FBinRead/F=3/b=3  refNum, NX
-	FBinRead/F=3  refNum, NY
-	FBinRead/F=3  refNum, NORB
+	FBinRead/F=3 refNum, lenrec_start
+	FBinRead/F=3 refNum, NX
+	FBinRead/F=3 refNum, NY
+	FBinRead/F=3 refNum, NZ
+	FBinRead/F=3 refNum, NORB
 	FBinRead/F=3 refNum, lenrec_end
-	if ( VERBOSE )
+//	if ( VERBOSE )
 		PRINT "len rec start =", lenrec_start
 		PRINT "NX = ", NX
 		PRINT "NY = ", NY
+		PRINT "NY = ", NZ
 		PRINT "NORB = ", NORB
 		PRINT "len rec stop =", lenrec_end
 		PRINT " "
 		PRINT "READING EIGENVALUE"
-	endif
+//	endif
 	
 	// make wave to store eigenvalues
 	Make/O/N=(norb) eigenval
