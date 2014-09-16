@@ -89,7 +89,15 @@ Menu "STM", dynamic
 		End
 		Submenu "Line Profile"
 			"Line Profile", doSomethingWithData("lineprofile")
-			"Remove line profile", removeLineProfile("")		
+			"Remove line profile", removeLineProfile("")	
+			"-"
+			Submenu "Cursor Colour"
+				"Black", LineProfileColourBlack("","black")
+				"White", LineProfileColourBlack("","")
+				"Red", LineProfileColourBlack("","red")
+				"Green", LineProfileColourBlack("","green")
+				"Blue", LineProfileColourBlack("","blue")
+			End	
 		End
 		"Matrix convolution",  doSomethingWithData("mConvolution")
 		"-"

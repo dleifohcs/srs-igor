@@ -108,6 +108,9 @@ Function SRSLoadData(pathStr,filenameStr)
 		case "I(V)_flat":
 			SRSFlatFileLoad(pathStr,filenameStr)
 			break
+		case "Aux1(V)_flat":
+			SRSFlatFileLoad(pathStr,filenameStr)
+			break
 		case "I(Z)_flat":
 			SRSFlatFileLoad(pathStr,filenameStr)
 			break

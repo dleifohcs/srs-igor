@@ -585,6 +585,51 @@ Function removeLineProfile(graphName)
 End
 
 //--------------------------------------------------------------------------------------------------------------
+// Remove line profile.
+Function LineProfileColourBlack(graphName,colour)
+	String graphName, colour
+	
+	if ( cmpstr(graphName,"")==0 )
+		// Get name of top graph
+		graphName= WinName(0,1)
+	endif
+	
+	Variable Cx, Cy, Cz
+	StrSwitch(colour)
+		Case "black":
+			Cx = 65535
+			Cy = 0
+			Cz = 0
+			break
+		Case "green":
+			Cx = 0
+			Cy = 65535
+			Cz = 0
+			break
+		Case "blue":
+			Cx = 0
+			Cy = 0
+			Cz = 65535
+			break
+		Case "red":
+			Cx = 65535
+			Cy = 0
+			Cz = 0
+			break
+		Default:
+			Cx = 65535
+			Cy = 65535
+			Cz = 65535
+			break
+	endswitch
+	
+	Cursor/M /C=(Cx,Cy,Cz) A
+	Cursor/M /C=(Cx,Cy,Cz) B
+	ModifyGraph rgb=(Cx,Cy,Cz)
+	
+End
+
+//--------------------------------------------------------------------------------------------------------------
 // Called from "CursorMoved" and "lineProfile"
 Function makeLineProfile(graphname)
 	String graphname
