@@ -123,6 +123,9 @@ Function SRSLoadData(pathStr,filenameStr)
 		case "asc":
 			loadNEXAFSASC2013( pathStr, filenameStr )
 			break
+		case "easc":
+			loadNEXAFSASC2014( pathStr, filenameStr )
+			break
 		case "acc":
 			loadAccelerometer( pathStr, filenameStr )
 			break
@@ -543,6 +546,137 @@ Function loadNEXAFSASC2013(path, filename )
 	KillWaves wave0, wave1, wave2, wave3, wave4, wave5, wave6
 	KillWaves wave7, wave8, wave9, wave10,wave11, wave12
 	KillWaves wave13, wave14, wave15
+	
+	SetDataFolder saveDFR
+	return 1
+End
+
+//------------------------------------------------------------------------------------------------------------------------------------
+// this loads the NEXAFS data files exported by Eliot Gann's NEXAFS program in 2014
+//------------------------------------------------------------------------------------------------------------------------------------
+Function loadNEXAFSASC2014(path, filename )
+	String filename, path
+	Variable refNum
+	Wave cln = root:reference:'mcp_n'
+	
+	String FullFileNameStr = path+filename
+
+	DFREF saveDFR = GetDataFolderDFR()
+	
+	Open /R/Z=2 refNum as FullFileNameStr
+	
+	if (V_flag != 0)
+		Print "error loading nexafs data"
+		return 0 // Something broke
+	endif
+	
+	// Information to command line
+	Print "Detected .asc file input. Assuming from NEXAFS output, opening into new data folder."
+	
+	// Remove extension from filename
+	String shortfilename = ParseFilePath(3, filename, ":", 0, 0)
+	
+	// Get input from used and create DF for data
+	String datafoldername
+	String region = NEXAFSDialogRegion(shortfilename)
+	
+	// Go through file and find important data
+	String buffer
+	Variable len, linenumber, theta
+	linenumber = 0
+	do
+		FReadLine refNum, buffer
+		len = strlen(buffer)
+		if (len == 0)
+			break
+		endif
+		if (linenumber == 90)
+			sscanf buffer, "anglestr = %g", theta
+		elseif (linenumber > 100)
+			break
+		endif
+		linenumber = linenumber + 1
+	while (1)
+	
+	FSetPos refNum, 0
+	
+	datafoldername = shortfilename+"_"+region+"_"+num2str(theta)
+	NewDataFolder /O/S root:$datafoldername
+	
+	// Load data
+	LoadWave /W/A/O/G FullFileNameStr
+	Close refNum
+	
+	Wave wave0
+	Wave wave1
+	Wave wave2
+	Wave wave3
+	Wave wave4
+	Wave wave5
+	Wave wave6
+	Wave wave7
+	Wave wave8
+	Wave wave9
+	Wave wave10
+	Wave wave11
+	Wave wave12
+	Wave wave13
+	Wave wave14
+	Wave wave15
+	Wave wave16
+	Wave wave17
+	Wave wave18
+	Wave wave19
+	
+	// data folder to store waves not commonly used in the analysis
+	NewDataFolder/O/S data 
+	
+	// Rename waves
+	Duplicate/O wave0, encoderEnergy
+	Duplicate/O wave1, I0
+	Duplicate/O wave2, scanEnergy
+	Duplicate/O wave3, expTime
+	Duplicate/O wave4, drainCurrent
+	Duplicate/O wave5, refFoil
+	Duplicate/O wave6, MCP
+	Duplicate/O wave7, CHN
+	Duplicate/O wave8, PHD
+	Duplicate/O wave9, TFYPHD
+	Duplicate/O wave10, drainCurrentKeithley
+	Duplicate/O wave11, IOKeithley
+	Duplicate/O wave12, refFoilKeithley
+	Duplicate/O wave13, keithley6
+	Duplicate/O wave15, ringCurrent
+	Duplicate/O wave16, BLPHD
+	Duplicate/O wave17, BLPHDKeithley
+	Duplicate/O wave18, undulatorGapRequest
+	Duplicate/O wave19, undulatorGap
+	
+	// Move back to main data folder for the NEXAFS data
+	SetDataFolder root:$datafoldername	
+	
+	Variable scanMin = WaveMin(scanEnergy)
+	Variable scanMax = WaveMax(scanEnergy)
+	
+	// Set the scale on all the scan outputs
+	SetScale/I x, scanMin, scanMax, "eV", drainCurrent
+	SetScale/I x, scanMin, scanMax, "eV", I0
+	SetScale/I x, scanMin, scanMax, "eV", refFoil
+	SetScale/I x, scanMin, scanMax, "eV", MCP
+	SetScale/I x, scanMin, scanMax, "eV", CHN
+	SetScale/I x, scanMin, scanMax, "eV", PHD
+	SetScale/I x, scanMin, scanMax, "eV", TFYPHD
+	
+	// add the angle to the wave note so that it can be extracted later if desired
+	Note/NOCR mcp, "THETA:"+num2str(theta)+";REGION:"+region
+	
+	// Duplicate a copy of the MCP wave to the main datafolder
+	Duplicate/O mcp, mcp_dn
+	
+	// clean up
+	KillWaves wave0, wave1, wave2, wave3, wave4, wave5, wave6
+	KillWaves wave7, wave8, wave9, wave10,wave11, wave12
+	KillWaves wave13, wave14, wave15, wave16, wave17, wave18, wave19
 	
 	SetDataFolder saveDFR
 	return 1
