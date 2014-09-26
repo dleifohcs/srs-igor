@@ -557,7 +557,6 @@ End
 Function loadNEXAFSASC2014(path, filename )
 	String filename, path
 	Variable refNum
-	Wave cln = root:reference:'mcp_n'
 	
 	String FullFileNameStr = path+filename
 
@@ -571,7 +570,7 @@ Function loadNEXAFSASC2014(path, filename )
 	endif
 	
 	// Information to command line
-	Print "Detected .asc file input. Assuming from NEXAFS output, opening into new data folder."
+	Print "Detected .easc file input. Assuming from NEXAFS output, opening into new data folder."
 	
 	// Remove extension from filename
 	String shortfilename = ParseFilePath(3, filename, ":", 0, 0)
@@ -584,14 +583,15 @@ Function loadNEXAFSASC2014(path, filename )
 	String buffer
 	Variable len, linenumber, theta
 	linenumber = 0
+	theta = 0
 	do
 		FReadLine refNum, buffer
 		len = strlen(buffer)
 		if (len == 0)
-			break
+			break // if we run out of file, break out of the loop
 		endif
 		if (linenumber == 90)
-			sscanf buffer, "anglestr = %g", theta
+			sscanf buffer, "anglestr = %g", theta // note this function will break if Eliot changes the header
 		elseif (linenumber > 100)
 			break
 		endif
@@ -599,6 +599,11 @@ Function loadNEXAFSASC2014(path, filename )
 	while (1)
 	
 	FSetPos refNum, 0
+	
+	// Check we actually found a value for theta. If not, ask the user.
+	if (theta == 0)
+		theta = NEXAFSDialogTheta(shortfilename)
+	endif
 	
 	datafoldername = shortfilename+"_"+region+"_"+num2str(theta)
 	NewDataFolder /O/S root:$datafoldername
@@ -625,8 +630,8 @@ Function loadNEXAFSASC2014(path, filename )
 	Wave wave15
 	Wave wave16
 	Wave wave17
-	Wave wave18
-	Wave wave19
+	//Wave wave18
+	//Wave wave19
 	
 	// data folder to store waves not commonly used in the analysis
 	NewDataFolder/O/S data 
@@ -649,8 +654,8 @@ Function loadNEXAFSASC2014(path, filename )
 	Duplicate/O wave15, ringCurrent
 	Duplicate/O wave16, BLPHD
 	Duplicate/O wave17, BLPHDKeithley
-	Duplicate/O wave18, undulatorGapRequest
-	Duplicate/O wave19, undulatorGap
+	//Duplicate/O wave18, undulatorGapRequest
+	//Duplicate/O wave19, undulatorGap
 	
 	// Move back to main data folder for the NEXAFS data
 	SetDataFolder root:$datafoldername	
@@ -667,16 +672,18 @@ Function loadNEXAFSASC2014(path, filename )
 	SetScale/I x, scanMin, scanMax, "eV", PHD
 	SetScale/I x, scanMin, scanMax, "eV", TFYPHD
 	
-	// add the angle to the wave note so that it can be extracted later if desired
-	Note/NOCR mcp, "THETA:"+num2str(theta)+";REGION:"+region
+	String mcpdnName = shortfilename+"_"+region+"_"+num2str(theta)+"_dn"
+	Duplicate/O MCP $mcpdnName
 	
-	// Duplicate a copy of the MCP wave to the main datafolder
-	Duplicate/O mcp, mcp_dn
+	Wave mcpdn = $mcpdnName
+	
+	// add the angle to the wave note so that it can be extracted later if desired
+	Note/NOCR mcpdn, "THETA:"+num2str(theta)+";REGION:"+region
 	
 	// clean up
 	KillWaves wave0, wave1, wave2, wave3, wave4, wave5, wave6
 	KillWaves wave7, wave8, wave9, wave10,wave11, wave12
-	KillWaves wave13, wave14, wave15, wave16, wave17, wave18, wave19
+	KillWaves wave13, wave14, wave15, wave16, wave17
 	
 	SetDataFolder saveDFR
 	return 1
