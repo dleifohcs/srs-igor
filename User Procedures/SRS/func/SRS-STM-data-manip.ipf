@@ -465,12 +465,10 @@ Function lineProfile(graphname)
 	Variable/G yB
 	
 	if ( (Abs(xA)+Abs(xB)+Abs(yA)+Abs(yB))!=0 && (Abs(xA)+Abs(xB)+Abs(yA)+Abs(yB)) < 10000 )  // assume if these are all zero then they have not been defined before, otherwise they have so use those numbers/
-
 		leftCursX= xA
 		rightCursX= xB
 		leftCursY= yA
 		rightCursY= yB
-
 	endif
 	
 	// Generate folder and global variables for 2d plot (if working with 3d data set)
@@ -498,7 +496,7 @@ Function lineProfile(graphname)
 	Variable/G yB= vcsr(B)
 	Variable/G xA= hcsr(A)
 	Variable/G yA= vcsr(A)
-	
+
 	// Make a wave to display a line between the cursors on the image
 	Make/O/N=2 lineprofx={xA,xB}, lineprofy={yA,yB}
 	RemoveFromGraph/Z lineprofy // in case a line profile already drawn then remove it
@@ -697,10 +695,13 @@ Function makeLineProfile(graphname)
 		
 			// Make the wave assignment to this data
 			Wave citsW= $citsWFullStr
-		
+Print "lineprofx, lineprofy	", lineprofx, lineprofy	
+//lineprofx={0,12}
+//lineprofy={12,12}
+			
 			// Use inbuilt Igor routine to generate the line profile
 			ImageLineProfile/SC/P=-2 xwave=lineprofx, ywave=lineprofy, srcwave=citsW
-		
+
 			// Copy the created wave to a new wave that will be used for plotting - this wave is put in a separate data folder
 			Duplicate/O M_ImageLineProfile root:WinGlobals:$(graphName+"_2dProfile"):lineProfile2D
 //			KillWaves/Z M_ImageLineProfile, W_LineProfileX, W_LineProfileY
