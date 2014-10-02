@@ -62,10 +62,6 @@ Menu "STM", dynamic
 				"Set minimum to zero", doSomethingWithData("subtractMin")
 				"Shift image Z-axis manually",shiftImageZDialogue("")
 			End
-			Submenu "Region of Interest"
-				"Create or Edit ROI", doSomethingWithData("createROI")
-				"Kill ROI", doSomethingWithData("killROI")
-			End
 			"-"
 			"Crop [to current view area]", doSomethingWithData("cropImg")
 			"Rotate", doSomethingWithData("rotateImg")
@@ -77,7 +73,12 @@ Menu "STM", dynamic
 			"Differentiate CITS", doSomethingWithData("differentiateCITS")
 			"Smooth CITS along z-axis", doSomethingWithData("smoothZ")
 			"-"
-			"Point from CITS", doSomethingWithData("STSfromCITS")
+			"STS from CITS - Point", doSomethingWithData("STSfromCITS")
+			"STS from CITS - ROI", doSomethingWithData("STSfromCITSROI")
+		End
+		Submenu "Region of Interest"
+			"Create or Edit ROI", doSomethingWithData("createROI")
+			"Kill ROI", doSomethingWithData("killROI")
 		End
 		Submenu "FFT"
 			//"Calculate FFT magnitude", doSomethingWithData("FFTmag")

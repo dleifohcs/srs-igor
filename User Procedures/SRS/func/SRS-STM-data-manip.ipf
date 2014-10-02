@@ -97,6 +97,7 @@ Function doSomethingWithData(actionType)
 	//						"imageArithmetic"
 	//--
 	// 						"STSfromCITS"
+	//						"STSfromCITSROI"
 	//						"duplicateLinePlot"
 	// 						"differentiateCITS"
 	// 						"smoothZ"
@@ -310,6 +311,24 @@ Function doSomethingWithData(actionType)
 					
 						// Display STS curve
 						dispSTSfromCITS(graphName)
+					else
+						Print "Error: this is not a 3d data set, or it was not displayed using the img3dDisplay(imgWStr) function of the SRS-STM macros"
+					endif
+					break
+				
+				case "STSfromCITSROI":
+				
+					// Make wave assignment to 3d data wave
+					Wave citsImgW
+					
+					// Check that the image displayed has an associated 3d dataset.  The image must have been displayed with the SRS macros that generate the appropriate global variables
+					if (WaveExists(citsImgW)==1)
+				
+						// Establish link between cursor positions and CursorMoved fn. 
+						CursorDependencyForGraph(graphName)
+					
+						// Display STS curve
+						dispSTSfromCITSROI(graphName)
 					else
 						Print "Error: this is not a 3d data set, or it was not displayed using the img3dDisplay(imgWStr) function of the SRS-STM macros"
 					endif
@@ -1243,6 +1262,119 @@ Function dispSTSfromCITS(graphname,)
 	SetDataFolder saveDFSTSfromCITS
 End
 
+
+//--------------------------------------------------------------------------------------------------------------
+Function dispSTSfromCITSROI(graphname)
+	String graphname
+	
+	// Get current data folder
+	DFREF saveDFSTSfromCITS = GetDataFolderDFR()	  // Save
+	
+	// Move to the data folder containing the global variables for the graph
+	SetDataFolder root:WinGlobals:$graphName // should already be in this data folder, but include this to be sure
+	
+	// Get the global variable for this graph (these were set in the manipulateData procedure)
+//	String/G imgDF			// data folder containing the data shown on the graph
+	String/G imgDF			// data folder containing the data shown on the graph
+	String/G imgWStr		// name of the wave shown on the graph (an image or 3D data set; e.g. STM or CITS)
+	String/G imgWFullStr		// data folder plus wave name
+	String/G citsDF
+	String/G citsWStr
+	String/G citsWFullStr
+//	String/G citsImgW
+	
+	// Make wave assignment to the data
+	Wave imgW= $imgWFullStr
+	Wave citsW= $citsWFullStr
+	
+	// Create name of ROI wave
+	String imgWROIStr= graphName+"_ROI_W"
+		
+	// Drawing tools
+	SetDrawLayer/W=$graphName ProgFront
+				
+	ImageGenerateROIMask/W=$graphName $imgWStr
+			
+	if ( WaveExists(imgWROI)==0 )
+		Duplicate/O M_ROIMask $imgWROIStr
+		KillWaves/Z M_ROIMask
+		Wave imgWROI= $imgWROIStr
+	endif 
+			
+	// Drawing tools
+	SetDrawLayer/W=$graphName UserFront
+			
+	// Drawing tools
+	HideTools/W=$graphName 
+			
+	Redimension/B/U imgWROI 			
+
+	// Duplicate the CITS data into the WinGlobals directory
+	Duplicate/O citsW, citsROIonlyW
+	
+	Variable xNum = DimSize(citsROIonlyW,0)
+	Variable yNum = DimSize(citsROIonlyW,1)
+	Variable zNum = DimSize(citsROIonlyW,2)
+	
+	Variable i
+	for (i=0;i<zNum;i+=1)
+		citsROIonlyW[][][i] = citsROIonlyW[p][q][i] * imgWROI[p][q]
+	endfor
+	
+	// Determine image size 
+	Variable xMin= DimOffset(imgW,0)
+	Variable xMax= (DimDelta(imgW,0) * DimSize(imgW,0) + DimOffset(imgW,0))
+	Variable yMin= DimOffset(imgW,1)
+	Variable yMax= (DimDelta(imgW,1) * DimSize(citsW,1) + DimOffset(imgW,1))
+	Variable zMin= DimOffset(citsW,2)
+	Variable zMax= (DimDelta(citsW,2) * DimSize(citsW,2) + DimOffset(citsW,2))
+
+	// Create a new graph to display the STS
+	String/G STSgraphname= graphName+"_STS"
+	DoWindow/K $STSgraphname
+
+	// Create a new blank graph window
+	Display/k=1/N=$STSgraphname 
+	AutoPositionWindow/E/m=1
+	
+	// Load the size of the lineProfile2dGraphName dimension (this was computed and saved as a global variable in the image display function)
+	Variable/G zSize
+	
+	//Make a new wave to store a single STS curve in
+	Make/O/N=(zSize) stsROIW
+	Make/O/N=(zSize) stsROIWtmp
+	stsROIW = 0
+	
+	// Sum all of the waves in the cits into one
+	Variable j, c, s
+	for (i=0;i<xNum;i+=1)
+		for (j=0;j<yNum;j+=1)
+			stsROIWtmp[] = citsROIonlyW[i][j][p]
+			stsROIWtmp = abs(stsROIWtmp)
+			s = sum(stsROIWtmp)
+			if ( s > 0 ) 
+				stsROIW =  citsROIonlyW[i][j][p] + stsROIW
+				c += 1
+			endif
+		endfor
+	endfor
+	stsROIW = stsROIW/c
+	Print "STS sum of",c,"CITS data points"
+
+	KillWaves stsROIWtmp
+	
+	// Give the line profile appropriate units.  These units were saved in global variables in the image display function
+	String/G citsWZUnit   //= WaveUnits(citsW,2)
+	String/G citsWDUnit   //= WaveUnits(citsW,-1)
+
+	SetScale/I x, zMin, zMax, citsWZUnit, stsROIW
+	SetScale/I d, 0, 1, citsWDUnit, stsROIW
+
+	AppendToGraph stsROIW
+	
+	// Return to saved data folder
+	SetDataFolder saveDFSTSfromCITS
+End
 
 //--------------------------------------------------------------------------------------------------------------
 // Create a backup wave in new data folder
