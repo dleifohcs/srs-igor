@@ -1372,6 +1372,10 @@ Function dispSTSfromCITSROI(graphname)
 
 	AppendToGraph stsROIW
 	
+	// Display the ROI that was applied
+	Display/k=1/N=$imgWROIStr 
+	imgDisplay(imgWROIStr)
+	
 	// Return to saved data folder
 	SetDataFolder saveDFSTSfromCITS
 End
