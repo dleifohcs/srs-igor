@@ -876,7 +876,49 @@ Function CursorMovedForGraph(info, cursNum)
 					Wave citsW= $citsWFullStr
 						
 					// Get STS wave from the 3d data set at the appropriate point
-					stsW[]=citsW[xPt][yPt][p]
+					//stsW[]=citsW[xPt][yPt][p]
+					
+					// FROM HERE IS DUPLICATED FROM STS DISPLAY FUNCTION
+					
+					
+					SVAR stsAveragingNone =  root:WinGlobals:SRSSTMControl:stsAveragingNone
+					SVAR stsAveraging3x3 =  root:WinGlobals:SRSSTMControl:stsAveraging3x3
+					SVAR stsAveraging5x5 =  root:WinGlobals:SRSSTMControl:stsAveraging5x5
+					SVAR stsAveraging9x9 =  root:WinGlobals:SRSSTMControl:stsAveraging9x9
+		
+					Variable i,j
+					if ( cmpstr(stsAveragingNone,"yes")==0 )
+						// Get STS wave from the 3d data set at the appropriate point
+						stsW[]=citsW[xPt][yPt][p]
+					elseif ( cmpstr(stsAveraging3x3,"yes")==0 )
+						stsW=0
+						for (i=0;i<3;i+=1)
+							for (j=0;j<3;j+=1)
+								stsW[]=citsW[xPt-2+i][yPt-2+j][p] + stsW[p]
+							endfor
+						endfor
+						stsW = stsW/9
+					elseif ( cmpstr(stsAveraging5x5,"yes")==0 )
+						stsW=0
+						for (i=0;i<5;i+=1)
+							for (j=0;j<5;j+=1)
+								stsW[]=citsW[xPt-2+i][yPt-2+j][p] + stsW[p]
+							endfor
+						endfor
+						stsW=stsW/25
+					elseif ( cmpstr(stsAveraging9x9,"yes")==0 )
+						stsW=0
+						for (i=0;i<9;i+=1)
+							for (j=0;j<9;j+=1)
+								stsW[]=citsW[xPt-2+i][yPt-2+j][p] + stsW[p]
+							endfor
+						endfor
+						stsW=stsW/81
+					else 
+						// Get STS wave from the 3d data set at the appropriate point
+						stsW[]=citsW[xPt][yPt][p]
+					endif
+	// TO HERE				
 					break
 			endswitch
 		endif
@@ -951,6 +993,12 @@ Function createSRSControlVariables()
 		coloursList = coloursList+";GrayExp;Sunset;BlueRedGreen2"
 		coloursList = coloursList+";Expmult3;Green2;Thunderbolt;BlueRedGreen3;Expmult4;Green3;Titanium"
 	endif
+	
+	// this variable can be set to control whether or not STS extracted from CITS are averaged with neighbours
+	String/G stsAveragingNone = "yes"
+	String/G stsAveraging3x3 = "no"
+	String/G stsAveraging5x5 = "no"
+	String/G stsAveraging9x9= "no"
 	
 	SetDataFolder saveDF
 End
@@ -1187,7 +1235,7 @@ End
 
 
 //--------------------------------------------------------------------------------------------------------------
-Function dispSTSfromCITS(graphname,)
+Function dispSTSfromCITS(graphname)
 	String graphname
 	
 	// Get current data folder
@@ -1246,8 +1294,43 @@ Function dispSTSfromCITS(graphname,)
 	Variable/G xPt
 	Variable/G yPt
 	
-	// Get STS wave from the 3d data set at the appropriate point
-	stsW[]=citsW[xPt][yPt][p]
+	SVAR stsAveragingNone =  root:WinGlobals:SRSSTMControl:stsAveragingNone
+	SVAR stsAveraging3x3 =  root:WinGlobals:SRSSTMControl:stsAveraging3x3
+	SVAR stsAveraging5x5 =  root:WinGlobals:SRSSTMControl:stsAveraging5x5
+	SVAR stsAveraging9x9 =  root:WinGlobals:SRSSTMControl:stsAveraging9x9
+	
+	Variable i,j
+	if ( cmpstr(stsAveragingNone,"yes")==0 )
+		// Get STS wave from the 3d data set at the appropriate point
+		stsW[]=citsW[xPt][yPt][p]
+	elseif ( cmpstr(stsAveraging3x3,"yes")==0 )
+		stsW=0
+		for (i=0;i<3;i+=1)
+			for (j=0;j<3;j+=1)
+				stsW[]=citsW[xPt-2+i][yPt-2+j][p] + stsW[p]
+			endfor
+		endfor
+		stsW = stsW/9
+	elseif ( cmpstr(stsAveraging5x5,"yes")==0 )
+		stsW=0
+		for (i=0;i<5;i+=1)
+			for (j=0;j<5;j+=1)
+				stsW[]=citsW[xPt-2+i][yPt-2+j][p] + stsW[p]
+			endfor
+		endfor
+		stsW=stsW/25
+	elseif ( cmpstr(stsAveraging9x9,"yes")==0 )
+		stsW=0
+		for (i=0;i<9;i+=1)
+			for (j=0;j<9;j+=1)
+				stsW[]=citsW[xPt-2+i][yPt-2+j][p] + stsW[p]
+			endfor
+		endfor
+		stsW=stsW/81
+	else 
+		// Get STS wave from the 3d data set at the appropriate point
+		stsW[]=citsW[xPt][yPt][p]
+	endif
 
 	// Give the line profile appropriate units.  These units were saved in global variables in the image display function
 	String/G citsWZUnit   //= WaveUnits(citsW,2)
@@ -1260,6 +1343,8 @@ Function dispSTSfromCITS(graphname,)
 	
 	// Return to saved data folder
 	SetDataFolder saveDFSTSfromCITS
+	
+	DoWindow/F $graphname
 End
 
 
