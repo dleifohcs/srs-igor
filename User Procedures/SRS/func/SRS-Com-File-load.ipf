@@ -580,6 +580,10 @@ Function loadNEXAFSASC2014(path, filename )
 	String region = NEXAFSDialogRegion(shortfilename)
 	
 	// Go through file and find important data
+	// Two things we need to find, the line: "Data---------------------------------------------------"
+	// which tells us where the data starts (and also gives us column headings, allowing us not to worry about which columns
+	// are which), and the line "anglestr = X" which tells us the photon incidence angle. We could be really sneaky about
+	// how we do this search, but the easiest way is just to search for theta first and the data second.
 	String buffer
 	Variable len, linenumber, theta
 	linenumber = 0
@@ -589,10 +593,10 @@ Function loadNEXAFSASC2014(path, filename )
 		len = strlen(buffer)
 		if (len == 0)
 			break // if we run out of file, break out of the loop
-		endif
-		if (linenumber == 90)
-			sscanf buffer, "anglestr = %g", theta // note this function will break if Eliot changes the header
-		elseif (linenumber > 100)
+		endif		
+		// Check the current line for the angle.
+		sscanf buffer, "anglestr = %g", theta
+		if (V_flag == 1) // E.g. we found theta
 			break
 		endif
 		linenumber = linenumber + 1
@@ -605,6 +609,35 @@ Function loadNEXAFSASC2014(path, filename )
 		theta = NEXAFSDialogTheta(shortfilename)
 	endif
 	
+	// Now search again for data
+	linenumber = 0
+	Variable result
+	do
+		FReadLine/T=(num2char(13)) refNum, buffer
+		len = strlen(buffer)
+		if (len == 0)
+			// We've run out of file - tell Igor to figure out the columns on it's own 
+			linenumber = 0
+			break
+		endif	
+		result = StringMatch(buffer, "Data-*")
+		if (result == 1)
+			FReadLine/T=(num2char(13)) refNum, buffer
+			FReadLine/T=(num2char(13)) refNum, buffer	
+			FReadLine/T=(num2char(13)) refNum, buffer
+			// buffer now contains the headers		
+			break
+		endif	
+		linenumber = linenumber + 1
+	while (1)
+	
+	FSetPos refNum, 0
+	
+	buffer = replaceNonSpaceWhiteSpace(definitelyRemoveQuotes(removeBadChars(buffer)))
+	print "Found ", ItemsInList(buffer, " "), " channels."
+	print "Channels are: ", buffer
+	
+	
 	datafoldername = shortfilename+"_"+region+"_"+num2str(theta)
 	NewDataFolder /O/S root:$datafoldername
 	
@@ -612,78 +645,75 @@ Function loadNEXAFSASC2014(path, filename )
 	LoadWave /W/A/O/G FullFileNameStr
 	Close refNum
 	
-	Wave wave0
-	Wave wave1
-	Wave wave2
-	Wave wave3
-	Wave wave4
-	Wave wave5
-	Wave wave6
-	Wave wave7
-	Wave wave8
-	Wave wave9
-	Wave wave10
-	Wave wave11
-	Wave wave12
-	Wave wave13
-	Wave wave14
-	Wave wave15
-	Wave wave16
-	Wave wave17
-	//Wave wave18
-	//Wave wave19
-	
 	// data folder to store waves not commonly used in the analysis
 	NewDataFolder/O/S data 
 	
-	// Rename waves
-	Duplicate/O wave0, encoderEnergy
-	Duplicate/O wave1, I0
-	Duplicate/O wave2, scanEnergy
-	Duplicate/O wave3, expTime
-	Duplicate/O wave4, drainCurrent
-	Duplicate/O wave5, refFoil
-	Duplicate/O wave6, MCP
-	Duplicate/O wave7, CHN
-	Duplicate/O wave8, PHD
-	Duplicate/O wave9, TFYPHD
-	Duplicate/O wave10, drainCurrentKeithley
-	Duplicate/O wave11, IOKeithley
-	Duplicate/O wave12, refFoilKeithley
-	Duplicate/O wave13, keithley6
-	Duplicate/O wave15, ringCurrent
-	Duplicate/O wave16, BLPHD
-	Duplicate/O wave17, BLPHDKeithley
-	//Duplicate/O wave18, undulatorGapRequest
-	//Duplicate/O wave19, undulatorGap
+	If (ItemsInList(buffer, " ") != ItemsInList(S_waveNames))
+		Print "Warning: number of waves read not the same as number of channels found."
+	EndIf
 	
+	// Rename waves
+	String wloadname, wname
+	Variable i
+	For (i=0; i<ItemsInList(S_waveNames);i+=1)
+		wloadname="root:"+datafoldername+":"+StringFromList(i, S_waveNames)
+		wname=StringFromList(i, buffer, " ")
+		Wave w = $wloadname
+		Duplicate/O w, $wname
+	EndFor
+
+	// Assumption is that the MCP channel has already been double-normalized as necessary
+	// in Eliot's program, so just set the scales appropriately. We look for all the following
+	// waves but might not have them all.
+	String header_types = "EncoderPhotonEnergy;IzeroVF;PhotonEnergy;ExpTime;DrainCurrentVF;Ref_Foil_VF;MCP;Channeltron;Direct_PHD_VF;TFY_PHD_VF;DrainCurrent_Keithley1;Izero_Keithley3;RefFoil_Keithley4;Keithley6;RingCurrent;BL_PHD_VF;BL_PHD_Keithley2;Undulator_Gap_Request;Undulator_Gap_Readback"
+	
+	// Try first to find PhotonEnergy, then EncoderPhotonEnergy as a backup.
+	Variable scanMin
+	Variable scanMax
+	Wave w = $"PhotonEnergy"
+	If (WaveExists(w))
+		scanMin = WaveMin(w)
+		scanMax = WaveMax(w)
+	Else
+		Wave w = $"EncoderPhotonEnergy"
+		If (WaveExists(w))
+			scanMin = WaveMin(w)
+			scanMax = WaveMax(w)
+		Else
+			Print "Warning: neither PhotonEnergy or EncoderPhotonEnergy found in headers. Are you sure you're loading NEXAFS here?"
+			scanMin = 0
+			scanMax = 1
+		EndIf
+	EndIf
+		
+	For (i=0;i<ItemsInList(header_types);i+=1)
+		wname=StringFromList(i,header_types)
+		Wave w = $wname
+		If (WaveExists(w))
+			SetScale/I x, scanMin, scanMax, "eV", w
+		EndIf
+	EndFor
+	
+	String baseName = shortfilename+"_"+region+"_"+num2str(theta)
+	If (FindListItem("MCP", header_types) > -1)
+		wname = "root:"+datafoldername+":"+baseName+"_mcp"
+		Duplicate/O $"MCP" $wname
+		Note/NOCR $wname, "THETA:"+num2str(theta)+";REGION:"+region
+	EndIf
+	If (FindListItem("Channeltron", header_types) > -1)
+		wname = "root:"+datafoldername+":"+baseName+"_chn"
+		Duplicate/O $"Channeltron" $wname
+		Note/NOCR $wname, "THETA:"+num2str(theta)+";REGION:"+region
+	EndIf
+
 	// Move back to main data folder for the NEXAFS data
 	SetDataFolder root:$datafoldername	
-	
-	Variable scanMin = WaveMin(scanEnergy)
-	Variable scanMax = WaveMax(scanEnergy)
-	
-	// Set the scale on all the scan outputs
-	SetScale/I x, scanMin, scanMax, "eV", drainCurrent
-	SetScale/I x, scanMin, scanMax, "eV", I0
-	SetScale/I x, scanMin, scanMax, "eV", refFoil
-	SetScale/I x, scanMin, scanMax, "eV", MCP
-	SetScale/I x, scanMin, scanMax, "eV", CHN
-	SetScale/I x, scanMin, scanMax, "eV", PHD
-	SetScale/I x, scanMin, scanMax, "eV", TFYPHD
-	
-	String mcpdnName = shortfilename+"_"+region+"_"+num2str(theta)+"_dn"
-	Duplicate/O MCP $mcpdnName
-	
-	Wave mcpdn = $mcpdnName
-	
-	// add the angle to the wave note so that it can be extracted later if desired
-	Note/NOCR mcpdn, "THETA:"+num2str(theta)+";REGION:"+region
-	
+
 	// clean up
-	KillWaves wave0, wave1, wave2, wave3, wave4, wave5, wave6
-	KillWaves wave7, wave8, wave9, wave10,wave11, wave12
-	KillWaves wave13, wave14, wave15, wave16, wave17
+	For (i=0; i<ItemsInList(S_waveNames); i+=1)
+		wname = StringFromList(i, S_waveNames)
+		KillWaves $wname
+	EndFor
 	
 	SetDataFolder saveDFR
 	return 1
