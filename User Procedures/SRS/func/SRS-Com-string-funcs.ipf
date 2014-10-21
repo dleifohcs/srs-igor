@@ -33,6 +33,8 @@
 // Function/S removeBadChars(str)
 // Function/S removeSpace(str)
 // Function/S possiblyRemoveQuotes(name)
+// Function/S definitelyRemoveQuotes(str)
+// Function/S replaceNonSpaceWhitespace(str)
 // Function/S sciunit(numStr)
 // Function/S EverythingAfterLastColon(str)
 // Function/S possiblyRemoveHash(str)
@@ -231,8 +233,58 @@ End
 //	return newName
 //End
 
+//--------------------------------------------------------------------------------------------------------------
+// Remove the quotes from wave names if they exist
+//--------------------------------------------------------------------------------------------------------------
+Function/S definitelyRemoveQuotes(str)
+	String str
+	String newstr, substring
+	Variable i, j
+	
+	// Recursive (hold on to your hats!). If string has a single quote, split on that quote,
+	// search for another. If you find another, make the text between the quotes "nice"
+	// then patch on the bit before the first quote and the removed-quote version of the tail.
+	
+	
+	i = strsearch(str, "'", 0)
+	If (i == -1)
+		// No quotes found
+		return str
+	Else
+		newstr = str[0,i-1]
+		j = strsearch(str, "'", i+1)
+		If (j == -1)
+			newstr += str[i+1, strlen(str)]
+			return newstr
+		Else
+			substring = removeSpace(removeBadChars(str[i+1,j-1]))
+			newstr += substring + definitelyRemoveQuotes(str[j+1,strlen(str)])
+			return newstr
+		EndIf
+	EndIf
+End
 
-
+//--------------------------------------------------------------------------------------------------------------
+// Replace non-space whitespace (i.e. evil invisible characters) with spaces.
+//--------------------------------------------------------------------------------------------------------------
+Function/S replaceNonSpaceWhiteSpace(str)
+	String str
+	String newstr = ""
+	Variable i
+	
+	// Note: yes, this can also be done recursively in theory, but it runs up against Igor's
+	// recursion limit when you actually implement it. Mwahahahahaha.
+	For (i=0; i<strlen(str);i+=1)
+		If (GrepString(str[i], "\\s"))
+			newstr += " "
+		Else
+			newstr += str[i]
+		EndIf
+	EndFor
+	
+	return newstr
+End
+	
 
 //------------------------------------------------------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------------------------------------------------
