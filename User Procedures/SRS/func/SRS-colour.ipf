@@ -55,7 +55,7 @@ Function changeColour(graphName,[colour,cMin,cMax,changeScale])
 	createSRSControlVariables()
 	
 	// Move to the data folder containing the global variables for the graph
-	SetDataFolder root:WinGlobals:$graphName // should already be in this data folder, but include this to be sure
+	SetDataFolder root:WinGlobals:$(graphName) // should already be in this data folder, but include this to be sure
 	
 	// Get the global variable for this graph (these were set in the manipulateData procedure)
 	String/G imgDF			// data folder containing the data shown on the graph
@@ -220,7 +220,7 @@ Function updateColourRange(graphName,[minVal,maxVal,Range,changeScale])
 	
 	// Move to the data folder containing the global variables for the graph
 	SetDataFolder root:WinGlobals:$graphName // should already be in this data folder, but include this to be sure
-	
+
 	// The ctable wave has been created and put in the appropriate WinGlobals location with the global variables and so can be assigned
 	Wave ctab
 	
@@ -260,14 +260,14 @@ Function updateColourRange(graphName,[minVal,maxVal,Range,changeScale])
 			Variable/G ctabwMax = ctabwMin + Range
 		endif
 	endif 
-
+	
 	// Set the colour scale range to match the data range
 	SetScale/I x ctabwMin, ctabwMax,"", ctab
 	
 	// Apply colour table to the image being displayed
 	ModifyImage/W=$graphName $imgWStr cindex=root:WinGlobals:$(graphName):ctab
 	
-	Print "Min= ", ctabwMin, "Max= ", ctabwMax, "Range= ", (ctabwMax-ctabwMin)
+//	Print "Min= ", ctabwMin, "Max= ", ctabwMax, "Range= ", (ctabwMax-ctabwMin)
 	// Move back to original DF
 	SetDataFolder saveDF
 End

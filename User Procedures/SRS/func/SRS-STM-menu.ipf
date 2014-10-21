@@ -62,10 +62,6 @@ Menu "STM", dynamic
 				"Set minimum to zero", doSomethingWithData("subtractMin")
 				"Shift image Z-axis manually",shiftImageZDialogue("")
 			End
-			Submenu "Region of Interest"
-				"Create or Edit ROI", doSomethingWithData("createROI")
-				"Kill ROI", doSomethingWithData("killROI")
-			End
 			"-"
 			"Crop [to current view area]", doSomethingWithData("cropImg")
 			"Rotate", doSomethingWithData("rotateImg")
@@ -77,7 +73,12 @@ Menu "STM", dynamic
 			"Differentiate CITS", doSomethingWithData("differentiateCITS")
 			"Smooth CITS along z-axis", doSomethingWithData("smoothZ")
 			"-"
-			"Point from CITS", doSomethingWithData("STSfromCITS")
+			"STS from CITS - Point", doSomethingWithData("STSfromCITS")
+			"STS from CITS - ROI", doSomethingWithData("STSfromCITSROI")
+		End
+		Submenu "Region of Interest"
+			"Create or Edit ROI", doSomethingWithData("createROI")
+			"Kill ROI", doSomethingWithData("killROI")
 		End
 		Submenu "FFT"
 			//"Calculate FFT magnitude", doSomethingWithData("FFTmag")
@@ -125,6 +126,11 @@ Menu "STM", dynamic
 			setControlMenuItem("autoBGnone"), setdefaultBackground("none")
 			setControlMenuItem("autoBGplane"), setdefaultBackground("plane")
 			setControlMenuItem("autoBGlinewise"), setdefaultBackground("linewise")	
+			"-"
+			setControlMenuItem("stsAveragingNone"),  setdefaultSTSaveraging("none")
+			setControlMenuItem("stsAveraging3x3"),  setdefaultSTSaveraging("3x3")
+			setControlMenuItem("stsAveraging5x5"),  setdefaultSTSaveraging("5x5")
+			setControlMenuItem("stsAveraging9x9"),  setdefaultSTSaveraging("9x9")
 		End
 		"-"
 		"About", SRSSTMAbout()
@@ -188,6 +194,49 @@ Function setdefaultBackground(state)
 			autoBGnone = "yes"
 			autoBGplane = "no"
 			autoBGlinewise = "no"
+			break
+	endswitch
+End
+
+
+// set global variable for programme control
+// "none"; "plane"; "linewise"
+Function setdefaultSTSaveraging(state)
+	String state
+	createSRSControlVariables()
+	SVAR stsAveragingNone = root:WinGlobals:SRSSTMControl:stsAveragingNone
+	SVAR stsAveraging3x3 = root:WinGlobals:SRSSTMControl:stsAveraging3x3
+	SVAR stsAveraging5x5 = root:WinGlobals:SRSSTMControl:stsAveraging5x5
+	SVAR stsAveraging9x9 = root:WinGlobals:SRSSTMControl:stsAveraging9x9
+	strswitch(state)
+		case "none":
+			stsAveragingNone = "yes"
+			stsAveraging3x3 = "no"
+			stsAveraging5x5 = "no"
+			stsAveraging9x9 = "no"
+			break
+		case "3x3":
+			stsAveragingNone = "no"
+			stsAveraging3x3 = "yes"
+			stsAveraging5x5 = "no"
+			stsAveraging9x9 = "no"
+			break
+		case "5x5":
+			stsAveragingNone = "no"
+			stsAveraging3x3 = "no"
+			stsAveraging5x5 = "yes"
+			stsAveraging9x9 = "no"
+		case "9x9":
+			stsAveragingNone = "no"
+			stsAveraging3x3 = "no"
+			stsAveraging5x5 = "no"
+			stsAveraging9x9 = "yes"
+			break
+		default:
+			stsAveragingNone = "no"
+			stsAveraging3x3 = "no"
+			stsAveraging5x5 = "yes"
+			stsAveraging9x9 = "no"
 			break
 	endswitch
 End
@@ -267,6 +316,58 @@ Function/S setControlMenuItem(controlVariable)
 					break
 			endswitch
 			break		
+		case "stsAveragingNone":
+			strswitch(state)
+				case "yes":
+					returnStr = "STS from CITS averaging mode: none!"+num2char(18) 
+					break
+				case "no":
+					returnStr = "STS from CITS averaging mode: none"
+					break
+				default:
+					returnStr = "error 1"
+					break
+			endswitch
+			break		
+		case "stsAveraging3x3":
+			strswitch(state)
+				case "yes":
+					returnStr = "STS from CITS averaging mode: 3x3!"+num2char(18) 
+					break
+				case "no":
+					returnStr = "STS from CITS averaging mode: 3x3"
+					break
+				default:
+					returnStr = "error 1"
+					break
+			endswitch
+			break	
+		case "stsAveraging5x5":
+			strswitch(state)
+				case "yes":
+					returnStr = "STS from CITS averaging mode: 5x5!"+num2char(18) 
+					break
+				case "no":
+					returnStr = "STS from CITS averaging mode: 5x5"
+					break
+				default:
+					returnStr = "error 1"
+					break
+			endswitch
+			break
+		case "stsAveraging9x9":
+			strswitch(state)
+				case "yes":
+					returnStr = "STS from CITS averaging mode: 9x9!"+num2char(18) 
+					break
+				case "no":
+					returnStr = "STS from CITS averaging mode: 9x9"
+					break
+				default:
+					returnStr = "error 1"
+					break
+			endswitch
+			break	
 		default:
 			returnStr = "error 2"
 			break
