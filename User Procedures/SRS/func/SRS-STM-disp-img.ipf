@@ -250,9 +250,6 @@ Function img3dDisplay(imgWStr)
 	// Get the name of the new graph window
 	String graphName= WinName(0,1)
 	
-	// Create WinGlobals etc. if they are not already created
-	GlobalsForGraph(graphName)
-	
 	// HACK (?)
 // Think we should delete the folder root:WinGlobals:graphName if it exists at this point.
 // This is because I think it should not have been created yet.  So if it exists it is due to a 
@@ -267,6 +264,9 @@ Function img3dDisplay(imgWStr)
 	endif
 	SetDataFolder saveDF
 	// HACK
+	
+	// Create WinGlobals etc. if they are not already created
+	GlobalsForGraph(graphName)
 	
 	// Change data folder to the folder containing the global variables for the image graph
 	SetDataFolder root:WinGlobals:$graphName
