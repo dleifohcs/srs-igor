@@ -130,7 +130,7 @@ Function SRSLoadData(pathStr,filenameStr)
 			loadAccelerometer( pathStr, filenameStr )
 			break
 		case "11":
-			loadSEMITIPfort( pathStr, filenameStr, 14)
+			loadSEMITIPfort( pathStr, filenameStr, 11)
 			break
 		case "14":
 			loadSEMITIPfort( pathStr, filenameStr, 14)
