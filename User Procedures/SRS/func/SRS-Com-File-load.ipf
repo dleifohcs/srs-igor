@@ -129,6 +129,9 @@ Function SRSLoadData(pathStr,filenameStr)
 		case "acc":
 			loadAccelerometer( pathStr, filenameStr )
 			break
+		case "11":
+			loadSEMITIPfort( pathStr, filenameStr, 14)
+			break
 		case "14":
 			loadSEMITIPfort( pathStr, filenameStr, 14)
 			break
@@ -2350,14 +2353,15 @@ Function loadWaveFunction( pathStr, filenameStr )
 		PRINT "READING EIGENVALUES"
 //	endif
 	
-	// make wave to store eigenvalues
-	Make/O/N=(norb) eigenval
-	
 	// get file name without extension
 	String filenameStrNoExt = ParseFilePath(3, filenameStr, ":", 0, 0)
 	filenameStrNoExt = removeBadChars(filenameStrNoExt)
 	filenameStrNoExt = replaceHyphen(filenameStrNoExt)
 
+	// make wave to store eigenvalues
+	Make/O/N=(norb) $(filenameStrNoExt+"_ev")
+	Wave eigenval = $(filenameStrNoExt+"_ev")
+	
 	// make wave to store wavefunction
 	xdata_len = 2*nx
 	ydata_len = 2*nx
@@ -2424,69 +2428,6 @@ End
 
 
 
-
-//------------------------------------------------------------------------------------------------------------------------------------
-// Load output from 
-//------------------------------------------------------------------------------------------------------------------------------------
-Function loadSEMITIPfort( path, filename, fortNum)
-	String path, filename
-	Variable fortNum
-	
-	// Save current DF
-	String saveDF = GetDataFolder(1)
-	
-	// write to screen 
-	Print "SEMITIP v6 fort."+num2str(fortNum)+" data (STS)"
-	
-	// get input from user
-	String description="X"
-	Prompt description, "Enter very brief description for the wave name ( < 10 characters) "+filename 
-	DoPrompt filename, description
-	
-	if (V_Flag)
-      	return -1                   // User canceled
-      	
-	else 
-	
-		// clean up description if necessary to avoid having wave names that igor doesn't like for some functions
-		description = replaceSpace(description)
-		description = replaceHyphen(description)
-		description = removeBadChars(description)
-	
-		// make new DF
-		NewDataFolder/O/S root:SEMITIP_STS
-	
-		// load data
-		LoadWave/G/D/W/A path+filename
-	
-		Wave wave0, wave1
-	
-		Variable dataLen = DimSize(wave1,0)
-		String newWStr
-		
-		switch ( fortNum )
-			case 14:
-				newWStr = "sts_"+description
-				break
-			case 15:
-				newWStr = "stsd_"+description
-				break
-			default:
-				newWStr = "data_"+description
-				break
-		endswitch
-			
-		// interpolate data (this is to fix the data point reversal that occurs in the raw data
-		Interpolate2/T=1/N=(dataLen) /Y=$(newWStr) wave0, wave1
-	
-		// clean up
-		KillWaves/Z wave0, wave1, wave2, wave3
-
-	endif 
-		
-	// return to DF
-	//SetDataFolder saveDF
-End
 
 
 
@@ -2585,4 +2526,76 @@ Function loadAccelerometer( pathStr, filenameStr )
 	KillWaves freqW
 	
 
+End
+
+
+//------------------------------------------------------------------------------------------------------------------------------------
+// Load output from 
+//------------------------------------------------------------------------------------------------------------------------------------
+Function loadSEMITIPfort( path, filename, fortNum)
+	String path, filename
+	Variable fortNum
+	
+	// Save current DF
+	String saveDF = GetDataFolder(1)
+	
+	// write to screen 
+	Print "SEMITIP v6 fort."+num2str(fortNum)+" data (STS)"
+	
+	// get input from user
+	String description="X"
+	If  ( fortNum!= 11 )
+		Prompt description, "Enter very brief description for the wave name ( < 10 characters) "+filename 
+		DoPrompt filename, description
+	endif
+	
+	if (V_Flag)
+      	return -1                   // User canceled
+      	
+	else 
+	
+		// clean up description if necessary to avoid having wave names that igor doesn't like for some functions
+		description = replaceSpace(description)
+		description = replaceHyphen(description)
+		description = removeBadChars(description)
+	
+		// make new DF
+		NewDataFolder/O/S root:SEMITIP_STS
+	
+		// load data
+		LoadWave/G/D/W/A path+filename
+	
+		Wave wave0, wave1
+	
+		Variable dataLen = DimSize(wave1,0)
+		String newWStr
+	
+		switch ( fortNum )
+			case 11:
+				Duplicate/O wave0 'Z/nm'
+				Duplicate/O wave1 'CBM/eV'
+				Duplicate/O wave1 'VBM/eV'
+				newWStr="dummy"
+				break
+			case 14:
+				newWStr = "sts_"+description
+				break
+			case 15:
+				newWStr = "stsd_"+description
+				break
+			default:
+				newWStr = "data_"+description
+				break
+		endswitch
+			
+		// interpolate data (this is to fix the data point reversal that occurs in the raw data
+		//Interpolate2/T=1/N=(dataLen) /Y=$(newWStr) wave0, wave1
+	
+		// clean up
+		KillWaves/Z wave0, wave1, wave2, wave3, dummy
+		
+	endif 
+		
+	// return to DF
+	//SetDataFolder saveDF
 End
