@@ -2596,7 +2596,7 @@ Function loadSEMITIPfort( path, filename, fortNum)
 		
 	
 		// clean up
-		KillWaves/Z wave0, wave1, wave2, wave3, dummy
+		//KillWaves/Z wave0, wave1, wave2, wave3, dummy
 		
 	endif 
 		
