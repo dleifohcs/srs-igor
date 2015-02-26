@@ -2579,17 +2579,21 @@ Function loadSEMITIPfort( path, filename, fortNum)
 				break
 			case 14:
 				newWStr = "sts_"+description
+				// interpolate data (this is to fix the data point reversal that occurs in the raw data
+				Interpolate2/T=1/N=(dataLen) /Y=$(newWStr) wave0, wave1
 				break
 			case 15:
 				newWStr = "stsd_"+description
+				// interpolate data (this is to fix the data point reversal that occurs in the raw data
+				Interpolate2/T=1/N=(dataLen) /Y=$(newWStr) wave0, wave1
 				break
 			default:
 				newWStr = "data_"+description
 				break
 		endswitch
 			
-		// interpolate data (this is to fix the data point reversal that occurs in the raw data
-		//Interpolate2/T=1/N=(dataLen) /Y=$(newWStr) wave0, wave1
+		
+		
 	
 		// clean up
 		KillWaves/Z wave0, wave1, wave2, wave3, dummy
