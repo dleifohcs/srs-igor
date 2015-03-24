@@ -92,6 +92,8 @@ Menu "STM", dynamic
 			"Line Profile", doSomethingWithData("lineprofile")
 			"Remove line profile", removeLineProfile("")	
 			"-"
+			setControlMenuItem("lineProfileWidth"), setControlMenuItemLineProfWdth()
+			"-"
 			Submenu "Cursor Colour"
 				"Black", LineProfileColourBlack("","black")
 				"White", LineProfileColourBlack("","")
@@ -368,6 +370,10 @@ Function/S setControlMenuItem(controlVariable)
 					break
 			endswitch
 			break	
+		case "lineProfileWidth":
+			NVAR lineProfileWidth = root:WinGlobals:SRSSTMControl:lineProfileWidth
+			returnStr = "Line profile width, "+num2str(lineProfileWidth) 
+			break
 		default:
 			returnStr = "error 2"
 			break
@@ -379,4 +385,16 @@ Function/S setControlMenuItemDefaultColour()
 	createSRSControlVariables()
 	SVAR defaultImageColours = root:WinGlobals:SRSSTMControl:defaultImageColours
 	return "Change default colours ["+defaultImageColours+"]"
+End
+
+Function setControlMenuItemLineProfWdth()
+	createSRSControlVariables()
+	NVAR lineProfileWidth = root:WinGlobals:SRSSTMControl:lineProfileWidth
+	Variable width = lineProfileWidth
+	Prompt width, "Enter pixel width for line profile"
+	DoPrompt "Set width for image line profiles", width
+	if (V_Flag)
+		return -1 //user cancelled
+	endif
+	lineProfileWidth = width
 End

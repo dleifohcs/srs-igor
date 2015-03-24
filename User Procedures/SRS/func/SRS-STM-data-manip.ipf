@@ -658,7 +658,9 @@ Function makeLineProfile(graphname)
 	String/G imgWFullStr
 	Wave imgW= $imgWFullStr 
 	Wave lineprofx, lineprofy
-
+	
+	NVAR lineProfileWidth = root:WinGlobals:SRSSTMControl:lineProfileWidth
+	
 	// this variable will be 0 if there are no NaNs or INFs in lineprofx and lineprofy
 	Variable anyNaNs = numtype(lineprofx[0]) + numtype(lineprofy[0]) + numtype(lineprofx[1]) + numtype(lineprofy[1]) 
 
@@ -668,7 +670,7 @@ Function makeLineProfile(graphname)
 		// do nothing
 	else
 		// Use inbuilt Igor routine to generate the line profile
-		ImageLineProfile/SC xwave=lineprofx, ywave=lineprofy, srcwave=imgW
+		ImageLineProfile/SC width=lineProfileWidth, xwave=lineprofx, ywave=lineprofy, srcwave=imgW
 
 		// Copy the created wave to a new wave that will be used for plotting
 		Duplicate/O W_ImageLineProfile lineProfile1D
@@ -999,6 +1001,9 @@ Function createSRSControlVariables()
 	String/G stsAveraging3x3 = "no"
 	String/G stsAveraging5x5 = "no"
 	String/G stsAveraging9x9= "no"
+	
+	// set a width for line profiles
+	Variable/G lineProfileWidth=0
 	
 	SetDataFolder saveDF
 End
