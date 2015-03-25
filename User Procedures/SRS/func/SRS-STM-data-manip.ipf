@@ -565,6 +565,7 @@ Function lineProfile(graphname)
 		imgGraphPretty(lineProfile2dGraphName)
 		imgScaleBar(lineProfile2dGraphName)
 		changeColour(lineProfile2dGraphName,colour="BlueExp")
+		ModifyGraph width=0
 		
 		// Move back to the WinGlobals data folder for the 3d data set
 		SetDataFolder root:WinGlobals:$(GraphName)
@@ -1003,7 +1004,7 @@ Function createSRSControlVariables()
 	String/G stsAveraging9x9= "no"
 	
 	// set a width for line profiles
-	Variable/G lineProfileWidth=0
+	Variable/G lineProfileWidth=1
 	
 	SetDataFolder saveDF
 End
