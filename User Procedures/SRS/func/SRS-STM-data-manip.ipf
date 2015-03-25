@@ -717,12 +717,12 @@ Function makeLineProfile(graphname)
 		
 			// Make the wave assignment to this data
 			Wave citsW= $citsWFullStr
-Print "lineprofx, lineprofy	", lineprofx, lineprofy	
+//Print "lineprofx, lineprofy	", lineprofx, lineprofy	
 //lineprofx={0,12}
 //lineprofy={12,12}
 			
 			// Use inbuilt Igor routine to generate the line profile
-			ImageLineProfile/SC/P=-2 xwave=lineprofx, ywave=lineprofy, srcwave=citsW
+			ImageLineProfile/SC/P=-2 width=lineProfileWidth, xwave=lineprofx, ywave=lineprofy, srcwave=citsW
 
 			// Copy the created wave to a new wave that will be used for plotting - this wave is put in a separate data folder
 			Duplicate/O M_ImageLineProfile root:WinGlobals:$(graphName+"_2dProfile"):lineProfile2D
