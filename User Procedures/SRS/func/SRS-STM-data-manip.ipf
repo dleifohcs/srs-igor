@@ -1897,8 +1897,8 @@ Function makeKernel(graphName,dim)
 		Duplicate/O sKernel, sKernel2d
 		Duplicate/O sKernel3d, sKernel
 		// show the 2D kernel
-		imgDisplay("sKernel2d")
-		updateColourRange("")
+		//imgDisplay("sKernel2d")
+		//updateColourRange("")
 	else 
 		// show the 2D kernel
 		imgDisplay("sKernel")
