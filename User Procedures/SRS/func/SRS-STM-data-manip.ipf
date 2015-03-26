@@ -291,7 +291,7 @@ Function doSomethingWithData(actionType)
 				case "differentiateNormalisedCITS":
 					
 					// Make a back up copy of the original data in a data folder of the same name
-					backupData(graphName,"D")  // the string in the second variable is appended to wave name after backup up the original data
+					backupData(graphName,"DN")  // the string in the second variable is appended to wave name after backup up the original data
 					
 					// Function for removing a plane background
 					manipulateCITS(graphName,"differentiateNormalised")
