@@ -84,6 +84,9 @@ Menu "Line Trace"
 		"Smooth all traces, Savitsky-Golay, 5pt", DoSomethingToAllTracesInGraph("",type="smooth-SG")
 		"-"
 		"Differentiate all traces",DoSomethingToAllTracesInGraph("",type="differentiate")
+		"--"
+		"\\M0::Normalised differential conductance, i.e., (dI/dV)/(I/V)",DoSomethingToAllTracesInGraph("",type="differentiateNormalised")
+		setControlMenuItem("normConductanceCurrentLimit"), setControlMenuItemNormCondLim()
 		"-"
 		"Shift x-axis for all traces", ShiftTracesInGraph("")
 		"-"

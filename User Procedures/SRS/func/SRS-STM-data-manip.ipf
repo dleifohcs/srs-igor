@@ -1006,6 +1006,9 @@ Function createSRSControlVariables()
 	// set a width for line profiles
 	Variable/G lineProfileWidth=1
 	
+	// set a low current limit for producing normalised differential conductance
+	Variable/G normConductLim=1e-12
+		
 	SetDataFolder saveDF
 End
 

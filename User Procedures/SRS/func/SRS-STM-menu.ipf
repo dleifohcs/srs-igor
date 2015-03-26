@@ -374,6 +374,10 @@ Function/S setControlMenuItem(controlVariable)
 			NVAR lineProfileWidth = root:WinGlobals:SRSSTMControl:lineProfileWidth
 			returnStr = "Line profile width, "+num2str(lineProfileWidth) 
 			break
+		case "normConductanceCurrentLimit":
+			NVAR normConductLim = root:WinGlobals:SRSSTMControl:normConductLim
+			returnStr = "Low current cut off for normalised diferential conductance, "+num2str(normConductLim) 
+			break
 		default:
 			returnStr = "error 2"
 			break
@@ -397,4 +401,16 @@ Function setControlMenuItemLineProfWdth()
 		return -1 //user cancelled
 	endif
 	lineProfileWidth = width
+End
+
+Function setControlMenuItemNormCondLim()
+	createSRSControlVariables()
+	NVAR normConductLim = root:WinGlobals:SRSSTMControl:normConductLim
+	Variable lim = normConductLim
+	Prompt lim, "Enter the low current limit for normalised dI dV"
+	DoPrompt "Se low current limit for normalised differential conductance", lim
+	if (V_Flag)
+		return -1 //user cancelled
+	endif
+	normConductLim = lim
 End

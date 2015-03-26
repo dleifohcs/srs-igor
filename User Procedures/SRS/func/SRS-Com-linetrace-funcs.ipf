@@ -1327,7 +1327,34 @@ Function DoSomethingToAllTracesInGraph(graphName,[type])
 					Duplicate/O w, $manipulatedWaveName
 					Wave mw = $manipulatedWaveName
 					Differentiate mw
+					
 					break
+				case "differentiateNormalised": // Normalised derivative **TESTING**
+					NVAR normConductLim = root:WinGlobals:SRSSTMControl:normConductLim
+					manipulatedWaveName = waveNameStr+"_DN"
+					Duplicate/O w, $manipulatedWaveName
+					Wave mw = $manipulatedWaveName
+					Duplicate/O mw, mwDiffCond
+					Duplicate/O mw, mvTotCond
+					Variable wLength =  DimSize(mw,0)
+					Variable startx =  DimOffset(mw,0)
+					Variable delta =  DimDelta(mw,0)
+					Variable bias, current
+					Differentiate mwDiffCond
+					Variable jj
+					for (jj=0;jj<wLength;jj+=1)
+						current = mw[jj]
+						bias = startx+jj*delta
+						mvTotCond[jj] = current/bias
+						if ( Abs(mw[jj]) < normConductLim )
+							mw[jj] = 0
+						else
+							mw[jj] = mwDiffCond[jj]/mvTotCond[jj]
+						endif
+					endfor
+					
+					break
+			
 				case "average":
 					SetDataFolder root:averaged
 					Wave mw = $manipulatedWaveName
