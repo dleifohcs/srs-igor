@@ -287,6 +287,17 @@ Function doSomethingWithData(actionType)
 					manipulateCITS(graphName,"differentiate")
 					
 					break
+					
+				case "differentiateNormalisedCITS":
+					
+					// Make a back up copy of the original data in a data folder of the same name
+					backupData(graphName,"D")  // the string in the second variable is appended to wave name after backup up the original data
+					
+					// Function for removing a plane background
+					manipulateCITS(graphName,"differentiateNormalised")
+					
+					break
+
 
 				case "smoothZ":
 					
@@ -1574,6 +1585,53 @@ Function manipulateCITS(graphname,action)
 				// Use in built Igor routine to differentiate the 3d data set with respect to its z axis
 				Differentiate/DIM=2 citsW
 		
+				// Give the line profile appropriate units (taken from image wave)
+				String/G waveDUnit= WaveUnits(citsW,-1)
+				if (cmpstr(waveDUnit,"A")==0)
+					// original data in A, so differentiated data in S
+					SetScale/I d, 0, 1, "S",  citsW
+				else
+					Print "Warning: Do not know what units to assign to differentiated data"
+					SetScale/I d, 0, 1, "",  citsW
+				endif
+				
+				// Refresh 3D data windows
+				refresh3dData(graphName)
+				break
+				
+			case "differentiateNormalised":
+		
+				Duplicate citsW, citsWDiff
+				Duplicate citsW, citsWNorm
+				
+				// Use in built Igor routine to differentiate the 3d data set with respect to its z axis
+				Differentiate/DIM=2 citsWDiff
+		
+				NVAR normConductLim = root:WinGlobals:SRSSTMControl:normConductLim
+
+				Variable wLength =  DimSize(citsW,2)
+				Variable xLength =  DimSize(citsW,0)
+				Variable yLength =  DimSize(citsW,1)
+				Variable startV =  DimOffset(citsW,2)
+				Variable deltaV =  DimDelta(citsW,2)
+				Variable bias, current
+				
+				Variable xx,yy,jj
+				for (xx=1;xx<xLength;xx+=1)
+					for (yy=1;yy<yLength;yy+=1)
+						for (jj=0;jj<wLength;jj+=1)
+							current = citsW[xx][yy][jj]
+							bias = startV+jj*deltaV
+							citsWNorm[xx][yy][jj] = current/bias
+							if ( Abs(citsW[xx][yy][jj]) < normConductLim )
+								citsW[xx][yy][jj] = 0
+							else
+								citsW[xx][yy][jj] = citsWDiff[xx][yy][jj]/citsWNorm[xx][yy][jj]
+							endif
+						endfor	
+					endfor
+				endfor
+						
 				// Give the line profile appropriate units (taken from image wave)
 				String/G waveDUnit= WaveUnits(citsW,-1)
 				if (cmpstr(waveDUnit,"A")==0)

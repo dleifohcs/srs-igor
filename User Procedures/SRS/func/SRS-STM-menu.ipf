@@ -71,6 +71,10 @@ Menu "STM", dynamic
 		End
 		Submenu "CITS tools"
 			"Differentiate CITS", doSomethingWithData("differentiateCITS")
+			"-"
+			"\\M0::Normalised differential conductance, i.e., (dI/dV)/(I/V)", doSomethingWithData("differentiateNormalisedCITS")
+			setControlMenuItem("normConductanceCurrentLimit"), setControlMenuItemNormCondLim()
+			"-"
 			"Smooth CITS along z-axis", doSomethingWithData("smoothZ")
 			"-"
 			"STS from CITS - Point", doSomethingWithData("STSfromCITS")
