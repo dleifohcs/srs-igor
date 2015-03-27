@@ -1617,8 +1617,8 @@ Function manipulateCITS(graphname,action)
 				Variable bias, current
 				
 				Variable xx,yy,jj
-				for (xx=1;xx<xLength;xx+=1)
-					for (yy=1;yy<yLength;yy+=1)
+				for (xx=0;xx<xLength;xx+=1)
+					for (yy=0;yy<yLength;yy+=1)
 						for (jj=0;jj<wLength;jj+=1)
 							current = citsW[xx][yy][jj]
 							bias = startV+jj*deltaV
