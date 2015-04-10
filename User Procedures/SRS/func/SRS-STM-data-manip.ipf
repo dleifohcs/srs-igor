@@ -1649,7 +1649,7 @@ Function manipulateCITS(graphname,action)
 			case "smoothZ":
 			
 				// Prompt user for smoothing factor
-				Variable smthfactor=50
+				Variable smthfactor=3
 				Prompt smthfactor, "Enter smoothing factor: " 
 				DoPrompt "Smoothing factor", smthfactor
 				if (V_Flag)

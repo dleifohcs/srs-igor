@@ -259,8 +259,10 @@ Function img3dDisplay(imgWStr)
 	// 
 	SetDataFolder root:WinGlobals
 	if ( DataFolderExists(graphName) )
-		Print "Warning: root:WinGlobals:"+graphName+" already exists.  Deleting"
-		KillDataFolder $graphName
+		KillDataFolder/Z $graphName
+		If (V_flag)
+			Print "Warning: root:WinGlobals:"+graphName+" already exists and cannot delete.  This may cause problems."
+		endif
 	endif
 	SetDataFolder saveDF
 	// HACK
