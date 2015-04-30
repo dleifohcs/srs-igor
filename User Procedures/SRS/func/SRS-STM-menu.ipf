@@ -94,6 +94,8 @@ Menu "STM", dynamic
 		End
 		Submenu "Line Profile"
 			"Line Profile", doSomethingWithData("lineprofile")
+			"Line Profile - Multiple point - EXPERIMENTAL", doSomethingWithData("lineprofileMulti")
+			"-"
 			"Remove line profile", removeLineProfile("")	
 			"-"
 			setControlMenuItem("lineProfileWidth"), setControlMenuItemLineProfWdth()

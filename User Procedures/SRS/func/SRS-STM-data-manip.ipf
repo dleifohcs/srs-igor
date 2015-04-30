@@ -204,11 +204,23 @@ Function doSomethingWithData(actionType)
 					
 				case "lineprofile":
 						
+					Cursor/K D
+					Cursor/K E
+					
 					// Establish link between cursor positions and CursorMoved fn. 
 					CursorDependencyForGraph(graphName) 
 					
 					// generate line profile
 					lineProfile(graphName)
+					break
+				
+				case "lineprofileMulti":
+	
+					// Establish link between cursor positions and CursorMoved fn. 
+					CursorDependencyForGraph(graphName) 
+					
+					// generate line profile
+					lineProfileMulti(graphName)
 					break
 					
 				case "subtractplane":
@@ -609,6 +621,8 @@ Function removeLineProfile(graphName)
 
 	Cursor/K A
 	Cursor/K B
+	Cursor/K D
+	Cursor/K E
 	
 	RemoveFromGraph/Z lineprofy
 	
@@ -675,7 +689,7 @@ Function makeLineProfile(graphname)
 	NVAR lineProfileWidth = root:WinGlobals:SRSSTMControl:lineProfileWidth
 	
 	// this variable will be 0 if there are no NaNs or INFs in lineprofx and lineprofy
-	Variable anyNaNs = numtype(lineprofx[0]) + numtype(lineprofy[0]) + numtype(lineprofx[1]) + numtype(lineprofy[1]) 
+	Variable anyNaNs = numtype(lineprofx[0]) + numtype(lineprofy[0]) + numtype(lineprofx[1]) + numtype(lineprofy[1]) + numtype(lineprofx[2]) + numtype(lineprofy[2]) + numtype(lineprofx[3]) + numtype(lineprofy[3]) 
 
 	// check if any of lineprof values are NaN or inf before calculating the lineprofile
 	// this is necessary in case the user has killed and recreated the image window (in which case NaNs appear...)
@@ -822,13 +836,17 @@ Function CursorDependencyForGraph(graphName)
 	
 	NewDataFolder/O root:WinGlobals
 	NewDataFolder/O/S root:WinGlobals:$graphName
-	String/G S_CursorAInfo, S_CursorBInfo, S_CursorCInfo
+	String/G S_CursorAInfo, S_CursorBInfo, S_CursorCInfo, S_CursorDInfo, S_CursorEInfo
 	Variable/G dependentA
 	SetFormula dependentA, "CursorMovedForGraph(S_CursorAInfo, 0)"
 	Variable/G dependentB
 	SetFormula dependentB,"CursorMovedForGraph(S_CursorBInfo, 1)"
 	Variable/G dependentC
 	SetFormula dependentC,"CursorMovedForGraph(S_CursorCInfo, 2)"
+	Variable/G dependentD
+	SetFormula dependentD,"CursorMovedForGraph(S_CursorDInfo, 3)"
+	Variable/G dependentE
+	SetFormula dependentE,"CursorMovedForGraph(S_CursorEInfo, 4)"
 End
 
 
@@ -852,14 +870,15 @@ Function CursorMovedForGraph(info, cursNum)
 		String yPtStr= StringByKey("YPOINT", info)
 		Variable/G xPt= str2num(xPtStr)
 		Variable/G yPt= str2num(yPtStr)	
-		
+	
 		Wave lineprofx, lineprofy
 		// If the cursor is off the trace name will be zero length so do nothing
 		if( strlen(tName) ) // cursor still on
 			
 			Variable xVal, yVal
 			switch ( cursNum )
-			
+				
+				// Cursor A has moved
 				case 0:
 					xVal= hcsr(A)
 					yVal= vcsr(A)
@@ -871,13 +890,39 @@ Function CursorMovedForGraph(info, cursNum)
 					makeLineProfile(graphName) 
 					break
 					
+				//Cursor B has moved
 				case 1:
 					xVal= hcsr(B)
 					yVal= vcsr(B)
 					Variable/G xB= xVal
 					Variable/G yB= yVal
-					lineprofx[1]=xB
-					lineprofy[1]=yB
+					lineprofx[3]=xB
+					lineprofy[3]=yB
+					// update line profile
+					makeLineProfile(graphName) 
+					break 
+				
+				// Cursor D has moved
+				case 3:
+					xVal= hcsr(D)
+					yVal= vcsr(D)
+					Variable/G xD= xVal
+					Variable/G yD= yVal
+					lineprofx[1]=xD
+					lineprofy[1]=yD
+					// update line profile
+					makeLineProfile(graphName) 
+					break
+					
+				//Cursor E has moved
+				case 4:
+	
+					xVal= hcsr(E)
+					yVal= vcsr(E)
+					Variable/G xE= xVal
+					Variable/G yE= yVal
+					lineprofx[2]=xE
+					lineprofy[2]=yE
 					// update line profile
 					makeLineProfile(graphName) 
 					break 
@@ -2781,4 +2826,174 @@ Print wave1Str, wave2Str
 
 End
 
+
+
+
+
+//--------------------------------------------------------------------------------------------------------------
+// This is called from the manipulateData function when user asks for a line profile of the current graph
+Function lineProfileMulti(graphname)
+	String graphname
+
+	// Get current data folder
+	DFREF saveDF = GetDataFolderDFR()	  // Save
+	
+	// Move to the data folder containing the global variables for the graph
+	SetDataFolder root:WinGlobals:$graphName // should already be in this data folder, but include this to be sure
+	
+	// Get the global variable for this graph (these were set in the manipulateData procedure)
+	String/G imgDF			// data folder containing the data shown on the graph
+	String/G imgWStr		// name of the wave shown on the graph (an image or 3D data set; e.g. STM or CITS)
+	String/G imgWFullStr		// data folder plus wave name
+	
+	// Make wave assignment to the data.  This can be either a 2d, or 3d data wave
+	Wave imgW= $imgWFullStr
+
+	// Determine image size for positioning the cursors
+	Variable xMin= DimOffset(imgW,0)
+	Variable xMax= (DimDelta(imgW,0) * DimSize(imgW,0) + DimOffset(imgW,0))
+	Variable yMin= DimOffset(imgW,1)
+	Variable yMax= (DimDelta(imgW,1) * DimSize(imgW,1) + DimOffset(imgW,1))
+	Variable xRange = xMax - xMin
+	Variable yRange = yMax - yMin
+	
+	// Calculate cursor positions
+	Variable leftCursX= xMin + (0.25 * xRange)
+	Variable rightCursX= xMax - (0.25 * xRange)
+	Variable leftCursY= yMin + (0.25 * yRange)
+	Variable rightCursY= yMax - (0.25 * yRange)
+	
+	Variable leftMidCursX= xMin + (0.375 * xRange)
+	Variable rightMidCursX= xMax - (0.375* xRange)
+	Variable leftMidCursY= yMin + (0.375 * yRange)
+	Variable rightMidCursY= yMax - (0.375 * yRange)
+	
+	// Load the cursor positions from global variables if they exist
+	Variable/G xA
+	Variable/G xB
+	Variable/G xD
+	Variable/G xE
+	Variable/G yA
+	Variable/G yB
+	Variable/G yD
+	Variable/G yE
+	
+	
+	if ( (Abs(xA)+Abs(xB)+Abs(yA)+Abs(yB)+Abs(xD)+Abs(xE)+Abs(yD)+Abs(yE))!=0 && (Abs(xA)+Abs(xB)+Abs(yA)+Abs(yB)+Abs(xD)+Abs(xE)+Abs(yD)+Abs(yE)) < 10000 )  // assume if these are all zero then they have not been defined before, otherwise they have so use those numbers/
+		leftCursX= xA
+		rightCursX= xB
+		leftCursY= yA
+		rightCursY= yB
+		leftMidCursX= xD
+		rightMidCursX= xE
+		leftMidCursY= yD
+		rightMidCursY= yE
+	endif
+	
+	// Generate folder and global variables for 2d plot (if working with 3d data set)
+	// This must be done before calling "Cursor" below, since the 2dline profile DF in WinGlobals needs to be created before the cursors are placed
+	Wave citsImgW
+	if (WaveExists(citsImgW)==1)
+
+		// Create name that will be used for the 2d slice graph window and associated WinGlobals folder
+		String/G lineProfile2dGraphName= graphName+"_2dProfile"
+		
+		// Create WinGlobals etc. for the 2d line profile graph window (this is used later for colour scaling etc.)
+		GlobalsForGraph(lineProfile2dGraphName)
+		
+	endif
+	
+	// Place Cursors on Image (unless they are already there)
+	if (strlen(CsrInfo(A))==0)
+		Cursor/W=$graphName/I/s=1/c=(65535,65535,65535) A, $imgWStr, leftCursX, leftCursY
+	endif 
+	if (strlen(CsrInfo(B))==0)
+		Cursor/W=$graphName/I/s=1/c=(65535,65535,65535) B, $imgWStr, rightCursX, rightCursY
+	endif
+	if (strlen(CsrInfo(D))==0)
+		Cursor/W=$graphName/I/s=1/c=(65535,65535,65535) D, $imgWStr, leftMidCursX, leftMidCursY
+	endif 
+	if (strlen(CsrInfo(E))==0)
+		Cursor/W=$graphName/I/s=1/c=(65535,65535,65535) E, $imgWStr, rightMidCursX, rightMidCursY
+	endif
+			
+	// Create Global Variables with Cursor Positions
+	Variable/G xB= hcsr(B)
+	Variable/G yB= vcsr(B)
+	Variable/G xA= hcsr(A)
+	Variable/G yA= vcsr(A)
+	
+	Variable/G xD= hcsr(D)
+	Variable/G yD= vcsr(D)
+	Variable/G xE= hcsr(E)
+	Variable/G yE= vcsr(E)
+
+	// Make a wave to display a line between the cursors on the image
+	Make/O/N=4 lineprofx={xA,xD,xE,xB}, lineprofy={yA,yD,yE,yB}
+	RemoveFromGraph/Z lineprofy // in case a line profile already drawn then remove it
+	AppendToGraph lineprofy vs lineprofx // display the path on the image
+	ModifyGraph rgb=(65535,65535,65535); DoUpdate  // change colour to white	
+
+	// We don't actually need to run "makelineprofile()" because this is called when the cursors are generated above	
+//	makelineprofile(graphName)
+	
+	// Make wave assignment to the 1d line profile generated in makeLineProfile()
+	Wave lineProfile1D
+	
+	// Create a new graph to display the line profile
+	String/G lineProfileGraphName= graphName+"_lineprofile"
+	DoWindow/K $lineProfileGraphName
+	Display/k=1/N=$lineProfileGraphName 
+	AppendToGraph/W=$lineProfileGraphName lineProfile1D
+	
+	//--- now do 2d image slice
+	
+	// Generate folder and global variables for 2d plot (if working with 3d data set)
+	if (WaveExists(citsImgW)==1)
+
+		// Create name that will be used for the 2d slice graph window and associated WinGlobals folder
+		String/G lineProfile2dGraphName= graphName+"_2dProfile"
+		
+		// Create WinGlobals etc. for the 2d line profile graph window (this is used later for colour scaling etc.)
+		GlobalsForGraph(lineProfile2dGraphName)
+		
+		// Move into the WinGlobals folder for the 2d slice
+		SetDataFolder root:WinGlobals:$(lineProfile2dGraphName)
+		
+		// Create global variables in this data folder.  These are used by other procedures such as the colour change function
+		String/G imgDF= "root:WinGlobals:"+lineProfile2dGraphName+":"
+		String/G imgWStr= "lineProfile2D"
+		String/G imgWFullStr= imgDF+imgWStr
+		
+		// We don't actually need to run "makelineprofile()" because this is called when the cursors are generated above	
+//		makelineprofile(graphName)
+				
+		// Make the graph window
+		DoWindow/K $lineProfile2dGraphName
+		Display/k=1/N=$lineProfile2dGraphName
+		
+		// Append the 2d line profile to the graph window and make it look nice
+		AppendImage/W=$lineProfile2dGraphName lineProfile2D
+		imgGraphPretty(lineProfile2dGraphName)
+		imgScaleBar(lineProfile2dGraphName)
+		changeColour(lineProfile2dGraphName,colour="BlueExp")
+		ModifyGraph width=0
+		
+		// Move back to the WinGlobals data folder for the 3d data set
+		SetDataFolder root:WinGlobals:$(GraphName)
+	endif
+	
+		
+	// Arrange graph windows on screen
+	if (WaveExists(citsImgW)==1)
+		AutoPositionWindow/E/m=0/R=$graphName $lineProfile2dGraphName
+		AutoPositionWindow/E/m=1/R=$lineProfile2dGraphName $lineProfileGraphName
+	else
+		AutoPositionWindow/E/m=0/R=$GraphName $lineProfileGraphName
+	endif
+	 
+	// Move back to the original data folder
+	SetDataFolder saveDF
+
+End
 

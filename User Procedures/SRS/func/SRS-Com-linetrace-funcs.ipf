@@ -239,10 +239,11 @@ Function removeAnnotations([graphName])
 	RemoveFromGraph/Z/W=$graphName fitW
 	Cursor/K A
 	Cursor/K B
-	
+		
 	// Kill cursor variables if they exist
 	KillVariables/Z root:WinGlobals:$(graphName):xA
 	KillVariables/Z root:WinGlobals:$(graphName):xB
+	
 End
 
 
