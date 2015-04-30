@@ -389,19 +389,20 @@ Function doSomethingWithData(actionType)
 				
 
 				case "makeImgPretty":
-
+					
+					// get global variables
+					SVAR defaultImageColours = root:WinGlobals:SRSSTMControl:defaultImageColours
+					SVAR autoUpdateImageColour = root:WinGlobals:SRSSTMControl:autoUpdateImageColour
+	
 					// Add a z-scale
 					imgScaleBar(graphName)
 
 					// Change graph size, etc., so that it looks nice
 					imgGraphPretty(graphName)
-					
-					// get default image colour
-					SVAR defaultImageColours = root:WinGlobals:SRSSTMControl:defaultImageColours
-							
-					// Apply a colour scale to the image
-					changeColour(graphName,colour=defaultImageColours)
 
+					// Apply a colour scale to the image
+					changeColour(graphName,colour=defaultImageColours,changeScale=autoUpdateImageColour)
+					
 					// Add information panel
 					imgAddInfo(graphName)
 
@@ -984,12 +985,25 @@ Function createSRSControlVariables()
 	if (strlen(autoBGPlane)==0)
 		autoBGPlane = "yes"
 	endif
+	
 	// linewise
 	String/G autoBGlinewise
 	if (strlen(autoBGlinewise)==0)
 		autoBGlinewise = "no"
 	endif
-
+	
+	// make a toggle for automatically updating image colour range or not *CURRENTLY NOT USED*
+	String/G autoUpdateImageColour
+	if (strlen(autoUpdateImageColour)==0)
+		autoUpdateImageColour = "yes"
+	endif
+	
+	// make a toggle for automatically updating CITS colour range or not
+	String/G autoUpdateCITSColour
+	if (strlen(autoUpdateCITSColour)==0)
+		autoUpdateCITSColour = "yes"
+	endif
+	
 	String/G defaultImageColours
 	if (strlen(defaultImageColours)==0)
 		defaultImageColours = "Autumn"
@@ -1019,7 +1033,7 @@ Function createSRSControlVariables()
 	
 	// set a low current limit for producing normalised differential conductance
 	Variable/G normConductLim=1e-12
-		
+	
 	SetDataFolder saveDF
 End
 

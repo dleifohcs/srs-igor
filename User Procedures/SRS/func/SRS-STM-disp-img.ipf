@@ -591,7 +591,10 @@ Function citsZPanelUpdate(ctrlName,varNum,varStr,varName) : SetVariableControl
 	// Set the image to be the z=citsZVar slice of the 3d data set
 	citsImgW[][]= citsW[p][q][citsZVar]
 	
-	changeColour(graphName,colour="keep")
+	// This allows menu control over whether or not to update the colour range of the CITS
+	SVAR autoUpdateCITSColour = root:WinGlobals:SRSSTMControl:autoUpdateCITSColour
+	
+	changeColour(graphName,colour="keep",changeScale=autoUpdateCITSColour)
 	
 	// Return to starting data folder
 	SetDataFolder saveDF

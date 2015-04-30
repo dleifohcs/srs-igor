@@ -137,6 +137,9 @@ Menu "STM", dynamic
 			setControlMenuItem("stsAveraging3x3"),  setdefaultSTSaveraging("3x3")
 			setControlMenuItem("stsAveraging5x5"),  setdefaultSTSaveraging("5x5")
 			setControlMenuItem("stsAveraging9x9"),  setdefaultSTSaveraging("9x9")
+			"-"
+			// setControlMenuItem("autoUpdateImageColour"), toggleAutoImageColour()
+			setControlMenuItem("autoUpdateCITSColour"), toggleAutoCITSColour()
 		End
 		"-"
 		"About", SRSSTMAbout()
@@ -171,6 +174,31 @@ Function toggleAutoDisplay()
 		commonDataFolder = "no"
 	endif
 End
+
+
+
+// set global variable for programme control
+Function toggleAutoImageColour()
+	createSRSControlVariables()
+	SVAR autoUpdateImageColour = root:WinGlobals:SRSSTMControl:autoUpdateImageColour
+	if (cmpstr(autoUpdateImageColour,"yes")==0)
+		autoUpdateImageColour = "no"
+	else
+		autoUpdateImageColour = "yes"
+	endif
+End
+
+// set global variable for programme control
+Function toggleAutoCITSColour()
+	createSRSControlVariables()
+	SVAR autoUpdateCITSColour = root:WinGlobals:SRSSTMControl:autoUpdateCITSColour
+	if (cmpstr(autoUpdateCITSColour,"yes")==0)
+		autoUpdateCITSColour = "no"
+	else
+		autoUpdateCITSColour = "yes"
+	endif
+End
+
 
 // set global variable for programme control
 // "none"; "plane"; "linewise"
@@ -382,6 +410,32 @@ Function/S setControlMenuItem(controlVariable)
 			NVAR normConductLim = root:WinGlobals:SRSSTMControl:normConductLim
 			returnStr = "Low current cut off for normalised diferential conductance, "+num2str(normConductLim) 
 			break
+		case "autoUpdateImageColour":
+			strswitch(state)
+				case "yes":
+					returnStr = "Auto update image colour range!"+num2char(18) 
+					break
+				case "no":
+					returnStr = "Auto update image colour range"
+					break
+				default:
+					returnStr = "error 1"
+					break
+			endswitch
+			break
+		case "autoUpdateCITSColour":
+			strswitch(state)
+				case "yes":
+					returnStr = "Auto update CITS colour range!"+num2char(18) 
+					break
+				case "no":
+					returnStr = "Auto update CITS colour range"
+					break
+				default:
+					returnStr = "error 1"
+					break
+			endswitch
+			break				
 		default:
 			returnStr = "error 2"
 			break
@@ -418,3 +472,4 @@ Function setControlMenuItemNormCondLim()
 	endif
 	normConductLim = lim
 End
+
