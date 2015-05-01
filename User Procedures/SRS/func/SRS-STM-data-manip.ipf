@@ -528,10 +528,10 @@ Function lineProfile(graphname)
 	
 	// Place Cursors on Image (unless they are already there)
 	if (strlen(CsrInfo(A))==0)
-		Cursor/W=$graphName/I/s=1/c=(65535,65535,65535) A, $imgWStr, leftCursX, leftCursY
+		Cursor/N=1/W=$graphName/I/s=1/c=(65535,65535,65535) A, $imgWStr, leftCursX, leftCursY
 	endif 
 	if (strlen(CsrInfo(B))==0)
-		Cursor/W=$graphName/I/s=1/c=(65535,65535,65535) B, $imgWStr, rightCursX, rightCursY
+		Cursor/N=1/W=$graphName/I/s=1/c=(65535,65535,65535) B, $imgWStr, rightCursX, rightCursY
 	endif
 			
 	// Create Global Variables with Cursor Positions
@@ -723,6 +723,19 @@ Function makeLineProfile(graphname)
 		xline= xline - xlinemin
 		yline= yline - ylinemin
 		dline = Sqrt(xline^2 + yline^2)
+		
+		// Calculate the length of the line profile
+		Variable lineLength
+		if ( numtype(hcsr(D))!=0 )
+			// if D cursor is not on the graph then assume only single line profile A->B
+			lineLength = sqrt ( (lineprofy[1] - lineprofy[0])^2 + (lineprofx[1] - lineprofx[0])^2 )
+		elseif ( numtype(hcsr(E))!=0 )
+			// if E cursor is not on the graph then assume only single line profile A->B
+			lineLength = sqrt ( (lineprofy[1] - lineprofy[0])^2 + (lineprofx[1] - lineprofx[0])^2 )	
+		else
+			// Otherwise assume this is multi line profile
+			lineLength = sqrt ( (lineprofy[3] - lineprofy[2])^2 + (lineprofx[3] - lineprofx[2])^2 ) + sqrt ( (lineprofy[2] - lineprofy[1])^2 + (lineprofx[2] - lineprofx[1])^2 )	 + sqrt ( (lineprofy[1] - lineprofy[0])^2 + (lineprofx[1] - lineprofx[0])^2 )	
+		endif
 	
 		// Having calculated the distance wave we can delete the X and Y waves to make the data folder neater
 		KillWaves/Z W_LineProfileX, W_LineProfileY
@@ -732,7 +745,8 @@ Function makeLineProfile(graphname)
 		String/G imgWYUnit= WaveUnits(imgW,1)
 		String/G imgWDUnit= WaveUnits(imgW,-1)
 		SetScale/I y, 0, 1, imgWDUnit,  lineProfile1D
-		SetScale/I x, WaveMin(dline), WaveMax(dline), imgWXUnit,  lineProfile1D
+		//SetScale/I x, WaveMin(dline), WaveMax(dline), imgWXUnit,  lineProfile1D
+		SetScale/I x, 0, lineLength, imgWXUnit,  lineProfile1D
 		
 		// Now that the 1d line profile has been generated, check whether this is a 3d data set (e.g., cits) and if so then
 		// generate the 2d slice profile from it	
@@ -743,9 +757,6 @@ Function makeLineProfile(graphname)
 		
 			// Make the wave assignment to this data
 			Wave citsW= $citsWFullStr
-//Print "lineprofx, lineprofy	", lineprofx, lineprofy	
-//lineprofx={0,12}
-//lineprofy={12,12}
 			
 			// Use inbuilt Igor routine to generate the line profile
 			ImageLineProfile/SC/P=-2 width=lineProfileWidth, xwave=lineprofx, ywave=lineprofy, srcwave=citsW
@@ -777,22 +788,37 @@ Function makeLineProfile(graphname)
 			
 	endif 	// end of "isNaN" checking
 
-	// output cursor info to command line
-	Variable lineAngle = (180/pi) * atan ( (lineprofy[1] - lineprofy[0]) / (lineprofx[1] - lineprofx[0]) )
-	if ( (lineprofx[1] - lineprofx[0]) < 0 && (lineprofy[1] - lineprofy[0]) > 0 )
-		lineAngle = 180 + lineAngle
-	endif
-	if ( (lineprofx[1] - lineprofx[0]) < 0 && (lineprofy[1] - lineprofy[0]) < 0 )
-		lineAngle = 180 + lineAngle
-	endif
-	if ( (lineprofx[1] - lineprofx[0]) > 0 && (lineprofy[1] - lineprofy[0]) < 0 )
-		lineAngle = 360 + lineAngle
+	//calculate angle
+	Variable lineAngle, lineAngleADE, lineAngleDEB
+	if ( numtype(hcsr(D))!=0 )
+			// if D cursor is not on the graph then assume only single line profile A->B
+			lineAngle = (180/pi) * atan ( (lineprofy[1] - lineprofy[0]) / (lineprofx[1] - lineprofx[0]) )
+			if ( (lineprofx[1] - lineprofx[0]) < 0 && (lineprofy[1] - lineprofy[0]) > 0 )
+				lineAngle = 180 + lineAngle
+			endif
+			if ( (lineprofx[1] - lineprofx[0]) < 0 && (lineprofy[1] - lineprofy[0]) < 0 )
+				lineAngle = 180 + lineAngle
+			endif
+			if ( (lineprofx[1] - lineprofx[0]) > 0 && (lineprofy[1] - lineprofy[0]) < 0 )
+				lineAngle = 360 + lineAngle
+			endif
+		else
+			// HAVE NOT YET ADDED THE CALCULATION FOR ANGLES IN MULTI POINT LINE PROFILE
+			// WILL DO THIS AT SOME POINT IN TEH FUTURE// Otherwise assume this is multi line profile
+			lineAngleADE = (180/pi) * ( atan ( (lineprofy[2] - lineprofy[1]) / (lineprofx[2] - lineprofx[1]) ) - atan ( (lineprofy[1] - lineprofy[0]) / (lineprofx[1] - lineprofx[0]) ))
+			lineAngleDEB = 0
 	endif
 	
-	Variable lineLength = sqrt ( (lineprofy[1] - lineprofy[0])^2 + (lineprofx[1] - lineprofx[0])^2 )
 	
-	if (numtype(lineLength)==0 && numtype(lineAngle)==0)
-		Print "Length=", lineLength, imgWXUnit+"  Angle=", lineAngle, "degrees"
+	// Display line profile information
+	if ( numtype(hcsr(D))!=0 )
+		if (numtype(lineLength)==0 && numtype(lineAngle)==0)
+			Print "Length=", lineLength, imgWXUnit+".  Angle=", lineAngle, "degrees."
+		endif
+	else
+		if (numtype(lineLength)==0 && numtype(lineAngle)==0)
+			Print "TOTAL Length=", lineLength, imgWXUnit+".  Angle (ADE)= *NOT YET IMPLEMENTED*"
+		endif
 	endif
 	
 	// move back to original DF
@@ -2905,16 +2931,16 @@ Function lineProfileMulti(graphname)
 	
 	// Place Cursors on Image (unless they are already there)
 	if (strlen(CsrInfo(A))==0)
-		Cursor/W=$graphName/I/s=1/c=(65535,65535,65535) A, $imgWStr, leftCursX, leftCursY
+		Cursor/N=1/W=$graphName/I/s=1/c=(65535,65535,65535) A, $imgWStr, leftCursX, leftCursY
 	endif 
 	if (strlen(CsrInfo(B))==0)
-		Cursor/W=$graphName/I/s=1/c=(65535,65535,65535) B, $imgWStr, rightCursX, rightCursY
+		Cursor/N=1/W=$graphName/I/s=1/c=(65535,65535,65535) B, $imgWStr, rightCursX, rightCursY
 	endif
 	if (strlen(CsrInfo(D))==0)
-		Cursor/W=$graphName/I/s=1/c=(65535,65535,65535) D, $imgWStr, leftMidCursX, leftMidCursY
+		Cursor/N=1/W=$graphName/I/s=1/c=(65535,65535,65535) D, $imgWStr, leftMidCursX, leftMidCursY
 	endif 
 	if (strlen(CsrInfo(E))==0)
-		Cursor/W=$graphName/I/s=1/c=(65535,65535,65535) E, $imgWStr, rightMidCursX, rightMidCursY
+		Cursor/N=1/W=$graphName/I/s=1/c=(65535,65535,65535) E, $imgWStr, rightMidCursX, rightMidCursY
 	endif
 			
 	// Create Global Variables with Cursor Positions
