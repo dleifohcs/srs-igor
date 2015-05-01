@@ -438,6 +438,7 @@ Function doSomethingWithData(actionType)
 					ModifyGraph width=194
 					DoUpdate
 					ModifyGraph width=0
+					DoUpdate
 					
 					// Add image information (bias, current, etc.)
 					//imgAddInfo(graphName)
@@ -590,6 +591,8 @@ Function lineProfile(graphname)
 		imgScaleBar(lineProfile2dGraphName)
 		changeColour(lineProfile2dGraphName,colour="BlueExp")
 		ModifyGraph width=0
+		ModifyGraph height=0
+		DoUpdate
 		
 		// Move back to the WinGlobals data folder for the 3d data set
 		SetDataFolder root:WinGlobals:$(GraphName)
@@ -3004,6 +3007,8 @@ Function lineProfileMulti(graphname)
 		imgScaleBar(lineProfile2dGraphName)
 		changeColour(lineProfile2dGraphName,colour="BlueExp")
 		ModifyGraph width=0
+		ModifyGraph height=0
+		DoUpdate
 		
 		// Move back to the WinGlobals data folder for the 3d data set
 		SetDataFolder root:WinGlobals:$(GraphName)
