@@ -59,7 +59,8 @@ Menu "STM", dynamic
 				"-"
 				"Plane from ROI", doSomethingWithData("subtractplaneROI")
 				"-"
-				"Set minimum to zero", doSomethingWithData("subtractMin")
+				"Subtract image offset", doSomethingWithData("subtractMin")
+				"Subtract image mean", doSomethingWithData("subtractMean")
 				"Shift image Z-axis manually",shiftImageZDialogue("")
 			End
 			"-"
