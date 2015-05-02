@@ -180,13 +180,25 @@ Function doSomethingWithData(actionType)
 					break
 				
 				case "FFT":
-				
+									
+					// Function for removing a plane background
+					subtractMin(graphName,mintype="mean")
+					
+					// Update the colour scale (important after background substraction)
+					updateColourRange(graphName)
+	
 					// FFT
 					FFTimage(graphName,"complex")			
 					break
 
 				case "FFTmag":
 				
+					// Function for removing a plane background
+					subtractMin(graphName,mintype="mean")
+					
+					// Update the colour scale (important after background substraction)
+					updateColourRange(graphName)
+					
 					// FFT
 					FFTimage(graphName,"mag")			
 					break
@@ -2450,7 +2462,7 @@ Function FFTimage(graphName,type)
 	//Duplicate/O imgW, $imgFFTStr
 	//Wave imgFFT= $imgFFTStr
 	Redimension/C imgW
-	
+					
 	// Compute the FFT magnitude
 	FFT/MAG/DEST=$imgFFTStr imgW
 	
