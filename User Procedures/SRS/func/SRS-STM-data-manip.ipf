@@ -273,8 +273,27 @@ Function doSomethingWithData(actionType)
 				
 				case "subtractMin":
 					
+					// Make a back up copy of the original data in a data folder of the same name
+					backupData(graphName,"Z")  // the string in the second variable is appended to wave name after backup up the original data
+				
 					// Function for removing a plane background
 					subtractMin(graphName)
+					
+					// Update the colour scale (important after background substraction)
+					updateColourRange(graphName)
+					
+					// Update line profiles after manupulating data
+					updateLineProfile(graphname)
+					
+					break
+				
+				case "subtractMean":
+					
+					// Make a back up copy of the original data in a data folder of the same name
+					backupData(graphName,"Zm")  // the string in the second variable is appended to wave name after backup up the original data
+					
+					// Function for removing a plane background
+					subtractMin(graphName,mintype="mean")
 					
 					// Update the colour scale (important after background substraction)
 					updateColourRange(graphName)
@@ -1197,8 +1216,14 @@ End
 
 //--------------------------------------------------------------------------------------------------------------
 // zero
-Function subtractMin(graphname)
-	String graphname
+Function subtractMin(graphname,[mintype])
+	String graphname, mintype
+	
+	If (paramisdefault(mintype) )
+		mintype = "min"
+	elseif ( cmpstr(mintype,"mean")!=0 )
+		mintype = "min"
+	endif
 	
 	// Get current data folder
 	DFREF saveDF = GetDataFolderDFR()	  // Save
@@ -1214,7 +1239,14 @@ Function subtractMin(graphname)
 	// Make wave assignment to the data
 	Wave imgW= $imgWFullStr
 	
-	Variable minVal= WaveMin(imgW)
+	Variable minVal
+	
+	if ( cmpstr(mintype,"mean")==0 )
+		WaveStats imgW 
+		minVal= V_Avg
+	else 
+		minVal= WaveMin(imgW)
+	endif
 	
 	imgW= imgW - minVal
 
