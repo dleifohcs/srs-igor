@@ -73,6 +73,8 @@ Menu "STM", dynamic
 		Submenu "CITS tools"
 			"Differentiate CITS", doSomethingWithData("differentiateCITS")
 			"-"
+			"FFTCITS", doSomethingWithData("FFTCITS")
+			"-"
 			"\\M0::Normalised differential conductance, i.e., (dI/dV)/(I/V)", doSomethingWithData("differentiateNormalisedCITS")
 			setControlMenuItem("normConductanceCurrentLimit"), setControlMenuItemNormCondLim()
 			"-"
@@ -88,7 +90,7 @@ Menu "STM", dynamic
 		Submenu "FFT"
 			//"Calculate FFT magnitude", doSomethingWithData("FFTmag")
 			"FFT [real -> complex]", doSomethingWithData("FFT")
-			"FFT magnitude [real -> real]", doSomethingWithData("FFTmag")
+			//"FFT magnitude [real -> real]", doSomethingWithData("FFTmag")
 			"Inverse FFT [complex -> real]", doSomethingWithData("IFFT")
 			"-"
 			"Low Pass Filter a FFT window", doSomethingWithData("FFTlowpass")

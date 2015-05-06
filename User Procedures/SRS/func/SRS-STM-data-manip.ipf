@@ -191,6 +191,13 @@ Function doSomethingWithData(actionType)
 					FFTimage(graphName,"complex")			
 					break
 
+				case "FFTCITS":
+					
+					// Function for removing a plane background
+					manipulateCITS(graphName,"FFTCITS")
+					
+					break
+				
 				case "FFTmag":
 				
 					// Function for removing a plane background
@@ -811,7 +818,7 @@ Function makeLineProfile(graphname)
 			// Determine image size for positioning the cursors
 			Variable zMin= DimOffset(citsW,2)
 			Variable zMax= (DimDelta(citsW,2) * DimSize(citsW,2) + DimOffset(citsW,2))
-			SetScale/I x, WaveMin(dline), WaveMax(dline), citsWXUnit,  root:WinGlobals:$(graphName+"_2dProfile"):lineProfile2D
+			SetScale/I x, 0, linelength, citsWXUnit,  root:WinGlobals:$(graphName+"_2dProfile"):lineProfile2D
 			SetScale/I y, zMin, zMax, citsWZUnit,  lineProfile2D
 			SetScale/I d, 0, 1, citsWDUnit, lineProfile2D
 			
@@ -1792,6 +1799,12 @@ Function manipulateCITS(graphname,action)
 				
 				// Refresh 3D data windows
 				refresh3dData(graphName)
+				
+				break
+				
+			case "FFTCITS":
+			
+Print "cits fft"
 				
 				break
 				
