@@ -207,9 +207,8 @@ End
 // If Range is set then this will override the "maxVal" variable
 Function updateColourRange(graphName,[minVal,maxVal,Range,changeScale])
 	String graphName,changeScale
-	Variable minVal, maxVal, Range
-	Variable rangeVal
-	
+	Variable minVal,maxVal,Range
+		
 	// Get current data folder
 	DFREF saveDF = GetDataFolderDFR()	  // Save
 	
@@ -231,34 +230,34 @@ Function updateColourRange(graphName,[minVal,maxVal,Range,changeScale])
 	// Make wave assignment to the data
 	Wave imgW= $imgWFullStr
 	
-	// if noScaleChange not given then set it to "no"
 	if ( ParamIsDefault(changeScale) )
 		changeScale="yes"
 	endif
 	
-	rangeVal = WaveMax(imgW)  - WaveMin(imgW)
+	// using WaveStats here seems to be better than using WaveMin and WaveMax since the latter give NaN if the image is complex
+	WaveStats imgW
+	Variable trueWmin = V_min
+	Variable trueWmax = V_max
 	
+	if ( ParamIsDefault(Range) )
+		Range = trueWmax - trueWmin
+	endif
+	
+	if ( ParamIsDefault(minVal) )
+		minVal = trueWmin + 0.1* Range
+	endif
+	
+	if ( ParamIsDefault(maxVal) )
+		maxVal = trueWmax - 0.05 * Range
+	endif
+		
 	if ( cmpstr(changeScale,"no")==0 )	// this allows the colour to be changed while keeping the scale scaling
 		// keep the current scaling on the colour wave
 		Variable/G ctabwMin
 		Variable/G ctabwMax
 	else		// change the colour scaling
-		// Min and max of the image wave for colour table scaling
-		if ( ParamIsDefault(minVal) )  	// minVal not given in function call
-			Variable/G ctabwMin = WaveMin(imgW) + 0.1*rangeVal
-		else 							// minVal given in function call
-			Variable/G ctabwMin = minVal
-		endif
-		// If Range is set then this will override the "maxVal" variable
-		if ( paramIsDefault(Range) )
-			if ( ParamIsDefault(maxVal) )  	// minVal not given in function call
-				Variable/G ctabwMax = WaveMax(imgW) -0.05*rangeVal
-			else 							// minVal given in function call
-				Variable/G ctabwMax = maxVal
-			endif
-		else
-			Variable/G ctabwMax = ctabwMin + Range
-		endif
+		Variable/G ctabwMin = minVal 
+		Variable/G ctabwMax = maxVal 
 	endif 
 	
 	// Set the colour scale range to match the data range

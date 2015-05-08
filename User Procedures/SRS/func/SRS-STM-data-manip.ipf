@@ -1804,8 +1804,19 @@ Function manipulateCITS(graphname,action)
 				
 			case "FFTCITS":
 			
-Print "cits fft"
+Print "cits fft (don't work properly yet...)"
+
+				String/G citsFFTrWStr = citsWStr+"Fr"
+				String/G citsFFTcWStr = citsWStr+"Fc"
 				
+				// Move to the data data folder to duplicate the 
+				SetDataFolder citsDF
+				
+				FFT/MAG/DEST=$citsFFTrWStr citsW
+				FFT/DEST=$citsFFTcWStr citsW
+				
+				// Move to the data folder containing the global variables for the graph
+				SetDataFolder root:WinGlobals:$graphName 
 				break
 				
 			case "extractImages":
