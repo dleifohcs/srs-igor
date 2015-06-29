@@ -2,7 +2,7 @@
 // 
 // SRS-STM-menu.ipf
 //
-// Creates the menu for SRS-SPECS. .
+// Creates the menu for SRS-SPECS.
 // 
 //------------------------------------------------------------------------------------------------------------------------------------
 //
@@ -25,6 +25,7 @@
 #pragma rtGlobals=1		
 // Use modern global access method.
 
+// Menu
 
 Menu "STM", dynamic
 		Submenu "Display"
