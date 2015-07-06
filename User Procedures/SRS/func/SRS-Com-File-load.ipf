@@ -144,6 +144,15 @@ Function SRSLoadData(pathStr,filenameStr)
 		case "19":
 			loadSEMITIPfort( pathStr, filenameStr, 19 )
 			break
+		case "30":
+			loadSEMITIPfort( pathStr, filenameStr, 30 )
+			break
+		case "40":
+			loadSEMITIPfort( pathStr, filenameStr, 40 )
+			break
+		case "50":
+			loadSEMITIPfort( pathStr, filenameStr, 50 )
+			break
 		case "tf0":
 			loadScalaImage(pathStr, filenameStr)
 			break
@@ -2544,7 +2553,7 @@ Function loadSEMITIPfort( path, filename, fortNum)
 	
 	// get input from user
 	String description="X"
-	If  ( fortNum!= 11 )
+	If  ( fortNum!= 99 )
 		Prompt description, "Enter very brief description for the wave name ( < 10 characters) "+filename 
 		DoPrompt filename, description
 	endif
@@ -2565,38 +2574,67 @@ Function loadSEMITIPfort( path, filename, fortNum)
 		// load data
 		LoadWave/G/D/W/A path+filename
 	
-		Wave wave0, wave1
+		Wave wave0, wave1, wave2, wave3
 	
 		Variable dataLen = DimSize(wave1,0)
 		String newWStr
 	
 		switch ( fortNum )
 			case 11:
-				Duplicate/O wave0 'Z/nm'
-				Duplicate/O wave1 'CBM/eV'
-				Duplicate/O wave1 'VBM/eV'
+				NewDataFolder/O/S root:SEMITIP_STS:$description
+				Duplicate/O wave0 'z_axis'
+				Duplicate/O wave1 'potential'
+				Duplicate/O wave2 'potential2'
+				z_axis = z_axis * 1e-9
+				SetScale/I d,0,1,"m",'z_axis'
+				SetScale/I d,0,1,"eV",'potential'
+				SetScale/I d,0,1,"eV",'potential2'
 				newWStr="dummy"
 				break
 			case 14:
+				NewDataFolder/O/S root:SEMITIP_STS:$description
 				newWStr = "sts_"+description
 				// interpolate data (this is to fix the data point reversal that occurs in the raw data
 				Interpolate2/T=1/N=(dataLen) /Y=$(newWStr) wave0, wave1
+				SetScale/I x,0,1,"V",$(newWStr) 
+				SetScale/I y,0,1,"A",$(newWStr) 
 				break
 			case 15:
+				NewDataFolder/O/S root:SEMITIP_STS:$description
 				newWStr = "stsd_"+description
 				// interpolate data (this is to fix the data point reversal that occurs in the raw data
 				Interpolate2/T=1/N=(dataLen) /Y=$(newWStr) wave0, wave1
+				SetScale/I x,0,1,"V",$(newWStr) 
+				SetScale/I y,0,1,"A/Vm2",$(newWStr) 
+				break
+			case 30:
+				NewDataFolder/O/S root:SEMITIP_STS:$description
+				Duplicate/O wave0 $(description+"_30_V")
+				Duplicate/O wave1 $(description+"_30_n")
+				Duplicate/O wave2 $(description+"_30_En")
+				Duplicate/O wave3 $(description+"_30_delta_e")
+				break
+			case 40:
+				NewDataFolder/O/S root:SEMITIP_STS:$description
+				Duplicate/O wave0 $(description+"_40_V")
+				Duplicate/O wave1 $(description+"_40_n")
+				Duplicate/O wave2 $(description+"_40_En")
+				Duplicate/O wave3 $(description+"_40_delta_e")
+				break
+			case 50:
+				NewDataFolder/O/S root:SEMITIP_STS:$description
+				Duplicate/O wave0 $(description+"_50_V")
+				Duplicate/O wave1 $(description+"_50_n")
+				Duplicate/O wave2 $(description+"_50_En")
+				Duplicate/O wave3 $(description+"_50_delta_e")
 				break
 			default:
 				newWStr = "data_"+description
 				break
 		endswitch
 			
-		
-		
-	
 		// clean up
-		//KillWaves/Z wave0, wave1, wave2, wave3, dummy
+		KillWaves/Z wave0, wave1, wave2, wave3, dummy
 		
 	endif 
 		
