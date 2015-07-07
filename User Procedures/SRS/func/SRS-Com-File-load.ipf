@@ -2575,10 +2575,8 @@ Function loadSEMITIPfort( path, filename, fortNum)
 		LoadWave/G/D/W/A path+filename
 	
 		Wave wave0, wave1, wave2, wave3
-	
-		Variable dataLen = DimSize(wave1,0)
-		String newWStr
-	
+		Variable dataLen
+		
 		switch ( fortNum )
 			case 11:
 				NewDataFolder/O/S root:SEMITIP_STS:$description
@@ -2610,15 +2608,60 @@ Function loadSEMITIPfort( path, filename, fortNum)
 				break
 			case 14:
 				NewDataFolder/O/S root:SEMITIP_STS:$description
-				newWStr = "sts_"+description
+				String stsWStr = "sts_"+description
+				
+				dataLen = DimSize(wave1,0)
+				
 				// interpolate data (this is to fix the data point reversal that occurs in the raw data
-				Interpolate2/T=1/N=(dataLen) /Y=$(newWStr) wave0, wave1
-				SetScale/I x,0,1,"V",$(newWStr) 
-				SetScale/I y,0,1,"A",$(newWStr) 
+				Interpolate2/T=1/N=(dataLen) /Y=$(stsWStr) wave0, wave1
+				Wave stsW = $stsWStr
+				
+				SetScale/I x, WaveMin(wave0), WaveMax(wave0),"V",stsW
+				SetScale/I d,0,1,"A", stsW
+				
+				//Display
+				Display/k=1 stsW
+				ModifyGraph tick=2,mirror=1,standoff=0;DelayUpdate
+				Label left "Current (\\U)";DelayUpdate
+				Label bottom "Bias (\\U)"
+				ModifyGraph zero=2
+				DoUpdate
+				
+				// extended state contribution to the current
+				if ( WaveExists(wave2) )
+					stsWStr = "sts_ext_"+description
+					// interpolate data (this is to fix the data point reversal that occurs in the raw data
+					Interpolate2/T=1/N=(dataLen) /Y=$(stsWStr) wave0, wave2
+					Wave stsW = $stsWStr
+				
+					SetScale/I x, WaveMin(wave0), WaveMax(wave0),"V",stsW
+					SetScale/I d,0,1,"A", stsW
+					AppendToGraph stsW
+					ModifyGraph lstyle($stsWStr)=3,rgb($stsWStr)=(0,0,0)
+					Legend/C/N=text0/F=0/A=LT
+					DoUpdate
+				endif
+				
+				// localalised state contribution to the current
+				if ( WaveExists(wave3) )
+					stsWStr = "sts_loc_"+description
+					// interpolate data (this is to fix the data point reversal that occurs in the raw data
+					Interpolate2/T=1/N=(dataLen) /Y=$(stsWStr) wave0, wave3
+					Wave stsW = $stsWStr
+				
+					SetScale/I x, WaveMin(wave0), WaveMax(wave0),"V",stsW
+					SetScale/I d,0,1,"A", stsW
+					AppendToGraph stsW
+					ModifyGraph lstyle($stsWStr)=3,rgb($stsWStr)=(3,52428,1)
+					Legend/C/N=text0/F=0/A=LT
+					DoUpdate
+				endif
+
 				break
+				
 			case 15:
 				NewDataFolder/O/S root:SEMITIP_STS:$description
-				newWStr = "stsd_"+description
+				String newWStr = "stsd_"+description
 				// interpolate data (this is to fix the data point reversal that occurs in the raw data
 				Interpolate2/T=1/N=(dataLen) /Y=$(newWStr) wave0, wave1
 				SetScale/I x,0,1,"V",$(newWStr) 
@@ -2651,6 +2694,7 @@ Function loadSEMITIPfort( path, filename, fortNum)
 		endswitch
 			
 		// clean up
+		SetDataFolder root:SEMITIP_STS
 		KillWaves/Z wave0, wave1, wave2, wave3, dummy
 		
 	endif 
