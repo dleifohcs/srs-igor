@@ -2582,14 +2582,31 @@ Function loadSEMITIPfort( path, filename, fortNum)
 		switch ( fortNum )
 			case 11:
 				NewDataFolder/O/S root:SEMITIP_STS:$description
-				Duplicate/O wave0 'z_axis'
-				Duplicate/O wave1 'potential'
-				Duplicate/O wave2 'potential2'
-				z_axis = z_axis * 1e-9
-				SetScale/I d,0,1,"m",'z_axis'
-				SetScale/I d,0,1,"eV",'potential'
-				SetScale/I d,0,1,"eV",'potential2'
-				newWStr="dummy"
+				
+				String zWName = "z_"+description
+				Duplicate/O wave0 $zWName
+				Wave zW = $zWName
+				zW = zW * 1e-9
+				SetScale/I d,0,1,"m", zW
+				
+				String potWName = "V_"+description
+				Duplicate/O wave1 $potWName
+				Wave potW = $potWName
+				SetScale/I d,0,1,"eV", potW
+				
+				if ( WaveExists(wave2) )
+					Duplicate/O wave2 'potential2'
+					SetScale/I d,0,1,"eV",'potential2'
+				endif 
+		
+				// Display the potential versus z-axis
+				Display/k=1 potW vs zW
+				ModifyGraph log(bottom)=1,tick=2,mirror=1,standoff=0;DelayUpdate
+				Label left "Potential (\\U)";DelayUpdate
+				Label bottom "Depth (\\U)"
+				TextBox/C/N=text0/F=0 description
+				DoUpdate
+								
 				break
 			case 14:
 				NewDataFolder/O/S root:SEMITIP_STS:$description
