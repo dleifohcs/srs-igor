@@ -165,6 +165,9 @@ Function SRSLoadData(pathStr,filenameStr)
 		case "tb1":
 			loadScalaImage(pathStr, filenameStr)
 			break
+		case "testo":
+			loadTestoLogData(pathStr, filenameStr)
+			break
 		default:
 			returnVar = 0
 			Print "SRS macro package does not know this file extension type; handing file back to Igor file loader"
@@ -2701,4 +2704,125 @@ Function loadSEMITIPfort( path, filename, fortNum)
 		
 	// return to DF
 	//SetDataFolder saveDF
+End
+
+
+
+/------------------------------------------------------------------------------------------------------------------------------------
+// Load output from Testo temperature/humidity datalogger
+//------------------------------------------------------------------------------------------------------------------------------------
+Function loadTestoLogData( path, filename )
+	String path, filename
+	Variable refNum
+	
+	String FullFileNameStr = path+filename
+
+	DFREF saveDFR = GetDataFolderDFR()
+	
+	Open /R/Z=2 refNum as FullFileNameStr
+	
+	if (V_flag != 0)
+		Print "error loading Testo data"
+		return 0 // Something broke
+	endif
+	
+	// Information to command line
+	Print "Detected .testo file input. Assuming from Testo 174H datalogger. Opening into new data folder."
+	
+	// Remove extension from filename
+	String shortfilename = ParseFilePath(3, filename, ":", 0, 0)
+	
+	NewDataFolder /O/S root:testo
+	
+	// Load data
+	Variable err = V_flag
+	if ( err )
+		Print "ERROR: unable to open the flat file for reading. Aborting."
+		return 1
+	endif
+	
+	// -----------------------------------------
+	// SECTION 1: FILE IDENTIFICATION
+	// -----------------------------------------
+	
+	Print " "
+	Print "Warning: time accurate to day only - start day time and end day time have not been set"
+	
+	// Read header
+	String buffer = ""
+	FReadLine refNum, buffer
+	Variable len
+	Variable linecount=0
+	do
+		FReadLine refNum, buffer
+		len = strlen(buffer)
+		if (len == 0)
+			break						// No more lines to be read
+		endif
+		linecount+=1
+	while (1)
+	Close refNum	
+	
+	Variable id, t_tmp, h_tmp
+	String date_tmp, time_tmp
+
+	Make/T/O/N=(linecount) dateW
+	Make/T/O/N=(linecount)  timeW
+	Make/O/N=(linecount)  temperature
+	Make/O/N=(linecount)  humidity
+	
+	Open /R/Z=2 refNum as FullFileNameStr
+	Variable i=0
+	FReadLine refNum, buffer
+	do
+		FReadLine refNum, buffer
+		len = strlen(buffer)
+		if (len == 0)
+			break						// No more lines to be read
+		endif
+		
+		sscanf buffer, "%i %s %s %e %e", id, date_tmp, time_tmp, t_tmp, h_tmp
+		
+		dateW[i]=date_tmp
+		timeW[i]=time_tmp
+		temperature[i] = t_tmp
+		humidity[i] = h_tmp
+		i+=1
+		
+	while (1)
+	Close refNum
+	
+	Variable startday = str2num(StringFromList(0,dateW[0],"/"))
+	Variable startmonth = str2num(StringFromList(1,dateW[0],"/"))
+	Variable startyear = str2num(StringFromList(2,dateW[0],"/"))
+	
+	Variable endday = str2num(StringFromList(0,dateW[linecount-1],"/"))
+	Variable endmonth = str2num(StringFromList(1,dateW[linecount-1],"/"))
+	Variable endyear = str2num(StringFromList(2,dateW[linecount-1],"/"))
+	
+	Variable startdate = date2secs(startyear,startmonth,startday)
+	Variable enddate = date2secs(endyear,endmonth,endday)
+	
+	Variable starthour = str2num(StringFromList(0,timeW[0],":"))
+	Variable startminute = str2num(StringFromList(1,timeW[0],":"))
+	Variable endhour = str2num(StringFromList(0,timeW[linecount-1],":"))
+	Variable endminute = str2num(StringFromList(1,timeW[linecount-1],":"))
+
+	SetScale/I x, startdate+60*60*starthour+60*startminute, enddate+60*60*endhour+60*endminute, "dat", temperature
+	SetScale/I x, startdate+60*60*starthour+60*startminute, enddate+60*60*endhour+60*endminute, "dat", humidity
+
+	Display/k=1 temperature; AppendToGraph/R humidity
+	ModifyGraph rgb(humidity)=(1,16019,65535)
+	ModifyGraph tick(left)=2,tick(bottom)=2,mirror(bottom)=1,standoff(left)=0;DelayUpdate
+	ModifyGraph standoff(bottom)=0;DelayUpdate
+	SetAxis bottom 3517344000,3519590400
+	SetAxis left 15,30;DelayUpdate
+	SetAxis right 10,90
+	Legend/C/N=text0/F=0/A=LT
+	ModifyGraph dateInfo(bottom)={0,1,2}
+	Label left "Temperature";DelayUpdate
+	Label bottom "Date/time";DelayUpdate
+	Label right "Humidity"
+
+	DoUpdate
 End
