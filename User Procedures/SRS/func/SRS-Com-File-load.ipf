@@ -2815,7 +2815,7 @@ Function loadTestoLogData( path, filename )
 	ModifyGraph rgb(humidity)=(1,16019,65535)
 	ModifyGraph tick(left)=2,tick(bottom)=2,mirror(bottom)=1,standoff(left)=0;DelayUpdate
 	ModifyGraph standoff(bottom)=0;DelayUpdate
-	SetAxis bottom 3517344000,3519590400
+	SetAxis/A bottom 
 	SetAxis left 15,30;DelayUpdate
 	SetAxis right 10,90
 	Legend/C/N=text0/F=0/A=LT
