@@ -3345,7 +3345,7 @@ Function skewImg(graphName,axis)
 	
 	Wave M_InterpolatedImage
 	imgW = M_InterpolatedImage
-	KillWaves/Z M_InterpolatedImage
+	//KillWaves/Z M_InterpolatedImage
 
 End
 
