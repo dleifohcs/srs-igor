@@ -830,18 +830,21 @@ Function makeLineProfile(graphname)
 	endif 	// end of "isNaN" checking
 
 	//calculate angle
-	Variable lineAngle, lineAngleADE, lineAngleDEB
+	Variable lineAngle, lineAngleADE, lineAngleDEB, lineAngletoNinty
 	if ( numtype(hcsr(D))!=0 )
 			// if D cursor is not on the graph then assume only single line profile A->B
 			lineAngle = (180/pi) * atan ( (lineprofy[1] - lineprofy[0]) / (lineprofx[1] - lineprofx[0]) )
+			lineAngletoNinty = 90 - lineAngle
 			if ( (lineprofx[1] - lineprofx[0]) < 0 && (lineprofy[1] - lineprofy[0]) > 0 )
 				lineAngle = 180 + lineAngle
+				lineAngletoNinty = lineAngletoNinty-90
 			endif
 			if ( (lineprofx[1] - lineprofx[0]) < 0 && (lineprofy[1] - lineprofy[0]) < 0 )
 				lineAngle = 180 + lineAngle
 			endif
 			if ( (lineprofx[1] - lineprofx[0]) > 0 && (lineprofy[1] - lineprofy[0]) < 0 )
 				lineAngle = 360 + lineAngle
+				lineAngletoNinty =lineAngletoNinty- 90
 			endif
 		else
 			// HAVE NOT YET ADDED THE CALCULATION FOR ANGLES IN MULTI POINT LINE PROFILE
@@ -854,7 +857,7 @@ Function makeLineProfile(graphname)
 	// Display line profile information
 	if ( numtype(hcsr(D))!=0 )
 		if (numtype(lineLength)==0 && numtype(lineAngle)==0)
-			Print "Length=", lineLength, imgWXUnit+".  Angle=", lineAngle, "degrees."
+			Print "Length=", lineLength, imgWXUnit+".  Angle=", lineAngle, "degrees."+".  90-Angle=", lineAngletoNinty, "degrees."
 		endif
 	else
 		if (numtype(lineLength)==0 && numtype(lineAngle)==0)
@@ -2507,6 +2510,11 @@ Function FFTimage(graphName,type)
 		FFT/DEST=$imgFFTStr imgW
 	endif
 	
+	GetAxis/Q bottom
+	SetAxis bottom V_min/2, V_max/2
+	GetAxis/Q left
+	SetAxis left V_min/2, V_max/2
+	
 	// convert the original image back to real
 	Redimension/R imgW
 	
@@ -2720,11 +2728,14 @@ Function rotateImg(graphName)
 	// Make wave assignment to the data  (/C designates complex wave)
 	Wave imgW= $imgWFullStr
 	
+	WaveStats imgW
+	Variable waveAvg = V_avg
+	
 	Variable angle=0
 	Prompt angle, "Enter Rotation Angle"
 	DoPrompt "Image rotation", angle
 		
-	ImageRotate/E=0/O/A=(angle) imgW
+	ImageRotate/E=(waveAvg)/O/A=(-angle) imgW
 
 End
 
@@ -3095,4 +3106,47 @@ Function lineProfileMulti(graphname)
 	SetDataFolder saveDF
 
 End
+
+
+
+Function skew(imgName)
+	String imgName
+	
+	Wave img = $imgName
+	Variable imgRows = DimSize(img, 0)
+	Variable imgCols = DimSize(img,1)
+	
+	Make/D/O/N=(2,2) xi
+	Make/D/O/N=(2,2) yi
+	
+	
+	xi[0][0]=0
+	xi[0][1]=0
+	xi[1][0]=imgRows
+	xi[1][1]=imgRows
+	
+	yi[0][0]=0
+	yi[0][1]=imgCols
+	yi[1][0]=0
+	yi[1][1]=imgCols
+
+	Duplicate/O xi, xf
+	Duplicate/O yi, yf
+	
+	Variable skew=0.1* imgCols
+	
+	xf[0][0]=0
+	xf[0][1]=0+skew
+	xf[1][0]=imgRows-skew
+	xf[1][1]=imgRows
+	
+	yf[0][0]=0
+	yf[0][1]=imgCols
+	yf[1][0]=0
+	yf[1][1]=imgCols
+	
+	ImageInterpolate /WM=2/sgrx=xi/sgry=yi/dgrx=xf/dgry=yf Warp img
+
+End
+
 

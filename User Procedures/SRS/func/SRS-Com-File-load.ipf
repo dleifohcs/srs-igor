@@ -2816,7 +2816,8 @@ Function loadTestoLogData( path, filename )
 	ModifyGraph tick(left)=2,tick(bottom)=2,mirror(bottom)=1,standoff(left)=0;DelayUpdate
 	ModifyGraph standoff(bottom)=0;DelayUpdate
 	SetAxis/A bottom 
-	SetAxis left 15,30;DelayUpdate
+	SetAxis left 20,26
+	ModifyGraph lsize=1.5
 	SetAxis right 10,90
 	Legend/C/N=text0/F=0/A=LT
 	ModifyGraph dateInfo(bottom)={0,1,2}
