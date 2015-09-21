@@ -161,6 +161,17 @@ Function doSomethingWithData(actionType)
 					
 					equalAxes(graphName)			
 					break
+					
+				case "padImage":  // x and y axes the same; pad with zeros
+					
+					Variable px = 0
+					String side="right"
+					Prompt px, "Number of pixels to pad"
+					Prompt side, "Which side to pad", popup, "left;right;top;bottom"
+					DoPrompt "Smoothing", px, side
+		
+					padImage(graphName,side,px)	
+					break
 				
 				case "cropImg":
 					
@@ -177,6 +188,32 @@ Function doSomethingWithData(actionType)
 					
 					// rotate
 					rotateImg(graphName)			
+					break
+				
+				case "skewImgHor":
+					
+					// Make a back up copy of the original data in a data folder of the same name
+					backupData(graphName,"S")  // the string in the second variable is appended to wave name after backup up the original data
+					
+					// first subtract the mean 
+					doSomethingWithData("subtractMean")
+					Print "Note: have removed the mean background"
+					
+					// rotate
+					skewImg(graphName,"horizontal")			
+					break
+					
+				case "skewImgVer":
+					
+					// Make a back up copy of the original data in a data folder of the same name
+					backupData(graphName,"S")  // the string in the second variable is appended to wave name after backup up the original data
+					
+					// first subtract the mean 
+					doSomethingWithData("subtractMean")
+					Print "Note: have removed the mean background"
+					
+					// rotate
+					skewImg(graphName,"vertical")			
 					break
 				
 				case "FFT":
@@ -2740,6 +2777,9 @@ Function rotateImg(graphName)
 End
 
 
+
+
+
 //----------------------------------------------------------
 // crop to current view area
 //----------------------------------------------------------
@@ -2807,57 +2847,6 @@ End
 
 
 
-//----------------------------------------------------------
-// pad image with NaNs so axes are equal
-//----------------------------------------------------------
-Function equalAxes(graphName)
-	String graphName
-	
-	// Get current data folder
-	DFREF saveDF = GetDataFolderDFR()	  // Save
-	
-	// Move to the data folder containing the global variables for the graph
-	SetDataFolder root:WinGlobals:$graphName // should already be in this data folder, but include this to be sure
-	
-	// Get the global variable for this graph (these were set in the manipulateData procedure)
-	String/G imgDF			// data folder containing the data shown on the graph
-	String/G imgWStr		// name of the wave shown on the graph (an image or 3D data set; e.g. STM or CITS)
-	String/G imgWFullStr		// data folder plus wave name
-	
-	// From this point work in the original data folder where the data is
-	SetDataFolder imgDF 
-	
-	// Make wave assignment to the data  
-	Wave imgW= $imgWFullStr
-	
-	Variable imgWmaxX = DimSize(imgW,0)
-	Variable imgWmaxY = DimSize(imgW,1)
-	
-	Variable sideLength = imgWmaxX
-	
-	if ( imgWmaxX < imgWmaxY )
-		sideLength = imgWmaxY
-	endif
-	
-	Make/O/N=(sideLength,sideLength) paddedImage
-	paddedImage = NaN
-	paddedImage[0,imgWmaxX-1][0,imgWmaxY-1] = imgW[p][q]
-	CopyScales/I imgW, paddedImage
-	
-	if ( imgWmaxX >= imgWmaxY )
-		SetScale/I y, DimOffset(imgW,0), DimDelta(imgW,0), paddedImage  // make y scale same as x scale
-	else 
-		SetScale/I x, DimOffset(imgW,1), DimDelta(imgW,1), paddedImage  // make x scale same as y scale
-	endif
-	
-	Note/NOCR paddedImage, note(imgW)
-	
-	KillWindow $graphName
-	KillWaves imgW
-	Rename paddedImage, $imgWStr
-	
-	imgDisplay(imgWStr)
-End
 
 //----------------------------------------------------------
 // 
@@ -3119,7 +3108,6 @@ Function skew(imgName)
 	Make/D/O/N=(2,2) xi
 	Make/D/O/N=(2,2) yi
 	
-	
 	xi[0][0]=0
 	xi[0][1]=0
 	xi[1][0]=imgRows
@@ -3150,3 +3138,196 @@ Function skew(imgName)
 End
 
 
+
+
+
+//----------------------------------------------------------
+// skew
+//----------------------------------------------------------
+Function skewImg(graphName,axis)
+	String graphName, axis
+	
+	// Get current data folder
+	DFREF saveDF = GetDataFolderDFR()	  // Save
+	
+	// Move to the data folder containing the global variables for the graph
+	SetDataFolder root:WinGlobals:$graphName // should already be in this data folder, but include this to be sure
+	
+	// Get the global variable for this graph (these were set in the manipulateData procedure)
+	String/G imgDF			// data folder containing the data shown on the graph
+	String/G imgWStr		// name of the wave shown on the graph (an image or 3D data set; e.g. STM or CITS)
+	String/G imgWFullStr		// data folder plus wave name
+	
+	// From this point work in the original data folder where the data is
+	SetDataFolder imgDF 
+	
+	// Make wave assignment to the data  (/C designates complex wave)
+	Wave imgW= $imgWFullStr
+	
+	WaveStats imgW
+	Variable waveAvg = V_avg
+	
+	Variable skewamount=0
+	Prompt skewamount, "Enter Skew Amount"
+	DoPrompt "Image skew", skewamount
+	
+	Variable imgRows = DimSize(imgW, 0)
+	Variable imgCols = DimSize(imgW,1)
+	
+	Make/D/O/N=(2,2) xi
+	Make/D/O/N=(2,2) yi
+	
+	xi[0][0]=0
+	xi[0][1]=0
+	xi[1][0]=imgRows
+	xi[1][1]=imgRows
+	
+	yi[0][0]=0
+	yi[0][1]=imgCols
+	yi[1][0]=0
+	yi[1][1]=imgCols
+
+	Duplicate/O xi, xf
+	Duplicate/O yi, yf
+	
+	Variable skew=skewamount* imgCols
+	
+	if ( cmpstr(axis,"horizontal") == 0)
+		xf[0][0]=0
+		xf[0][1]=0+skew
+		xf[1][0]=imgRows
+		xf[1][1]=imgRows+skew
+	endif 
+	
+	if ( cmpstr(axis,"vertical") == 0)
+		yf[0][0]=0
+		yf[0][1]=imgCols
+		yf[1][0]=0 - skew
+		yf[1][1]=imgCols - skew
+	endif 
+	
+	ImageInterpolate /Dest=$imgWStr/WM=2/sgrx=xi/sgry=yi/dgrx=xf/dgry=yf Warp imgW
+
+End
+
+
+
+//----------------------------------------------------------
+// pad image with NaNs so axes are equal
+//----------------------------------------------------------
+Function equalAxes(graphName)
+	String graphName
+	
+	// Get current data folder
+	DFREF saveDF = GetDataFolderDFR()	  // Save
+	
+	// Move to the data folder containing the global variables for the graph
+	SetDataFolder root:WinGlobals:$graphName // should already be in this data folder, but include this to be sure
+	
+	// Get the global variable for this graph (these were set in the manipulateData procedure)
+	String/G imgDF			// data folder containing the data shown on the graph
+	String/G imgWStr		// name of the wave shown on the graph (an image or 3D data set; e.g. STM or CITS)
+	String/G imgWFullStr		// data folder plus wave name
+	
+	// From this point work in the original data folder where the data is
+	SetDataFolder imgDF 
+	
+	// Make wave assignment to the data  
+	Wave imgW= $imgWFullStr
+	
+	Variable imgWmaxX = DimSize(imgW,0)
+	Variable imgWmaxY = DimSize(imgW,1)
+	
+	Variable sideLength = imgWmaxX
+	
+	if ( imgWmaxX < imgWmaxY )
+		sideLength = imgWmaxY
+	endif
+	
+	Make/O/N=(sideLength,sideLength) paddedImage
+	paddedImage = NaN
+	paddedImage[0,imgWmaxX-1][0,imgWmaxY-1] = imgW[p][q]
+	CopyScales/I imgW, paddedImage
+	
+	if ( imgWmaxX >= imgWmaxY )
+		SetScale/I y, DimOffset(imgW,0), DimDelta(imgW,0), paddedImage  // make y scale same as x scale
+	else 
+		SetScale/I x, DimOffset(imgW,1), DimDelta(imgW,1), paddedImage  // make x scale same as y scale
+	endif
+	
+	Note/NOCR paddedImage, note(imgW)
+	
+	KillWindow $graphName
+	KillWaves imgW
+	Rename paddedImage, $imgWStr
+	
+	imgDisplay(imgWStr)
+End
+
+
+//----------------------------------------------------------
+// pad image with NaNs so axes are equal
+//----------------------------------------------------------
+Function padImage(graphName,side,px)
+	String graphName, side
+	Variable px
+	
+	// Get current data folder
+	DFREF saveDF = GetDataFolderDFR()	  // Save
+	
+	// Move to the data folder containing the global variables for the graph
+	SetDataFolder root:WinGlobals:$graphName // should already be in this data folder, but include this to be sure
+	
+	// Get the global variable for this graph (these were set in the manipulateData procedure)
+	String/G imgDF			// data folder containing the data shown on the graph
+	String/G imgWStr		// name of the wave shown on the graph (an image or 3D data set; e.g. STM or CITS)
+	String/G imgWFullStr		// data folder plus wave name
+	
+	// From this point work in the original data folder where the data is
+	SetDataFolder imgDF 
+	
+	// Make wave assignment to the data  
+	Wave imgW= $imgWFullStr
+	
+	Variable imgWmaxX = DimSize(imgW,0)
+	Variable imgWmaxY = DimSize(imgW,1)
+	
+	Variable xsideLength = imgWmaxX
+	Variable ysideLength = imgWmaxY
+	If ( cmpstr(side,"left")==0 || cmpstr(side,"right")==0 )
+		xsideLength = imgWmaxX + px
+	endif
+	If ( cmpstr(side,"top")==0 || cmpstr(side,"bottom")==0 )
+		ysideLength = imgWmaxY + px
+	endif
+	
+	Make/O/N=(xsideLength,ysideLength) paddedImage
+	
+	WaveStats imgW
+	Variable img_avg = V_avg
+	paddedImage = img_avg
+	
+	if  ( cmpstr(side,"left")==0 )
+		paddedImage[px,px+imgWmaxX-1][0,imgWmaxY] = imgW[p-px][q]
+	endif
+	if  ( cmpstr(side,"right")==0 )
+		paddedImage[0,imgWmaxX-1][0,imgWmaxY-1] = imgW[p][q]
+	endif
+	if  ( cmpstr(side,"top")==0 )
+		paddedImage[0,imgWmaxX-1][0,imgWmaxY-1] = imgW[p][q]
+	endif
+	if  ( cmpstr(side,"bottom")==0 )
+		paddedImage[0,imgWmaxX-1][px,px+imgWmaxY-1] = imgW[p][q-px]
+	endif
+	
+	CopyScales/I imgW, paddedImage
+	
+	Note/NOCR paddedImage, note(imgW)
+	
+	KillWindow $graphName
+	KillWaves/Z imgW
+	Duplicate/O paddedImage, $imgWStr
+	KillWaves/Z paddedImage
+	
+	imgDisplay(imgWStr)
+End

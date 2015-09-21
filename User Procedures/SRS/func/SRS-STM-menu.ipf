@@ -66,8 +66,13 @@ Menu "STM", dynamic
 			End
 			"-"
 			"Crop [to current view area]", doSomethingWithData("cropImg")
-			"Rotate", doSomethingWithData("rotateImg")
 			"-"
+			"Rotate clockwise", doSomethingWithData("rotateImg")
+			"-"
+			"Skew image - horizontal", doSomethingWithData("skewImgHor")
+			"Skew image - vertical", doSomethingWithData("skewImgVer")
+			"-"
+			"Pad image", doSomethingWithData("padImage")
 			"Pad image with NaNs to give equal axes", doSomethingWithData("equalAxes")
 			"Interpolate image [up-sample]", doSomethingWithData("upSampleImage")
 		End
