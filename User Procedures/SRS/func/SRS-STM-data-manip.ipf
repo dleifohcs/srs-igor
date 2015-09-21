@@ -3140,78 +3140,6 @@ End
 
 
 
-
-//----------------------------------------------------------
-// skew
-//----------------------------------------------------------
-Function skewImg(graphName,axis)
-	String graphName, axis
-	
-	// Get current data folder
-	DFREF saveDF = GetDataFolderDFR()	  // Save
-	
-	// Move to the data folder containing the global variables for the graph
-	SetDataFolder root:WinGlobals:$graphName // should already be in this data folder, but include this to be sure
-	
-	// Get the global variable for this graph (these were set in the manipulateData procedure)
-	String/G imgDF			// data folder containing the data shown on the graph
-	String/G imgWStr		// name of the wave shown on the graph (an image or 3D data set; e.g. STM or CITS)
-	String/G imgWFullStr		// data folder plus wave name
-	
-	// From this point work in the original data folder where the data is
-	SetDataFolder imgDF 
-	
-	// Make wave assignment to the data  (/C designates complex wave)
-	Wave imgW= $imgWFullStr
-	
-	WaveStats imgW
-	Variable waveAvg = V_avg
-	
-	Variable skewamount=0
-	Prompt skewamount, "Enter Skew Amount"
-	DoPrompt "Image skew", skewamount
-	
-	Variable imgRows = DimSize(imgW, 0)
-	Variable imgCols = DimSize(imgW,1)
-	
-	Make/D/O/N=(2,2) xi
-	Make/D/O/N=(2,2) yi
-	
-	xi[0][0]=0
-	xi[0][1]=0
-	xi[1][0]=imgRows
-	xi[1][1]=imgRows
-	
-	yi[0][0]=0
-	yi[0][1]=imgCols
-	yi[1][0]=0
-	yi[1][1]=imgCols
-
-	Duplicate/O xi, xf
-	Duplicate/O yi, yf
-	
-	Variable skew=skewamount* imgCols
-	
-	if ( cmpstr(axis,"horizontal") == 0)
-		xf[0][0]=0
-		xf[0][1]=0+skew
-		xf[1][0]=imgRows
-		xf[1][1]=imgRows+skew
-	endif 
-	
-	if ( cmpstr(axis,"vertical") == 0)
-		yf[0][0]=0
-		yf[0][1]=imgCols
-		yf[1][0]=0 - skew
-		yf[1][1]=imgCols - skew
-	endif 
-	
-	ImageInterpolate /Dest=$imgWStr/WM=2/sgrx=xi/sgry=yi/dgrx=xf/dgry=yf Warp imgW
-
-End
-
-
-
 //----------------------------------------------------------
 // pad image with NaNs so axes are equal
 //----------------------------------------------------------
@@ -3301,7 +3229,7 @@ Function padImage(graphName,side,px)
 		ysideLength = imgWmaxY + px
 	endif
 	
-	Make/O/N=(xsideLength,ysideLength) paddedImage
+	Make/D/O/N=(xsideLength,ysideLength) paddedImage
 	
 	WaveStats imgW
 	Variable img_avg = V_avg
@@ -3320,14 +3248,105 @@ Function padImage(graphName,side,px)
 		paddedImage[0,imgWmaxX-1][px,px+imgWmaxY-1] = imgW[p][q-px]
 	endif
 	
-	CopyScales/I imgW, paddedImage
+	Redimension/N=(xsideLength,ysideLength) imgW
 	
-	Note/NOCR paddedImage, note(imgW)
+	imgW = paddedImage
+	//CopyScales/I imgW, paddedImage
 	
-	KillWindow $graphName
-	KillWaves/Z imgW
-	Duplicate/O paddedImage, $imgWStr
-	KillWaves/Z paddedImage
+	//Note/NOCR paddedImage, note(imgW)
 	
-	imgDisplay(imgWStr)
+	//KillWindow $graphName
+	//KillWaves/Z imgW
+	//Duplicate/O paddedImage, $imgWStr
+	//KillWaves/Z paddedImage
+	
+	//imgDisplay(imgWStr)
 End
+
+
+
+
+//----------------------------------------------------------
+// skew
+//----------------------------------------------------------
+Function skewImg(graphName,axis)
+	String graphName, axis
+	
+	// Get current data folder
+	DFREF saveDF = GetDataFolderDFR()	  // Save
+	
+	// Move to the data folder containing the global variables for the graph
+	SetDataFolder root:WinGlobals:$graphName // should already be in this data folder, but include this to be sure
+	
+	// Get the global variable for this graph (these were set in the manipulateData procedure)
+	String/G imgDF			// data folder containing the data shown on the graph
+	String/G imgWStr		// name of the wave shown on the graph (an image or 3D data set; e.g. STM or CITS)
+	String/G imgWFullStr		// data folder plus wave name
+	
+	// From this point work in the original data folder where the data is
+	SetDataFolder imgDF 
+	
+	// Make wave assignment to the data  (/C designates complex wave)
+	Wave imgW= $imgWFullStr
+	
+	WaveStats imgW
+	Variable waveAvg = V_avg
+	
+	Variable skewangle=0
+	Prompt skewangle, "Enter Skew Angle"
+	DoPrompt "Image skew", skewangle
+	
+	Variable imgRows = DimSize(imgW, 0)
+	Variable imgCols = DimSize(imgW,1)
+	
+	Make/D/O/N=(2,2) xi
+	Make/D/O/N=(2,2) yi
+	
+	xi[0][0]=0
+	xi[0][1]=0
+	xi[1][0]=imgRows
+	xi[1][1]=imgRows
+	
+	yi[0][0]=0
+	yi[0][1]=imgCols
+	yi[1][0]=0
+	yi[1][1]=imgCols
+
+	Duplicate/O xi, xf
+	Duplicate/O yi, yf
+	
+	Variable skew
+	String side
+	if ( cmpstr(axis,"horizontal") == 0)
+		skew = imgCols * Tan(2 * pi * skewangle / 360)
+		if ( skew < 0) 
+			side = "left"
+		else 
+			side = "right"
+		endif
+		// make space to skew without losing data
+		padImage(graphName,side,Abs(skew))
+		// Calculate the skew points
+		xf[0][0]=0
+		xf[0][1]=0+skew
+		xf[1][0]=imgRows
+		xf[1][1]=imgRows+skew
+	endif 
+	
+	if ( cmpstr(axis,"vertical") == 0)
+		skew = imgRows * Tan(skewangle)
+		yf[0][0]=0
+		yf[0][1]=imgCols
+		yf[1][0]=0 - skew
+		yf[1][1]=imgCols - skew
+	endif 
+	Redimension/D imgW
+	ImageInterpolate /WM=2/sgrx=xi/sgry=yi/dgrx=xf/dgry=yf Warp imgW
+	
+	Wave M_InterpolatedImage
+	imgW = M_InterpolatedImage
+	KillWaves/Z M_InterpolatedImage
+
+End
+
+
