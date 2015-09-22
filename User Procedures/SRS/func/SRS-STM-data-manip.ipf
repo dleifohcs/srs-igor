@@ -1197,7 +1197,7 @@ Function createSRSControlVariables()
 	Variable/G normConductLim=1e-12
 	
 	// set a low current limit for producing normalised differential conductance
-	Variable/G CITSKappa=1e-11
+	Variable/G CITSKappa=1e10
 	
 	SetDataFolder saveDF
 End
@@ -1897,7 +1897,7 @@ Function manipulateCITS(graphname,action)
 				for (xx=0;xx<xLength;xx+=1)
 					for (yy=0;yy<yLength;yy+=1)
 						for (jj=0;jj<wLength;jj+=1)
-							citsW[xx][yy][jj] =  citsWOrig[xx][yy][jj] * Exp(-2 * CITSkappa * imgW[xx][yy])
+							citsW[xx][yy][jj] =  citsWOrig[xx][yy][jj] / Exp(-2 * CITSkappa * imgW[xx][yy])
 						endfor
 					endfor
 				endfor
