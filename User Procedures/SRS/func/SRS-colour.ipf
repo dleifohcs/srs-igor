@@ -235,7 +235,7 @@ Function updateColourRange(graphName,[minVal,maxVal,Range,changeScale])
 	endif
 	
 	// using WaveStats here seems to be better than using WaveMin and WaveMax since the latter give NaN if the image is complex
-	WaveStats imgW
+	WaveStats/Q imgW
 	Variable trueWmin = V_min
 	Variable trueWmax = V_max
 	

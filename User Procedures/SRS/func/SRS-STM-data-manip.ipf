@@ -346,7 +346,7 @@ Function doSomethingWithData(actionType)
 				case "subtractMean":
 					
 					// Make a back up copy of the original data in a data folder of the same name
-					backupData(graphName,"Zm")  // the string in the second variable is appended to wave name after backup up the original data
+					backupData(graphName,"Z")  // the string in the second variable is appended to wave name after backup up the original data
 					
 					// Function for removing a plane background
 					subtractMin(graphName,mintype="mean")
@@ -372,6 +372,16 @@ Function doSomethingWithData(actionType)
 					
 					// Function for removing a plane background
 					manipulateCITS(graphName,"differentiate")
+					
+					break
+					
+				case "topCorCITS":
+					
+					// Make a back up copy of the original data in a data folder of the same name
+					backupData(graphName,"T")  // the string in the second variable is appended to wave name after backup up the original data
+					
+					// Function for removing a plane background
+					manipulateCITS(graphName,"topCor")
 					
 					break
 					
@@ -1186,6 +1196,9 @@ Function createSRSControlVariables()
 	// set a low current limit for producing normalised differential conductance
 	Variable/G normConductLim=1e-12
 	
+	// set a low current limit for producing normalised differential conductance
+	Variable/G CITSKappa=1e-11
+	
 	SetDataFolder saveDF
 End
 
@@ -1742,7 +1755,7 @@ Function manipulateCITS(graphname,action)
 	
 	// Get current data folder
 	DFREF saveDF = GetDataFolderDFR()	  // Save
-	
+
 	// Move to the data folder containing the global variables for the graph
 	SetDataFolder root:WinGlobals:$graphName 
 	
@@ -1754,9 +1767,12 @@ Function manipulateCITS(graphname,action)
 		String/G citsDF
 		String/G citsWStr
 		String/G citsWFullStr
-		
+	
 		// make wave assignment to the 3d data set
 		Wave citsW = $citsWFullStr
+		
+		Variable wLength, xLength, yLength, startV, deltaV, bias, current
+		Variable xx,yy,jj
 		
 		strswitch ( action )
 			case "differentiate":
@@ -1788,14 +1804,12 @@ Function manipulateCITS(graphname,action)
 		
 				NVAR normConductLim = root:WinGlobals:SRSSTMControl:normConductLim
 
-				Variable wLength =  DimSize(citsW,2)
-				Variable xLength =  DimSize(citsW,0)
-				Variable yLength =  DimSize(citsW,1)
-				Variable startV =  DimOffset(citsW,2)
-				Variable deltaV =  DimDelta(citsW,2)
-				Variable bias, current
-				
-				Variable xx,yy,jj
+				wLength =  DimSize(citsW,2)
+				xLength =  DimSize(citsW,0)
+				yLength =  DimSize(citsW,1)
+				startV =  DimOffset(citsW,2)
+				deltaV =  DimDelta(citsW,2)
+								
 				for (xx=0;xx<xLength;xx+=1)
 					for (yy=0;yy<yLength;yy+=1)
 						for (jj=0;jj<wLength;jj+=1)
@@ -1820,6 +1834,73 @@ Function manipulateCITS(graphname,action)
 					Print "Warning: Do not know what units to assign to differentiated data"
 					SetScale/I d, 0, 1, "",  citsW
 				endif
+				
+				// Refresh 3D data windows
+				refresh3dData(graphName)
+				break
+				
+			case "topCor":
+				
+				// First choose a 2D image file for the topography
+				SetDataFolder citsDF
+				String imgDF = citsDF
+				
+				// List (2D) waves in current data folder
+				String wList =  WaveList("*",";","DIMS:2") 
+				Variable wNum = ItemsInList(wList)
+	
+				if (wNum!=0)  // check that at least one 2D or 3D data set exists 
+	
+					String imgWStr
+	
+					// Ask user which image they want to work with if there is more than one wave in the data folder
+					// otherwise choose the single wave as the one to use	
+					if (wNum>1)
+						imgWStr= imgChooseDialog(wList,wNum)  // returns the image name, or "none" if user cancels
+					else
+						imgWStr= StringFromList(0,wList,";")  // if there is only one image file don't bother asking the user
+					endif
+		
+					if (cmpstr(imgWStr,"none") != 0)  // check user did not cancel before proceeding
+						String imgWFullStr= imgDF+PossiblyQuoteName(imgWStr)
+	
+						// Create Wave assignment for image
+						Wave imgW= $imgWFullStr
+
+						// Display the data
+						if (WaveDims(imgW)<3)
+							// if a 2D wave then do the following
+							imgDisplay(imgWStr)
+						else
+							// if a 3D wave then do the following
+							img3dDisplay(imgWStr)
+						endif
+					else  // user cancelled
+						Print "Image display cancelled by user" 
+						break
+					endif
+				else
+					Print "Error: no 2D or 3D image data found in the current data folder"
+					break
+				endif
+				
+				SetDataFolder root:WinGlobals:$graphName 
+
+				Duplicate/O citsW, citsWOrig
+		
+				NVAR CITSKappa = root:WinGlobals:SRSSTMControl:CITSKappa
+
+				wLength =  DimSize(citsW,2)
+				xLength =  DimSize(citsW,0)
+				yLength =  DimSize(citsW,1)
+
+				for (xx=0;xx<xLength;xx+=1)
+					for (yy=0;yy<yLength;yy+=1)
+						for (jj=0;jj<wLength;jj+=1)
+							citsW[xx][yy][jj] =  citsWOrig[xx][yy][jj] * Exp(-2 * CITSkappa * imgW[xx][yy])
+						endfor
+					endfor
+				endfor
 				
 				// Refresh 3D data windows
 				refresh3dData(graphName)

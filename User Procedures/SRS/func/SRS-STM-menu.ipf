@@ -79,6 +79,9 @@ Menu "STM", dynamic
 		Submenu "CITS tools"
 			"Differentiate CITS", doSomethingWithData("differentiateCITS")
 			"-"
+			"Topography correct CITS", doSomethingWithData("topCorCITS")
+			setControlMenuItem("kappaForCITSCorrect"), setControlMenuItemCITSKappa()
+			"-"
 			"FFTCITS", doSomethingWithData("FFTCITS")
 			"-"
 			"\\M0::Normalised differential conductance, i.e., (dI/dV)/(I/V)", doSomethingWithData("differentiateNormalisedCITS")
@@ -421,6 +424,10 @@ Function/S setControlMenuItem(controlVariable)
 			NVAR normConductLim = root:WinGlobals:SRSSTMControl:normConductLim
 			returnStr = "Low current cut off for normalised diferential conductance, "+num2str(normConductLim) 
 			break
+		case "kappaForCITSCorrect":
+			NVAR CITSKappa = root:WinGlobals:SRSSTMControl:CITSKappa
+			returnStr = "Kappa value for CITS correction, "+num2str(CITSKappa) 
+			break
 		case "autoUpdateImageColour":
 			strswitch(state)
 				case "yes":
@@ -477,10 +484,21 @@ Function setControlMenuItemNormCondLim()
 	NVAR normConductLim = root:WinGlobals:SRSSTMControl:normConductLim
 	Variable lim = normConductLim
 	Prompt lim, "Enter the low current limit for normalised dI dV"
-	DoPrompt "Se low current limit for normalised differential conductance", lim
+	DoPrompt "Set low current limit for normalised differential conductance", lim
 	if (V_Flag)
 		return -1 //user cancelled
 	endif
 	normConductLim = lim
 End
 
+Function setControlMenuItemCITSKappa()
+	createSRSControlVariables()
+	NVAR CITSKappa = root:WinGlobals:SRSSTMControl:CITSKappa
+	Variable kappa = CITSKappa
+	Prompt kappa, "Enter the Kappa value"
+	DoPrompt "Set the Kappa value", kappa
+	if (V_Flag)
+		return -1 //user cancelled
+	endif
+	CITSKappa = kappa
+End
