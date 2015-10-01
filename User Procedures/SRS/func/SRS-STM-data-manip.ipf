@@ -384,6 +384,16 @@ Function doSomethingWithData(actionType)
 					manipulateCITS(graphName,"topCor")
 					
 					break
+				
+				case "topCorCITSdeltaz":
+					
+					// Make a back up copy of the original data in a data folder of the same name
+					backupData(graphName,"T")  // the string in the second variable is appended to wave name after backup up the original data
+					
+					// Function for removing a plane background
+					manipulateCITS(graphName,"topCordeltaz")
+					
+					break
 					
 				case "differentiateNormalisedCITS":
 					
@@ -1767,7 +1777,16 @@ Function manipulateCITS(graphname,action)
 		String/G citsDF
 		String/G citsWStr
 		String/G citsWFullStr
-	
+		
+		String imgWFullStr
+		String imgWStr
+		String imgDF
+		
+		String wList
+		Variable wNum
+		
+		Variable kappa = 0
+		
 		// make wave assignment to the 3d data set
 		Wave citsW = $citsWFullStr
 		
@@ -1843,15 +1862,13 @@ Function manipulateCITS(graphname,action)
 				
 				// First choose a 2D image file for the topography
 				SetDataFolder citsDF
-				String imgDF = citsDF
+				imgDF = citsDF
 				
 				// List (2D) waves in current data folder
-				String wList =  WaveList("*",";","DIMS:2") 
-				Variable wNum = ItemsInList(wList)
+				wList =  WaveList("*",";","DIMS:2") 
+				wNum = ItemsInList(wList)
 	
 				if (wNum!=0)  // check that at least one 2D or 3D data set exists 
-	
-					String imgWStr
 	
 					// Ask user which image they want to work with if there is more than one wave in the data folder
 					// otherwise choose the single wave as the one to use	
@@ -1862,7 +1879,7 @@ Function manipulateCITS(graphname,action)
 					endif
 		
 					if (cmpstr(imgWStr,"none") != 0)  // check user did not cancel before proceeding
-						String imgWFullStr= imgDF+PossiblyQuoteName(imgWStr)
+						imgWFullStr= imgDF+PossiblyQuoteName(imgWStr)
 	
 						// Create Wave assignment for image
 						Wave imgW= $imgWFullStr
@@ -1889,7 +1906,8 @@ Function manipulateCITS(graphname,action)
 				Duplicate/O citsW, citsWOrig
 		
 				NVAR CITSKappa = root:WinGlobals:SRSSTMControl:CITSKappa
-
+				kappa = CITSKappa
+				
 				wLength =  DimSize(citsW,2)
 				xLength =  DimSize(citsW,0)
 				yLength =  DimSize(citsW,1)
@@ -1897,7 +1915,83 @@ Function manipulateCITS(graphname,action)
 				for (xx=0;xx<xLength;xx+=1)
 					for (yy=0;yy<yLength;yy+=1)
 						for (jj=0;jj<wLength;jj+=1)
-							citsW[xx][yy][jj] =  citsWOrig[xx][yy][jj] / Exp(-2 * CITSkappa * imgW[xx][yy])
+							citsW[xx][yy][jj] =  citsWOrig[xx][yy][jj] / Exp(-2 * kappa * imgW[xx][yy])
+						endfor
+					endfor
+				endfor
+				
+				// Refresh 3D data windows
+				refresh3dData(graphName)
+				break
+			
+			case "topCordeltaz":
+				
+				// First choose a 2D image file for the topography
+				SetDataFolder citsDF
+				imgDF = citsDF
+				
+				// List (2D) waves in current data folder
+				wList =  WaveList("*",";","DIMS:2") 
+				wNum = ItemsInList(wList)
+	
+				if (wNum!=0)  // check that at least one 2D or 3D data set exists 
+	
+					// Ask user which image they want to work with if there is more than one wave in the data folder
+					// otherwise choose the single wave as the one to use	
+					if (wNum>1)
+						imgWStr= imgChooseDialog(wList,wNum)  // returns the image name, or "none" if user cancels
+					else
+						imgWStr= StringFromList(0,wList,";")  // if there is only one image file don't bother asking the user
+					endif
+		
+					if (cmpstr(imgWStr,"none") != 0)  // check user did not cancel before proceeding
+						imgWFullStr= imgDF+PossiblyQuoteName(imgWStr)
+	
+						// Create Wave assignment for image
+						Wave imgW= $imgWFullStr
+
+						// Display the data
+						if (WaveDims(imgW)<3)
+							// if a 2D wave then do the following
+							imgDisplay(imgWStr)
+							Duplicate/O imgW, kappaW
+						else
+							// if a 3D wave then do the following
+							img3dDisplay(imgWStr)
+						endif
+					else  // user cancelled
+						Print "Image display cancelled by user" 
+						break
+					endif
+				else
+					Print "Error: no 2D or 3D image data found in the current data folder"
+					break
+				endif
+				
+				SetDataFolder root:WinGlobals:$graphName 
+				
+				Duplicate/O citsW, citsWOrig
+		
+				wLength =  DimSize(citsW,2)
+				xLength =  DimSize(citsW,0)
+				yLength =  DimSize(citsW,1)
+				
+				// get the default image set point from image note
+				String imgInfoFromNote = note(imgW)
+				String setpointStr = StringByKey("Setpoint",imgInfoFromNote)
+				
+				Variable currentsetpoint=str2num(setpointStr)
+				Variable deltaz=50e-12
+				Prompt currentsetpoint, "Image current set point (in Amps)"
+				Prompt deltaz, "Delta z applied during CITS acquisition (in metres)"
+				DoPrompt "Image set point current and delta z value", currentsetpoint, deltaz
+		
+				for (xx=0;xx<xLength;xx+=1)
+					for (yy=0;yy<yLength;yy+=1)
+						for (jj=0;jj<wLength;jj+=1)
+							kappa = (ln(Abs(citsW[xx][yy][0])) - ln(currentsetpoint))/deltaz
+							kappaW[xx][yy] = kappa
+							citsW[xx][yy][jj] =  citsWOrig[xx][yy][jj] / Exp(-2 * kappa * imgW[xx][yy])
 						endfor
 					endfor
 				endfor

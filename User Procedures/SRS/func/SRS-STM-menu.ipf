@@ -79,8 +79,10 @@ Menu "STM", dynamic
 		Submenu "CITS tools"
 			"Differentiate CITS", doSomethingWithData("differentiateCITS")
 			"-"
-			"Topography correct CITS", doSomethingWithData("topCorCITS")
+			"Topography correct CITS - fixed kappa", doSomethingWithData("topCorCITS")
+			"Topography correct CITS - using delta z", doSomethingWithData("topCorCITSdeltaz")
 			setControlMenuItem("kappaForCITSCorrect"), setControlMenuItemCITSKappa()
+			
 			"-"
 			"FFTCITS", doSomethingWithData("FFTCITS")
 			"-"
