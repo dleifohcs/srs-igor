@@ -86,7 +86,7 @@ Menu "Line Trace"
 		"Differentiate all traces",DoSomethingToAllTracesInGraph("",type="differentiate")
 		"--"
 		"\\M0::Normalised differential conductance, i.e., (dI/dV)/(I/V)",DoSomethingToAllTracesInGraph("",type="differentiateNormalised")
-		setControlMenuItem("normConductanceCurrentLimit"), setControlMenuItemNormCondLim()
+		//setControlMenuItem("normConductanceCurrentLimit"), setControlMenuItemNormCondLim()
 		"-"
 		"Shift x-axis for all traces", ShiftTracesInGraph("")
 		"-"
@@ -100,4 +100,9 @@ Menu "Line Trace"
 	
 	"-"
 	"About", SRSSPECSAbout()
+	
+	
+	
 End
+
+
