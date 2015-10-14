@@ -168,6 +168,9 @@ Function SRSLoadData(pathStr,filenameStr)
 		case "testo":
 			loadTestoLogData(pathStr, filenameStr)
 			break
+		case "PARCHG":
+			loadPARCHG(pathStr, filenameStr)
+			break
 		default:
 			returnVar = 0
 			Print "SRS macro package does not know this file extension type; handing file back to Igor file loader"
@@ -2826,4 +2829,259 @@ Function loadTestoLogData( path, filename )
 	Label right "Humidity"
 
 	DoUpdate
+End
+
+
+
+//------------------------------------------------------------------------------------------------------------------------------------
+// Load VASP PARCHG
+//------------------------------------------------------------------------------------------------------------------------------------
+Function loadPARCHG(pathStr,filenameStr)
+	String pathStr, filenameStr
+	Variable lineCount=0
+		
+	// Save current DF
+	String saveDF = GetDataFolder(1)
+	
+	// Make  DF to load data into 
+	NewDataFolder/O/S root:PARCHG
+	
+	Variable i			// used in for loops
+	Variable refNum		// used for the file identification
+	String buffer
+	
+	// Combine path and filename into a single string 
+	String FullFileNameStr = pathStr+filenameStr
+	
+	// Open data file
+	Open/R/Z=1 refNum as FullFileNameStr
+	String/G filename = S_fileName
+	Variable err = V_flag
+	if ( err )
+		Print "ERROR: unable to open the PARCHG file for reading. Aborting."
+		return 1
+	endif
+	
+	// Output that we're beginning the file load 
+	Print " "
+	Print "Loading PARCHG file" 
+	
+	// -----------------------------------------
+	// SECTION 1: HEADER
+	// -----------------------------------------
+	
+	String/G headerStr
+
+	// read the header line and write to screen	
+	FReadLine refnum, headerStr
+	FReadLine refnum, buffer
+	Variable/G header_unknown = str2num(buffer)
+	lineCount = lineCount + 2
+	
+	// -----------------------------------------
+	// SECTION 2: unit cell
+	// -----------------------------------------
+	Variable d1, d2, d3, d4, d5, d6, d7, d8, d9, d10
+	Make/O/N=(3,3) unitcell
+	for ( i=0; i<3; i+=1)
+		FReadLine refnum, buffer
+		sscanf buffer, "%f %f %f", d1, d2, d3
+		unitcell[i][0]=d1
+		unitcell[i][1]=d2
+		unitcell[i][2]=d3
+	endfor
+	lineCount = lineCount+i
+	
+	// -----------------------------------------
+	// SECTION 3: element types
+	// -----------------------------------------
+	FReadLine refnum, buffer
+	lineCount = lineCount+1
+	String ds1, ds2, ds3, ds4, ds5, ds6, ds7, ds8, ds9
+	sscanf buffer, "%s %s %s %s %s %s %s %s %s", ds1, ds2, ds3, ds4, ds5, ds6, ds7, ds8, ds9
+	Make/T/O/N=9 dummyStrWave
+	dummyStrWave[0]=ds1
+	dummyStrWave[1]=ds2
+	dummyStrWave[2]=ds3
+	dummyStrWave[3]=ds4
+	dummyStrWave[4]=ds5
+	dummyStrWave[5]=ds6
+	dummyStrWave[6]=ds7
+	dummyStrWave[7]=ds8
+	dummyStrWave[8]=ds9
+	for ( i=0; i<9; i+=1 )
+		if (strlen(dummyStrWave[i])==0)
+			break
+		endif
+	endfor
+	if (strlen(dummyStrWave[8])!=0 )
+		Print "WARNING: this loader can handle a maximum of 9 element types; if you have more you need to edit this loader"
+	endif 
+	Variable/G numElem = i
+	Make/T/O/N=(numElem) elements
+	elements[]=dummyStrWave[p]
+	KillWaves/Z dummyStrWave
+	
+	// -----------------------------------------
+	// SECTION 4: number of atoms
+	// -----------------------------------------
+	FReadLine refnum, buffer
+	lineCount = lineCount+1
+	sscanf buffer, "%s %s %s %s %s %s %s %s %s", ds1, ds2, ds3, ds4, ds5, ds6, ds7, ds8, ds9
+	d1 = str2num (ds1)
+	Make/O/N=(9) dummyWave
+	Wave dummyWave
+	dummyWave[0]=str2num(ds1)
+	dummyWave[1]=str2num(ds2)
+	dummyWave[2]=str2num(ds3)
+	dummyWave[3]=str2num(ds4)
+	dummyWave[4]=str2num(ds5)
+	dummyWave[5]=str2num(ds6)
+	dummyWave[6]=str2num(ds7)
+	dummyWave[7]=str2num(ds8)
+	dummyWave[8]=str2num(ds9)
+	Make/O/N=(numElem) atomNumbers
+	atomNumbers=dummyWave[p]
+	KillWaves/Z dummyWave
+	Variable/G totalAtoms = Sum(atomNumbers)
+	
+	FReadLine refnum, buffer
+	String/G unitcell_type = buffer
+	lineCount = lineCount+1
+	String/G unitCellType = buffer
+	
+	// -----------------------------------------
+	// SECTION 5: read atoms.
+	// -----------------------------------------
+	
+	Make/O/N=(totalAtoms,3) xyz
+	for ( i=0; i<totalAtoms; i+=1 )
+		FReadLine refnum, buffer
+		sscanf buffer, "%f %f %f", d1, d2, d3
+		xyz[i][0]=d1
+		xyz[i][1]=d2
+		xyz[i][2]=d3
+	endfor
+	lineCount = lineCount+i
+	
+	// -----------------------------------------
+	// SECTION 5: read PARCHG
+	// -----------------------------------------
+	
+	//Blank line
+	FReadLine refnum, buffer
+	
+	// PARCHG dimensions
+	FReadLine refnum, buffer
+	sscanf buffer, "%f %f %f", d1, d2, d3
+	Make/O/N=3 dimPARCHG
+	dimPARCHG[0] = d1
+	dimPARCHG[1] = d2
+	dimPARCHG[2] = d3
+	Variable numData = dimPARCHG[0] * dimPARCHG[1] * dimPARCHG[2]
+	lineCount = lineCount+2
+	
+	Close refnum
+	
+	// USE IGOR Procedure to load PARCHG data
+	LoadWave/J/Q/D/N=wave/O/K=1/V={" "," $",0,0}/L={0,lineCount,0,1,0} FullFileNameStr
+	Wave wave0, wave1, wave2, wave3, wave4, wave5, wave6, wave7, wave8, wave9
+	Variable dataLen = DimSize(wave0,0)
+	Make/O/N=(dataLen,10) PARCHG
+	PARCHG[][0] = wave0[p]
+	PARCHG[][1] = wave1[p]
+	PARCHG[][2] = wave2[p]
+	PARCHG[][3] = wave3[p]
+	PARCHG[][4] = wave4[p]
+	PARCHG[][5] = wave5[p]
+	PARCHG[][6] = wave6[p]
+	PARCHG[][7] = wave7[p]
+	PARCHG[][8] = wave8[p]
+	PARCHG[][9] = wave9[p]
+	KillWaves/Z wave0, wave1, wave2, wave3, wave4, wave5, wave6, wave7, wave8, wave9
+	Duplicate/O PARCHG, $filenameStr
+	MatrixTranspose PARCHG
+	Redimension/N=(numData) PARCHG
+	Redimension/N=(dimPARCHG[0], dimPARCHG[1], dimPARCHG[2]) PARCHG
+	// end
+	Print "done"
+End
+
+
+//------------------------------------------------------------------------------------------------------------------------------------
+// Load VASP PARCHG
+//------------------------------------------------------------------------------------------------------------------------------------
+Function savePARCHG(fullFileNameStr)
+	String fullFileNameStr
+			
+	// Save current DF
+	String saveDF = GetDataFolder(1)
+	
+	Variable i			// used in for loops
+	Variable refNum		// used for the file identification
+	
+	// Open data file
+	Open/Z=1 refNum as fullFileNameStr
+	Variable err = V_flag
+	if ( err )
+		Print "ERROR: unable to open the PARCHG file for writing. Aborting."
+		return 1
+	endif
+	
+	// Output that we're beginning the file load 
+	Print " "
+	Print "Saving PARCHG file" 
+	
+	String tab_space = "    "
+	// -----------------------------------------
+	// SECTION 1: HEADER
+	// -----------------------------------------
+	
+	
+	String/G headerStr
+	Variable/G header_unknown
+	
+	fprintf refnum, "%s\n", headerStr
+	fprintf refnum, "%s%f\n", tab_space, header_unknown
+	
+	Wave unitcell
+	
+	fprintf refnum, "%s%f %f %f\n", tab_space, unitcell[0][0], unitcell[0][1], unitcell[0][2]
+	fprintf refnum, "%s%f %f %f\n", tab_space, unitcell[1][0], unitcell[1][1], unitcell[1][2]
+	fprintf refnum, "%s%f %f %f\n", tab_space, unitcell[2][0], unitcell[2][1], unitcell[2][2]
+	
+	Wave/T elements
+	Variable/G numElem
+	
+	fprintf refnum, "%s", tab_space
+	for ( i=0; i< numElem; i+=1 )
+		fprintf refnum, "%s ", elements[i]
+	endfor
+	fprintf refnum, "\n"
+	
+	fprintf refnum, "%s", tab_space
+	Wave atomNumbers
+	for ( i=0; i< numElem; i+=1 )
+		fprintf refnum, "%d ", atomNumbers[i]
+	endfor
+	fprintf refnum, "\n"
+	
+	String/G unitcell_type
+	fprintf refnum, "%s\n", unitcell_type
+	
+	Wave xyz
+	Variable/G totalAtoms
+	for ( i=0; i<totalAtoms; i+=1 )
+		fprintf refnum, "  %f  %f %f\n", xyz[i][0], xyz[i][1], xyz[i][2]
+	endfor
+	
+	fprintf refnum, "\n"
+	
+	Wave dimPARCHG
+	fprintf refnum, "   %d %d %d\n", dimPARCHG[0], dimPARCHG[1], dimPARCHG[2]
+	Close refnum
+	
+	Wave PARCHG
+	Save/A=2/G/F/M="\n" PARCHG as fullFileNameStr
+
 End
