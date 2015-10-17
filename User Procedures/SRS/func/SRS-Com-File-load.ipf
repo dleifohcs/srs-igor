@@ -2838,8 +2838,12 @@ End
 //------------------------------------------------------------------------------------------------------------------------------------
 Function loadPARCHG(pathStr,filenameStr)
 	String pathStr, filenameStr
-	Variable lineCount=0
-		
+	Variable/G lineCount=0
+	
+	String fileNameForWaves = ParseFilePath(3, filenameStr, ":", 0, 0)
+	fileNameForWaves = removeBadChars(fileNameForWaves)
+	fileNameForWaves = removeSpace(fileNameForWaves)
+	
 	// Save current DF
 	String saveDF = GetDataFolder(1)
 	
@@ -2851,11 +2855,10 @@ Function loadPARCHG(pathStr,filenameStr)
 	String buffer
 	
 	// Combine path and filename into a single string 
-	String FullFileNameStr = pathStr+filenameStr
+	String/G FullFileNameStr = pathStr+filenameStr
 	
 	// Open data file
 	Open/R/Z=1 refNum as FullFileNameStr
-	String/G filename = S_fileName
 	Variable err = V_flag
 	if ( err )
 		Print "ERROR: unable to open the PARCHG file for reading. Aborting."
@@ -2984,26 +2987,32 @@ Function loadPARCHG(pathStr,filenameStr)
 	Close refnum
 	
 	// USE IGOR Procedure to load PARCHG data
-	LoadWave/J/Q/D/N=wave/O/K=1/V={" "," $",0,0}/L={0,lineCount,0,1,0} FullFileNameStr
+	//LoadWave/J/Q/D/N=wave/O/K=1/V={"\t, "," $",0,0}/L={0,lineCount,0,1,0} FullFileNameStr
+	LoadWave/J/Q/D/K=0/A=wave/V={"\t, "," $",0,0}/L={0,lineCount,0,0,0} FullFileNameStr
 	Wave wave0, wave1, wave2, wave3, wave4, wave5, wave6, wave7, wave8, wave9
-	Variable dataLen = DimSize(wave0,0)
-	Make/O/N=(dataLen,10) PARCHG
-	PARCHG[][0] = wave0[p]
-	PARCHG[][1] = wave1[p]
-	PARCHG[][2] = wave2[p]
-	PARCHG[][3] = wave3[p]
-	PARCHG[][4] = wave4[p]
-	PARCHG[][5] = wave5[p]
-	PARCHG[][6] = wave6[p]
-	PARCHG[][7] = wave7[p]
-	PARCHG[][8] = wave8[p]
-	PARCHG[][9] = wave9[p]
+	Variable/G dataLen = DimSize(wave0,0)
+	Make/O/N=(dataLen,10) PARCHG_3D
+	PARCHG_3D[][0] = wave0[p]
+	PARCHG_3D[][1] = wave1[p]
+	PARCHG_3D[][2] = wave2[p]
+	PARCHG_3D[][3] = wave3[p]
+	PARCHG_3D[][4] = wave4[p]
+	PARCHG_3D[][5] = wave5[p]
+	PARCHG_3D[][6] = wave6[p]
+	PARCHG_3D[][7] = wave7[p]
+	PARCHG_3D[][8] = wave8[p]
+	PARCHG_3D[][9] = wave9[p]
 	KillWaves/Z wave0, wave1, wave2, wave3, wave4, wave5, wave6, wave7, wave8, wave9
-	Duplicate/O PARCHG, $filenameStr
-	MatrixTranspose PARCHG
-	Redimension/N=(numData) PARCHG
-	Redimension/N=(dimPARCHG[0], dimPARCHG[1], dimPARCHG[2]) PARCHG
+	Duplicate/O PARCHG_3D, PARCHG
+	MatrixTranspose PARCHG_3D
+	Redimension/N=(numData) PARCHG_3D
+	Redimension/N=(dimPARCHG[0], dimPARCHG[1], dimPARCHG[2]) PARCHG_3D
 	// end
+	
+	KillDataFolder/Z root:$fileNameForWaves
+	DuplicateDataFolder root:PARCHG, root:$fileNameForWaves
+	KillDataFolder/Z root:PARCHG
+	
 	Print "done"
 End
 
@@ -3013,7 +3022,11 @@ End
 //------------------------------------------------------------------------------------------------------------------------------------
 Function savePARCHG(fullFileNameStr)
 	String fullFileNameStr
-			
+	fullFileNameStr = fullFileNameStr
+	
+	String path = ParseFilePath(1, fullfilenameStr, ":", 1, 0)
+	String outputFileName = path+"Igor.PARCHG"
+	
 	// Save current DF
 	String saveDF = GetDataFolder(1)
 	
@@ -3021,7 +3034,7 @@ Function savePARCHG(fullFileNameStr)
 	Variable refNum		// used for the file identification
 	
 	// Open data file
-	Open/Z=1 refNum as fullFileNameStr
+	Open/Z=1 refNum as outputFileName
 	Variable err = V_flag
 	if ( err )
 		Print "ERROR: unable to open the PARCHG file for writing. Aborting."
@@ -3082,6 +3095,6 @@ Function savePARCHG(fullFileNameStr)
 	Close refnum
 	
 	Wave PARCHG
-	Save/A=2/G/F/M="\n" PARCHG as fullFileNameStr
+	Save/A=2/G/F/M="\n" PARCHG as outputFileName
 
 End
