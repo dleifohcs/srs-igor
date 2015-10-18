@@ -593,8 +593,15 @@ Function citsZPanelUpdate(ctrlName,varNum,varStr,varName) : SetVariableControl
 	
 	// This allows menu control over whether or not to update the colour range of the CITS
 	SVAR autoUpdateCITSColour = root:WinGlobals:SRSSTMControl:autoUpdateCITSColour
+	SVAR autoUpdateCITSColourExp = root:WinGlobals:SRSSTMControl:autoUpdateCITSColourExp
 	
-	changeColour(graphName,colour="keep",changeScale=autoUpdateCITSColour)
+	if ( cmpstr(autoUpdateCITSColour,"yes")==0)
+		changeColour(graphName,colour="keep",changeScale=autoUpdateCITSColour)
+	endif
+	
+	if ( cmpstr(autoUpdateCITSColourExp,"yes")==0) )
+		updateColourRangeByHist("",type="exp")
+	endif 
 	
 	// Return to starting data folder
 	SetDataFolder saveDF

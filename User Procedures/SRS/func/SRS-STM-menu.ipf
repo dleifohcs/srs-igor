@@ -156,6 +156,7 @@ Menu "STM", dynamic
 			"-"
 			// setControlMenuItem("autoUpdateImageColour"), toggleAutoImageColour()
 			setControlMenuItem("autoUpdateCITSColour"), toggleAutoCITSColour()
+			setControlMenuItem("autoUpdateCITSColourExp"), toggleAutoCITSColourExp()
 		End
 		"-"
 		"About", SRSSTMAbout()
@@ -208,10 +209,25 @@ End
 Function toggleAutoCITSColour()
 	createSRSControlVariables()
 	SVAR autoUpdateCITSColour = root:WinGlobals:SRSSTMControl:autoUpdateCITSColour
+	SVAR autoUpdateCITSColourExp = root:WinGlobals:SRSSTMControl:autoUpdateCITSColourExp
 	if (cmpstr(autoUpdateCITSColour,"yes")==0)
 		autoUpdateCITSColour = "no"
 	else
 		autoUpdateCITSColour = "yes"
+		autoUpdateCITSColourExp = "no"
+	endif
+End
+
+// set global variable for programme control
+Function toggleAutoCITSColourExp()
+	createSRSControlVariables()
+	SVAR autoUpdateCITSColour = root:WinGlobals:SRSSTMControl:autoUpdateCITSColour
+	SVAR autoUpdateCITSColourExp = root:WinGlobals:SRSSTMControl:autoUpdateCITSColourExp
+	if (cmpstr(autoUpdateCITSColourExp,"yes")==0)
+		autoUpdateCITSColourExp = "no"
+	else
+		autoUpdateCITSColourExp = "yes"
+		autoUpdateCITSColour = "no"
 	endif
 End
 
@@ -450,6 +466,19 @@ Function/S setControlMenuItem(controlVariable)
 					break
 				case "no":
 					returnStr = "Auto update CITS colour range"
+					break
+				default:
+					returnStr = "error 1"
+					break
+			endswitch
+			break
+		case "autoUpdateCITSColourExp":
+			strswitch(state)
+				case "no":
+					returnStr = "Auto update CITS colour range by exponential fit"
+					break
+				case "yes":
+					returnStr = "Auto update CITS colour range by exponential fit!"+num2char(18) 
 					break
 				default:
 					returnStr = "error 1"

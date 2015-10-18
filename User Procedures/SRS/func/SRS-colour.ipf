@@ -308,32 +308,31 @@ Function updateColourRangeByHist(graphName, [type])
 		type = "gauss"
 	endif
 	
-	display1D(histName)
+	//display1D(histName)
 	
 	Variable x0, width
 	strswitch(type)
 		case "gauss":
-			CurveFit/Q/M=2/W=0 gauss, $histName/D
+			CurveFit/N/Q/M=2/W=0 gauss, $histName/D
 			Wave W_coef
 			x0 = W_coef[2]
 			width = W_coef[3]
 			break
 		case "exp":
-			CurveFit/Q/M=2/W=0 exp, $histName/D
+			CurveFit/N/Q/M=2/W=0 exp, $histName/D
 			Wave W_coef
 			x0 = 5/W_coef[2]
 			width = 5/W_coef[2]
 			break
 		default: // same as gauss
-			CurveFit/Q/M=2/W=0 gauss, $histName/D
+			CurveFit/N/Q/M=2/W=0 gauss, $histName/D
 			Wave W_coef
 			x0 = W_coef[2]
 			width = W_coef[3]
 			break
 	endswitch
 			
-	KillWindow $WinName(0,1)
-	
+	//KillWindow $WinName(0,1)
 	
 	Variable/G ctabwMin = x0 - width
 	Variable/G ctabwMax = x0 + width
@@ -344,7 +343,7 @@ Function updateColourRangeByHist(graphName, [type])
 	// Apply colour table to the image being displayed
 	ModifyImage/W=$graphName $imgWStr cindex=root:WinGlobals:$(graphName):ctab
 	
-	Print "Min= ", ctabwMin, "Max= ", ctabwMax, "Range= ", (ctabwMax-ctabwMin)
+	//Print "Min= ", ctabwMin, "Max= ", ctabwMax, "Range= ", (ctabwMax-ctabwMin)
 	// Move back to original DF
 	SetDataFolder saveDF
 End

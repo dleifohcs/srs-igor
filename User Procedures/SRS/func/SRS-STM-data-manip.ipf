@@ -376,9 +376,9 @@ Function doSomethingWithData(actionType)
 					break
 					
 				case "topCorCITS":
-					
+					Print ""
 					Print "NOTICE: Please ensure that you have applied the mean background subtraction to your topography image."
-					
+					Print ""
 					// Make a back up copy of the original data in a data folder of the same name
 					backupData(graphName,"T")  // the string in the second variable is appended to wave name after backup up the original data
 					
@@ -388,9 +388,9 @@ Function doSomethingWithData(actionType)
 					break
 				
 				case "topCorCITSdeltaz":
-					
+					Print ""
 					Print "NOTICE: Please ensure that you have applied the mean background subtraction to your topography image."
-					
+					Print ""
 					// Make a back up copy of the original data in a data folder of the same name
 					backupData(graphName,"T")  // the string in the second variable is appended to wave name after backup up the original data
 					
@@ -1178,6 +1178,12 @@ Function createSRSControlVariables()
 	String/G autoUpdateCITSColour
 	if (strlen(autoUpdateCITSColour)==0)
 		autoUpdateCITSColour = "yes"
+	endif
+	
+	// make a toggle for automatically updating CITS colour range or not
+	String/G autoUpdateCITSColourExp
+	if (strlen(autoUpdateCITSColourExp)==0)
+		autoUpdateCITSColourExp = "no"
 	endif
 	
 	String/G defaultImageColours
@@ -2026,16 +2032,27 @@ Function manipulateCITS(graphname,action)
 Print "cits fft (don't work properly yet...)"
 
 				String/G citsFFTrWStr = citsWStr+"Fr"
-				String/G citsFFTcWStr = citsWStr+"Fc"
+				//String/G citsFFTcWStr = citsWStr+"Fc"
 				
 				// Move to the data data folder to duplicate the 
 				SetDataFolder citsDF
 				
+				Redimension/C citsW
+					
+				// Compute the FFT magnitude
 				FFT/MAG/DEST=$citsFFTrWStr citsW
-				FFT/DEST=$citsFFTcWStr citsW
+				Wave FFTcitsW = $citsFFTrWStr
+				//FFT/DEST=$citsFFTcWStr citsW
 				
+				// Change the original CITS wave back to real
+				Redimension/R citsW
+				
+				// Display the resulting FFT wave.		
+				img3dDisplay(citsFFTrWStr)
+					
 				// Move to the data folder containing the global variables for the graph
 				SetDataFolder root:WinGlobals:$graphName 
+				
 				break
 				
 			case "extractImages":
