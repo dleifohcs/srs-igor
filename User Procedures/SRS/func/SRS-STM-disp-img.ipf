@@ -599,7 +599,7 @@ Function citsZPanelUpdate(ctrlName,varNum,varStr,varName) : SetVariableControl
 		changeColour(graphName,colour="keep",changeScale=autoUpdateCITSColour)
 	endif
 	
-	if ( cmpstr(autoUpdateCITSColourExp,"yes")==0) )
+	if ( cmpstr(autoUpdateCITSColourExp,"yes")==0 )
 		updateColourRangeByHist("",type="exp")
 	endif 
 	
