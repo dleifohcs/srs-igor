@@ -377,6 +377,8 @@ Function doSomethingWithData(actionType)
 					
 				case "topCorCITS":
 					
+					Print "NOTICE: Please ensure that you have applied the mean background subtraction to your topography image."
+					
 					// Make a back up copy of the original data in a data folder of the same name
 					backupData(graphName,"T")  // the string in the second variable is appended to wave name after backup up the original data
 					
@@ -386,6 +388,8 @@ Function doSomethingWithData(actionType)
 					break
 				
 				case "topCorCITSdeltaz":
+					
+					Print "NOTICE: Please ensure that you have applied the mean background subtraction to your topography image."
 					
 					// Make a back up copy of the original data in a data folder of the same name
 					backupData(graphName,"T")  // the string in the second variable is appended to wave name after backup up the original data
