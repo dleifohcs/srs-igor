@@ -2028,8 +2028,6 @@ Function manipulateCITS(graphname,action)
 				break
 				
 			case "FFTCITS":
-			
-Print "cits fft (don't work properly yet...)"
 
 				String/G citsFFTrWStr = citsWStr+"Fr"
 				//String/G citsFFTcWStr = citsWStr+"Fc"
@@ -2047,9 +2045,15 @@ Print "cits fft (don't work properly yet...)"
 				// Change the original CITS wave back to real
 				Redimension/R citsW
 				
+				// Copy wave scaling
+				Variable startcitsV = DimOffset(citsW,2)
+				Variable deltacitsV = DimDelta(citsW,2)
+
+				SetScale/P z, startcitsV, deltacitsV, FFTcitsW
+				
 				// Display the resulting FFT wave.		
 				img3dDisplay(citsFFTrWStr)
-					
+				
 				// Move to the data folder containing the global variables for the graph
 				SetDataFolder root:WinGlobals:$graphName 
 				
