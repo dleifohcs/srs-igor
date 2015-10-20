@@ -2041,6 +2041,7 @@ Function manipulateCITS(graphname,action)
 				FFT/MAG/DEST=$citsFFTrWStr citsW
 				Wave FFTcitsW = $citsFFTrWStr
 				//FFT/DEST=$citsFFTcWStr citsW
+				Note/NOCR FFTcitsW, "3Dtype:CITSFFT;"
 				
 				// Change the original CITS wave back to real
 				Redimension/R citsW

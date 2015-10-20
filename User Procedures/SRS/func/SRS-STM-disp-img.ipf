@@ -595,8 +595,14 @@ Function citsZPanelUpdate(ctrlName,varNum,varStr,varName) : SetVariableControl
 	SVAR autoUpdateCITSColour = root:WinGlobals:SRSSTMControl:autoUpdateCITSColour
 	SVAR autoUpdateCITSColourExp = root:WinGlobals:SRSSTMControl:autoUpdateCITSColourExp
 	
+	String isFFTwave = " "
 	if ( cmpstr(autoUpdateCITSColour,"yes")==0)
-		changeColour(graphName,colour="keep",changeScale=autoUpdateCITSColour)
+		isFFTwave = StringByKey("3Dtype",note(citsW)) 
+		if (cmpstr(isFFTwave,"CITSFFT")==0)
+			updateColourRangeByHist("",type="exp")
+		else
+			changeColour(graphName,colour="keep",changeScale=autoUpdateCITSColour)
+		endif
 	endif
 	
 	if ( cmpstr(autoUpdateCITSColourExp,"yes")==0 )
