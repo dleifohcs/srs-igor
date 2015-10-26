@@ -157,6 +157,8 @@ Menu "STM", dynamic
 			// setControlMenuItem("autoUpdateImageColour"), toggleAutoImageColour()
 			setControlMenuItem("autoUpdateCITSColour"), toggleAutoCITSColour()
 			setControlMenuItem("autoUpdateCITSColourExp"), toggleAutoCITSColourExp()
+			"-"
+			setControlMenuItem("syncCITS"), togglesyncCITS()
 		End
 		"-"
 		"About", SRSSTMAbout()
@@ -192,8 +194,6 @@ Function toggleAutoDisplay()
 	endif
 End
 
-
-
 // set global variable for programme control
 Function toggleAutoImageColour()
 	createSRSControlVariables()
@@ -202,6 +202,17 @@ Function toggleAutoImageColour()
 		autoUpdateImageColour = "no"
 	else
 		autoUpdateImageColour = "yes"
+	endif
+End
+
+// set global variable for programme control
+Function togglesyncCITS()
+	createSRSControlVariables()
+	SVAR syncCITS = root:WinGlobals:SRSSTMControl:syncCITS
+	if (cmpstr(syncCITS,"yes")==0)
+		syncCITS = "no"
+	else
+		syncCITS = "yes"
 	endif
 End
 
@@ -484,7 +495,20 @@ Function/S setControlMenuItem(controlVariable)
 					returnStr = "error 1"
 					break
 			endswitch
-			break				
+			break		
+		case "syncCITS":
+			strswitch(state)
+				case "no":
+					returnStr = "Sync CITS slices"
+					break
+				case "yes":
+					returnStr = "Sync CITS slices!"+num2char(18) 
+					break
+				default:
+					returnStr = "error 1"
+					break
+			endswitch
+			break		
 		default:
 			returnStr = "error 2"
 			break

@@ -558,65 +558,103 @@ Function citsZPanelUpdate(ctrlName,varNum,varStr,varName) : SetVariableControl
 	// Change data folder to the folder containing the global variables for the image graph
 	SetDataFolder root:WinGlobals:$graphName
 	
-	// Load global variables for wave and data folder
-	String/G citsWStr
-	String/G citsDF
-	String/G citsWFullStr
-	
-	// Wave assignment for 2d and 3d cits waves
-	Wave citsW = $citsWFullStr
-	Wave citsImgW
-	
 	// Get min/max Z slice values
 	Variable/G biasOffset
-	Variable/G biasDelta
+	VarIable/G biasDelta
 	Variable/G zSize
 	
-	strswitch(ctrlName)
-		
-		case "slicePanelVar":
-			// read slice number, calculate bias
-			Variable/G citsZVar
-			Variable/G citsBiasZVar= biasDelta * citsZVar + biasOffset
-		break
-		
-		case "biasPanelVar":
-			// read bias, calculate slice number
-			Variable/G citsBiasZVar
-			Variable/G citsZVar=   Round( (citsBiasZVar - biasOffset) / biasDelta)
-		break
-		
-	endswitch
+	// save the cits slice parameters for determining compatibility of the other cits windows
+	Variable biasOffsetOrig = biasOffset
+	VarIable biasDeltaOrig = biasDelta
+	Variable zSizeOrig = zSize
 
-	// Set the image to be the z=citsZVar slice of the 3d data set
-	citsImgW[][]= citsW[p][q][citsZVar]
+// THIS SHOULD BE MADE A GLOBAL VARIABLE CONTROLLED BY MENU
+	SVAR updateAllCITS = root:WinGlobals:SRSSTMControl:syncCITS
+	Variable CITSwinNum
+  	String CITSwinList 
+  	if (cmpstr(updateAllCITS,"yes")==0)	
+		CITSwinList = WinList("CITS*", ";", "")
+		CITSwinNum = ItemsInList( CITSwinList )
+	else
+		CITSwinNum = 1
+		CITSwinList = graphName
+	endif 
 	
-	// This allows menu control over whether or not to update the colour range of the CITS
-	SVAR autoUpdateCITSColour = root:WinGlobals:SRSSTMControl:autoUpdateCITSColour
-	SVAR autoUpdateCITSColourExp = root:WinGlobals:SRSSTMControl:autoUpdateCITSColourExp
+	Variable i
+	for (i=0; i<CITSwinNum; i+=1)
 	
-	String isFFTwave = " "
-	if ( cmpstr(autoUpdateCITSColour,"yes")==0)
-		isFFTwave = StringByKey("3Dtype",note(citsW)) 
-		if (cmpstr(isFFTwave,"CITSFFT")==0)
-			updateColourRangeByHist("",type="exp")
-		else
-			changeColour(graphName,colour="keep",changeScale=autoUpdateCITSColour)
+		graphName = StringFromList(i,CITSwinList,";")
+
+		// Change data folder to the folder containing the global variables for the image graph
+		SetDataFolder root:WinGlobals:$graphName
+	
+		// Load global variables for wave and data folder
+		String/G citsWStr
+		String/G citsDF
+		String/G citsWFullStr
+	
+		// Wave assignment for 2d and 3d cits waves
+		Wave citsW = $citsWFullStr
+		Wave citsImgW
+	
+		// Get min/max Z slice values
+		Variable/G biasOffset
+		VarIable/G biasDelta
+		Variable/G zSize
+	
+		if ( i==0 )  // this is the panel that is being controlled 
+		  strswitch(ctrlName)
+		
+			case "slicePanelVar":
+				// read slice number, calculate bias
+				Variable/G citsZVar
+				Variable/G citsBiasZVar= biasDelta * citsZVar + biasOffset
+			break
+		
+			case "biasPanelVar":
+				// read bias, calculate slice number
+				Variable/G citsBiasZVar
+				Variable/G citsZVar=   Round( (citsBiasZVar - biasOffset) / biasDelta)
+			break
+
+		  endswitch
+		  
+ 		  Variable savecitsZVar = citsZVar
+		  Variable savecitsBiasZVar = citsBiasZVar
+		
+		else  // these are all other panels. 
+		
+			Variable/G citsZVar = savecitsZVar
+			Variable/G citsBiasZVar = savecitsBiasZVar
+			
 		endif
-	endif
+
+		// Set the image to be the z=citsZVar slice of the 3d data set
+		citsImgW[][]= citsW[p][q][citsZVar]
+	
+		// This allows menu control over whether or not to update the colour range of the CITS
+		SVAR autoUpdateCITSColour = root:WinGlobals:SRSSTMControl:autoUpdateCITSColour
+		SVAR autoUpdateCITSColourExp = root:WinGlobals:SRSSTMControl:autoUpdateCITSColourExp
+	
+		String isFFTwave = " "
+		if ( cmpstr(autoUpdateCITSColour,"yes")==0)
+			isFFTwave = StringByKey("3Dtype",note(citsW)) 
+			if (cmpstr(isFFTwave,"CITSFFT")==0)
+				updateColourRangeByHist(graphName,type="exp")
+			else
+				changeColour(graphName,colour="keep",changeScale=autoUpdateCITSColour)
+			endif
+		endif
 	
 	if ( cmpstr(autoUpdateCITSColourExp,"yes")==0 )
 		updateColourRangeByHist("",type="exp")
 	endif 
-	
-	// Return to starting data folder
-	SetDataFolder saveDF
+			
+		// Return to starting data folder
+		SetDataFolder saveDF
+  	
+  	endfor
 End
-
-
-
-
-
 
 
 

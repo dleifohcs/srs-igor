@@ -1186,6 +1186,17 @@ Function createSRSControlVariables()
 		autoUpdateCITSColourExp = "no"
 	endif
 	
+	// make a toggle for automatically updating CITS colour range or not
+	String/G autoUpdateCITSColourExp
+	if (strlen(autoUpdateCITSColourExp)==0)
+		autoUpdateCITSColourExp = "no"
+	endif
+	
+	String/G syncCITS
+	if (strlen(syncCITS)==0)
+		syncCITS = "no"
+	endif
+	
 	String/G defaultImageColours
 	if (strlen(defaultImageColours)==0)
 		defaultImageColours = "Autumn"

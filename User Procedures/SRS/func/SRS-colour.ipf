@@ -319,10 +319,10 @@ Function updateColourRangeByHist(graphName, [type])
 			width = W_coef[3]
 			break
 		case "exp":
-			CurveFit/N/Q/M=2/W=0 exp, $histName/D
+			CurveFit/N/Q=1/M=2/W=0 exp, $histName/D
 			Wave W_coef
-			x0 = 5/W_coef[2]
-			width = 5/W_coef[2]
+			width = 3/W_coef[2]
+			x0 = width
 			break
 		default: // same as gauss
 			CurveFit/N/Q/M=2/W=0 gauss, $histName/D
