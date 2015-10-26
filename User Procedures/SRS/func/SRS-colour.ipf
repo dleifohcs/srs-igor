@@ -302,8 +302,8 @@ Function updateColourRangeByHist(graphName, [type])
 	String/G histName = imgWStr+"_HIST"
 	Make/N=100/O $histName
 	Wave histW = $histName
-	Histogram/B=1 imgW, histW
-	
+	Histogram/B=4 imgW, histW
+		
 	if ( paramisdefault(type) )
 		type = "gauss"
 	endif
@@ -319,9 +319,9 @@ Function updateColourRangeByHist(graphName, [type])
 			width = W_coef[3]
 			break
 		case "exp":
-			CurveFit/N/Q=1/M=2/W=0 exp, $histName/D
+			CurveFit/N/Q=1/M=2/W=0 exp_XOffset, $histName/D
 			Wave W_coef
-			width = 3/W_coef[2]
+			width = W_coef[3]*1.5
 			x0 = width
 			break
 		default: // same as gauss
