@@ -2065,6 +2065,7 @@ Function manipulateCITS(graphname,action)
 				
 				// Display the resulting FFT wave.		
 				img3dDisplay(citsFFTrWStr)
+				updateColourRangeByHist("",type="exp")
 				
 				// Move to the data folder containing the global variables for the graph
 				SetDataFolder root:WinGlobals:$graphName 
