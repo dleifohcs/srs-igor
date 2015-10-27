@@ -568,19 +568,28 @@ Function citsZPanelUpdate(ctrlName,varNum,varStr,varName) : SetVariableControl
 	VarIable biasDeltaOrig = biasDelta
 	Variable zSizeOrig = zSize
 
-// THIS SHOULD BE MADE A GLOBAL VARIABLE CONTROLLED BY MENU
+	Variable i
+	String tempWinName
+	
 	SVAR updateAllCITS = root:WinGlobals:SRSSTMControl:syncCITS
 	Variable CITSwinNum
   	String CITSwinList 
   	if (cmpstr(updateAllCITS,"yes")==0)	
 		CITSwinList = WinList("CITS*", ";", "")
 		CITSwinNum = ItemsInList( CITSwinList )
+		// need to remove sub windows like line profiles etc from the list.
+		for (i=0; i<CITSwinNum; i+=1)
+			tempWinName = StringFromList(i,CITSwinList)
+			if ( stringmatch(tempWinName,"*_*")==1)
+				CITSwinList = removeFromList(tempWinName,CITSwinList)
+				CITSwinNum = ItemsInList( CITSwinList )
+			endif
+		endfor
 	else
 		CITSwinNum = 1
 		CITSwinList = graphName
 	endif 
 	
-	Variable i
 	for (i=0; i<CITSwinNum; i+=1)
 	
 		graphName = StringFromList(i,CITSwinList,";")
@@ -648,12 +657,11 @@ Function citsZPanelUpdate(ctrlName,varNum,varStr,varName) : SetVariableControl
 	
 	if ( cmpstr(autoUpdateCITSColourExp,"yes")==0 )
 		updateColourRangeByHist("",type="exp")
-	endif 
-			
-		// Return to starting data folder
-		SetDataFolder saveDF
-  	
+	endif
   	endfor
+  	
+  	// Return to starting data folder
+	SetDataFolder saveDF
 End
 
 

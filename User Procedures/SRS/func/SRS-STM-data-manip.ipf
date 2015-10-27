@@ -1194,7 +1194,7 @@ Function createSRSControlVariables()
 	
 	String/G syncCITS
 	if (strlen(syncCITS)==0)
-		syncCITS = "no"
+		syncCITS = "yes"
 	endif
 	
 	String/G defaultImageColours
