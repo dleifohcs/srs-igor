@@ -1498,6 +1498,23 @@ Function FlatFile1DProcess()
 	// Scale the x axes appropriately
 	SetScale/P x, phys_start, phys_inc, unit, dataW
 	
+	// Check if a retrace wave is present 
+	if (mirrored==1)
+		Make/N=(bricklet_size/2) dataT
+		Make/N=(bricklet_size/2) dataR
+		dataT[] = dataW[p]
+		dataR[] = dataW[p+bricklet_size/2]
+		Reverse/P dataR
+		SetScale/P x, phys_start, phys_inc, unit, dataT
+		SetScale/P x, phys_start, phys_inc, unit, dataR
+		
+		KillWaves dataW
+		Duplicate/O dataT, dataW
+		KillWaves dataT
+	endif
+	
+	
+	
 		// Scale the x and y axes appropriately
 //	SetScale/P x, x_phys_start, x_phys_inc, x_unit, dataFU
 //	SetScale/P y, y_phys_start, y_phys_inc, y_unit, dataFU
@@ -2049,6 +2066,7 @@ Function FlatAddInfo2Wave()
 		
 	// determine whether this is a 1D data (e.g., STS) or rastered data (e.g., images or CITS)	
 	Wave dataW
+	Wave dataR
 	if ( WaveExists(dataW) )// 1D wave
 		
 		// Create name	
@@ -2072,7 +2090,31 @@ Function FlatAddInfo2Wave()
 		Note/NOCR dataW, "Matrix_File_Creator:"+Matrix_File_Creator+";"
 		Note/NOCR dataW, "Flat_File_Creator:"+Flat_File_Creator+";"
 		Note/NOCR dataW, "Comment:"+comment+";"
+	
+		if ( WaveExists(dataR) )// 1D wave (retrace)
 		
+			// Create name	
+			Note/NOCR dataR, "Name:"+channel_name+" "+num2str(run_cycle)+"-"+num2str(scan_cycle)+"r;"
+	
+			// Create DF name	
+			Note/NOCR dataR, "DFName:"+channel_name+" "+num2str(run_cycle)+"-"+num2str(scan_cycle)+";"
+		
+			// Add timestamp
+			Note/NOCR dataR, "Time stamp:"+datetimeStr+";"
+		
+			// Write bias values to wave notes
+			Note/NOCR dataR, "Voltage:"+V+" "+V_unit+";"
+		
+			// Write regulator values to wave notes
+			Note/NOCR dataR, "Setpoint:"+Reg+" "+Reg_unit+";"
+		
+			// Other information
+			Note/NOCR dataR, "Experimet_Name:"+Experiment_Name+";"
+			Note/NOCR dataR, "Experiment_Version:"+Experiment_Version+";"
+			Note/NOCR dataR, "Matrix_File_Creator:"+Matrix_File_Creator+";"
+			Note/NOCR dataR, "Flat_File_Creator:"+Flat_File_Creator+";"
+			Note/NOCR dataR, "Comment:"+comment+";"
+		endif 
 	else // 2D or 3D waves
 
 		// Get the data waves
@@ -2176,6 +2218,27 @@ Function/S FlatRenameWaveAndDF()
 		Make/O/D  $Wname
 		Duplicate/O dataW, $Wname
 		KillWaves dataW
+		
+		Wave dataR
+		
+		if ( WaveExists(dataR) ) // 1D wave
+		
+			Wwavenote = note(dataR)
+			Wname = StringByKey("Name",Wwavenote)
+			Wname = replaceBadChars(Wname)
+			Wname = replaceSpace(Wname)
+			Wname = replaceHyphen(Wname)
+		
+		//	DFname = StringByKey("DFName",Wwavenote)
+		//	DFname = replaceBadChars(DFname)
+		//	DFname = replaceSpace(DFname)
+		//	DFname = replaceHyphen(DFname)
+		
+			Make/O/D  $Wname
+			Duplicate/O dataR, $Wname
+			KillWaves dataR
+		
+		endif
 		
 	else // 2D or 3D waves
 		// Assign waves
