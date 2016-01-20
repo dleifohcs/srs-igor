@@ -590,73 +590,80 @@ Function citsZPanelUpdate(ctrlName,varNum,varStr,varName) : SetVariableControl
 		CITSwinList = graphName
 	endif 
 	
+	String graphFullPath=""
 	for (i=0; i<CITSwinNum; i+=1)
 	
 		graphName = StringFromList(i,CITSwinList,";")
+		
+		graphFullPath = "root:WinGlobals:"+graphName 
+		// Double check that the data folder exists before proceeding
+		if ( DataFolderExists( graphFullPath ) )
+		
+			// Change data folder to the folder containing the global variables for the image graph
+			SetDataFolder root:WinGlobals:$graphName
+		
+		
+			// Load global variables for wave and data folder
+			String/G citsWStr
+			String/G citsDF
+			String/G citsWFullStr
+	
+			// Wave assignment for 2d and 3d cits waves
+			Wave citsW = $citsWFullStr
+			Wave citsImgW
 
-		// Change data folder to the folder containing the global variables for the image graph
-		SetDataFolder root:WinGlobals:$graphName
+			// Get min/max Z slice values
+			Variable/G biasOffset
+			VarIable/G biasDelta
+			Variable/G zSize
 	
-		// Load global variables for wave and data folder
-		String/G citsWStr
-		String/G citsDF
-		String/G citsWFullStr
-	
-		// Wave assignment for 2d and 3d cits waves
-		Wave citsW = $citsWFullStr
-		Wave citsImgW
-	
-		// Get min/max Z slice values
-		Variable/G biasOffset
-		VarIable/G biasDelta
-		Variable/G zSize
-	
-		if ( i==0 )  // this is the panel that is being controlled 
-		  strswitch(ctrlName)
-		
-			case "slicePanelVar":
-				// read slice number, calculate bias
-				Variable/G citsZVar
-				Variable/G citsBiasZVar= biasDelta * citsZVar + biasOffset
-			break
-		
-			case "biasPanelVar":
-				// read bias, calculate slice number
-				Variable/G citsBiasZVar
-				Variable/G citsZVar=   Round( (citsBiasZVar - biasOffset) / biasDelta)
-			break
-
-		  endswitch
-		  
- 		  Variable savecitsZVar = citsZVar
-		  Variable savecitsBiasZVar = citsBiasZVar
-		
-		else  // these are all other panels. 
-		
-			Variable/G citsZVar = savecitsZVar
-			Variable/G citsBiasZVar = savecitsBiasZVar
+			if ( i==0 )  // this is the panel that is being controlled 
+			  strswitch(ctrlName)
 			
-		endif
+				case "slicePanelVar":
+					// read slice number, calculate bias
+					Variable/G citsZVar
+					Variable/G citsBiasZVar= biasDelta * citsZVar + biasOffset
+				break
+			
+				case "biasPanelVar":
+					// read bias, calculate slice number
+					Variable/G citsBiasZVar
+					Variable/G citsZVar=   Round( (citsBiasZVar - biasOffset) / biasDelta)
+				break
 
-		// Set the image to be the z=citsZVar slice of the 3d data set
-		citsImgW[][]= citsW[p][q][citsZVar]
-	
-		// This allows menu control over whether or not to update the colour range of the CITS
-		SVAR autoUpdateCITSColour = root:WinGlobals:SRSSTMControl:autoUpdateCITSColour
-		SVAR autoUpdateCITSColourExp = root:WinGlobals:SRSSTMControl:autoUpdateCITSColourExp
-	
-		String isFFTwave = " "
-		if ( cmpstr(autoUpdateCITSColour,"yes")==0)
-			isFFTwave = StringByKey("3Dtype",note(citsW)) 
-			if (cmpstr(isFFTwave,"CITSFFT")==0)
-				updateColourRangeByHist(graphName,type="exp")
-			else
-				changeColour(graphName,colour="keep",changeScale=autoUpdateCITSColour)
+			  endswitch
+		  
+	 		  Variable savecitsZVar = citsZVar
+			  Variable savecitsBiasZVar = citsBiasZVar
+		
+			else  // these are all other panels. 
+		
+				Variable/G citsZVar = savecitsZVar
+				Variable/G citsBiasZVar = savecitsBiasZVar
+			
 			endif
-		endif
+
+			// Set the image to be the z=citsZVar slice of the 3d data set
+			citsImgW[][]= citsW[p][q][citsZVar]
 	
-	if ( cmpstr(autoUpdateCITSColourExp,"yes")==0 )
-		updateColourRangeByHist("",type="exp")
+			// This allows menu control over whether or not to update the colour range of the CITS
+			SVAR autoUpdateCITSColour = root:WinGlobals:SRSSTMControl:autoUpdateCITSColour
+			SVAR autoUpdateCITSColourExp = root:WinGlobals:SRSSTMControl:autoUpdateCITSColourExp
+		
+			String isFFTwave = " "
+			if ( cmpstr(autoUpdateCITSColour,"yes")==0)
+				isFFTwave = StringByKey("3Dtype",note(citsW)) 
+				if (cmpstr(isFFTwave,"CITSFFT")==0)
+					updateColourRangeByHist(graphName,type="exp")
+				else
+					changeColour(graphName,colour="keep",changeScale=autoUpdateCITSColour)
+				endif
+			endif
+	
+		if ( cmpstr(autoUpdateCITSColourExp,"yes")==0 )
+			updateColourRangeByHist("",type="exp")
+		endif
 	endif
   	endfor
   	
