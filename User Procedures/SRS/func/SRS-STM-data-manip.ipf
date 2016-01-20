@@ -731,7 +731,7 @@ Function removeLineProfile(graphName)
 End
 
 //--------------------------------------------------------------------------------------------------------------
-// Remove line profile.
+// 
 Function LineProfileColourBlack(graphName,colour)
 	String graphName, colour
 	
@@ -771,6 +771,7 @@ Function LineProfileColourBlack(graphName,colour)
 	
 	Cursor/M /C=(Cx,Cy,Cz) A
 	Cursor/M /C=(Cx,Cy,Cz) B
+	Cursor/M /C=(Cx,Cy,Cz) C
 	ModifyGraph rgb=(Cx,Cy,Cz)
 	
 End
@@ -1799,6 +1800,15 @@ Function manipulateCITS(graphname,action)
 		String/G citsWStr
 		String/G citsWFullStr
 		
+		// get x and y pixel sizes
+		Variable/G xSize
+		Variable/G ySize
+		// get number of slices
+		Variable/G zSize
+		
+		// used in loops		
+		Variable i
+		
 		String imgWFullStr
 		String imgWStr
 		String imgDF
@@ -2045,13 +2055,19 @@ Function manipulateCITS(graphname,action)
 				
 				// Move to the data data folder to duplicate the 
 				SetDataFolder citsDF
-				
-				Redimension/C citsW
-					
-				// Compute the FFT magnitude
-				FFT/MAG/DEST=$citsFFTrWStr citsW
+
+				// Calculate the FFT slice by slice. 		
+				Duplicate/O citsW, $citsFFTrWStr
 				Wave FFTcitsW = $citsFFTrWStr
-				//FFT/DEST=$citsFFTcWStr citsW
+				Redimension/C citsW
+				Make/O/C/N=(xSize,ySize) citsSliceTmp
+				Make/O/N=(xSize,ySize) FFTSliceTmp
+				for (i=0; i<zSize;i+=1)
+					citsSliceTmp[][] = citsW[p][q][i]
+					FFT/MAG/DEST=FFTSliceTmp citsSliceTmp
+					FFTcitsW[][][i]=FFTSliceTmp[p][q]
+				endfor
+				
 				Note/NOCR FFTcitsW, "3Dtype:CITSFFT;"
 				
 				// Change the original CITS wave back to real
@@ -2074,21 +2090,12 @@ Function manipulateCITS(graphname,action)
 				
 			case "extractImages":
 				
-				// get x and y pixel sizes
-				Variable/G xSize
-				Variable/G ySize
-				
-				// get number of slices
-				Variable/G zSize
-				
 				// get currently displayed slice number
 				Variable/G citsZvar
 				
 				// make a new data folder if it doesn't already exist and move there
 				NewDataFolder/O root:CITSImageSlices
 				SetDataFolder root:CITSImageSlices
-				
-				Variable i = 0
 				
 				for (i=0; i<zSize; i+=1)
 					// make image name
