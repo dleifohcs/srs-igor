@@ -50,11 +50,11 @@ End
 
 //------------------------------------------------------------------------------------------------------------------------------------
 // add menu items to the Analysis menu for loading the package(s)
-Menu "Analysis"
-	Submenu "Packages"
+Menu "Macros"
+//	Submenu "Packages"
 		"SRS STM", /Q, SRSSTM()
 		"SRS SPECS", /Q, SRSSPECS()
-	End
+//	End
 End
 
 

@@ -93,6 +93,10 @@ Menu "STM", dynamic
 			"-"
 			"STS from CITS - Point", doSomethingWithData("STSfromCITS")
 			"STS from CITS - ROI", doSomethingWithData("STSfromCITSROI")
+			"-"
+			"Interpolate CITS [up-sample]", doSomethingWithData("upSampleCITS")
+			"-"
+			"Crop [to current view area]", doSomethingWithData("cropCITS")
 		End
 		Submenu "Region of Interest"
 			"Create or Edit ROI", doSomethingWithData("createROI")

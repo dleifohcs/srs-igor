@@ -157,6 +157,11 @@ Function doSomethingWithData(actionType)
 					upSampleImage(graphName)			
 					break
 					
+				case "upSampleCITS":  // x and y axes the same; pad with zeros
+					
+					upSampleCITS(graphName)			
+					break
+					
 				case "equalAxes":  // x and y axes the same; pad with zeros
 					
 					equalAxes(graphName)			
@@ -179,6 +184,14 @@ Function doSomethingWithData(actionType)
 								
 					// crop
 					cropImg(graphName)			
+					break
+					
+				case "cropCITS":
+					
+					// can't do conventional "backup" for crop since this resets the view area.
+								
+					// crop
+					cropCITS(graphName)			
 					break
 					
 				case "rotateImg":
@@ -3069,6 +3082,81 @@ End
 
 
 //----------------------------------------------------------
+// crop to current view area
+//----------------------------------------------------------
+Function cropCITS(graphName)
+	String graphName
+
+	// Get current data folder
+	DFREF saveDF = GetDataFolderDFR()	  // Save
+	
+	// Move to the data folder containing the global variables for the graph
+	SetDataFolder root:WinGlobals:$graphName // should already be in this data folder, but include this to be sure
+	
+	// Get the global variable for this graph (these were set in the manipulateData procedure)
+	String/G citsDF			// data folder containing the data shown on the graph
+	String/G citsWStr		// name of the wave shown on the graph (an image or 3D data set; e.g. STM or CITS)
+	String/G citsWFullStr		// data folder plus wave name
+	
+	// From this point work in the original data folder where the data is
+	SetDataFolder citsDF 
+	
+	// Make wave assignment to the data  
+	Wave citsW= $citsWFullStr
+	
+	GetAxis/W=$graphName bottom
+	Variable Xmin = V_min
+	Variable Xmax = V_max
+	
+	GetAxis/W=$graphName left
+	Variable Ymin = V_min
+	Variable Ymax = V_max
+	
+	// Make wave duplicate for cropping
+	String cropWStr = citsWstr+"C"
+	Duplicate/O citsW, $cropWStr
+Print cropWStr	
+	// reassign the wave reference to the new wave
+	Wave cropW=$cropWStr
+	
+	// Determine point number corresponding to axes min and max
+	Variable XminPoint =  (Xmin - DimOffset(citsW, 0))/DimDelta(citsW,0)
+	Variable XmaxPoint =  (Xmax - DimOffset(citsW, 0))/DimDelta(citsW,0)
+	Variable YminPoint =  (Ymin - DimOffset(citsW, 1))/DimDelta(citsW,1)
+	Variable YmaxPoint =  (Ymax - DimOffset(citsW, 1))/DimDelta(citsW,1)
+	Variable citsWmaxX = DimSize(citsW,0)
+	Variable citsWmaxY = DimSize(citsW,1)
+
+	Print XminPoint 
+	Print XmaxPoint 
+	Print YminPoint 
+	Print YmaxPoint 
+	Print citsWmaxX
+	Print citsWmaxY 
+	
+	DeletePoints/M=0 round(XmaxPoint), citsWmaxX, cropW
+	DeletePoints/M=1 round(YmaxPoint), citsWmaxY, cropW
+	DeletePoints/M=0 0, round(XminPoint), cropW
+	DeletePoints/M=1 0, round(YminPoint), cropW
+
+	// Check if FFT window already exists and kill it if it does
+	DoWindow/F $(graphName+"0")
+	if (V_flag!=0)
+		KillWindow $(graphName+"0")
+	endif
+	
+	// Display cropped wave
+	//imgDisplay(cropWStr)
+	
+//	SetAxis/A
+//	DoUpdate
+
+End
+
+
+
+
+//----------------------------------------------------------
 // 
 //----------------------------------------------------------
 Function upSampleImage(graphName)
@@ -3098,6 +3186,42 @@ Function upSampleImage(graphName)
 	Resample/Dim=0/Up=(factor) imgW
 	Resample/Dim=1/Up=(factor) imgW
 		
+End
+
+
+
+//----------------------------------------------------------
+// 
+//----------------------------------------------------------
+Function upSampleCITS(graphName)
+	String graphName
+	
+	// Get current data folder
+	DFREF saveDF = GetDataFolderDFR()	  // Save
+	
+	// Move to the data folder containing the global variables for the graph
+	SetDataFolder root:WinGlobals:$graphName // should already be in this data folder, but include this to be sure
+	
+	// Get the global variable for this graph (these were set in the manipulateData procedure)
+	String/G citsDF			// data folder containing the data shown on the graph
+	String/G citsWStr		// name of the wave shown on the graph (an image or 3D data set; e.g. STM or CITS)
+	String/G citsWFullStr		// data folder plus wave name
+	
+	// From this point work in the original data folder where the data is
+	SetDataFolder citsDF 
+	
+	// Make wave assignment to the data  
+	Wave citsW= $citsWFullStr
+	
+	Variable factor=2
+	Prompt factor, "Enter the upscale factor (1 + number of new points between each old point)"
+	DoPrompt "Resample image", factor
+	
+	Resample/Dim=0/Up=(factor) citsW
+	Resample/Dim=1/Up=(factor) citsW
+	//Resample/Dim=3/Up=(factor) citsW
+		
+	refresh3dData(graphName)
 End
 
 
