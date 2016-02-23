@@ -218,8 +218,8 @@ Function imgDisplay(imgWStr)
 	// 
 	SetDataFolder root:WinGlobals
 	if ( DataFolderExists(graphName) )
-		Print "Warning: root:WinGlobals:"+graphName+" already exists.  Deleting"
-		KillDataFolder $graphName
+		Print "Warning: root:WinGlobals:"+graphName+" already exists.  If you are experiencing problems then kill the data windows (images, line plots etc.) and then delete this datafolder."
+//		KillDataFolder $graphName
 	endif
 	SetDataFolder saveDF
 	
@@ -244,8 +244,9 @@ Function img3dDisplay(imgWStr)
 	DFREF saveDF = GetDataFolderDFR()	  // Save
 	String imgDF = GetDataFolder(1)
 	
+	String windowName = "CITS"
 	// Create a new blank graph window
-	Display/k=1/N=CITS
+	Display/k=1/N=$(windowName)
 	
 	// Get the name of the new graph window
 	String graphName= WinName(0,1)
@@ -535,7 +536,11 @@ Function img3DInfoPanel(graphName)
 	
 	// Bias from Z Slice		
 	SetVariable biasPanelVar,bodyWidth=60,pos={xPosForPanel,30},size={40,15},title="\JL Bias ", proc=citsZPanelUpdate
-	SetVariable biasPanelVar,limits={biasOffset,biasMax,biasDelta},value=root:WinGlobals:$(graphName):citsBiasZVar
+	if ( biasDelta > 0 )
+		SetVariable biasPanelVar,limits={biasOffset,biasMax,biasDelta},value=root:WinGlobals:$(graphName):citsBiasZVar
+	else
+		SetVariable biasPanelVar,limits={biasMax,biasOffset,-biasDelta},value=root:WinGlobals:$(graphName):citsBiasZVar
+	endif
 End
 
 
@@ -629,7 +634,8 @@ Function citsZPanelUpdate(ctrlName,varNum,varStr,varName) : SetVariableControl
 				case "biasPanelVar":
 					// read bias, calculate slice number
 					Variable/G citsBiasZVar
-					Variable/G citsZVar=   Round( (citsBiasZVar - biasOffset) / biasDelta)
+					Variable/G citsZVar
+					citsZVar = Round( (citsBiasZVar - biasOffset) / biasDelta)
 				break
 
 			  endswitch

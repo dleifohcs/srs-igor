@@ -159,6 +159,8 @@ Function doSomethingWithData(actionType)
 					
 				case "upSampleCITS":  // x and y axes the same; pad with zeros
 					
+					backupData(graphName,"I")
+					
 					upSampleCITS(graphName)			
 					break
 					
@@ -1738,19 +1740,19 @@ Function backupData(graphname,suffixStr)
 	if (WaveExists(citsImgW)==1)  // 3d data
 	
 		// Get the global variable for the 3d wave
-		String/G citsDF		// data folder plus wave name
+		String/G citsDF		// data folder
 		String/G citsWStr
 		String/G citsWFullStr		// data folder plus wave name
 
-		String/G databackupDF = citsDF+PossiblyQuoteName(citsWStr)
-		NewDataFolder/O $databackupDF
-		String/G backupDataStr= databackupDF+":"+PossiblyQuoteName(citsWStr)
-		Duplicate/O $citsWFullStr $backupDataStr	
+//		String/G databackupDF = citsDF+PossiblyQuoteName(citsWStr)
+//		NewDataFolder/O $databackupDF
+//		String/G backupDataStr= databackupDF+":"+PossiblyQuoteName(citsWStr)
+//		Duplicate/O $citsWFullStr $backupDataStr	
 		
 		String newcitsWStr = citsWStr+suffixStr
 		SetDataFolder $citsDF
-		KillWaves/Z 	$newcitsWStr
-		Rename $citsWFullStr, $newcitsWStr
+		Duplicate/O $citsWStr, $newcitsWStr
+//		KillWaves/Z 	$newcitsWStr
 		
 		// Update global variables
 		citsWStr= newcitsWStr
@@ -1774,7 +1776,7 @@ Function backupData(graphname,suffixStr)
 		Duplicate/O $imgWFullStr, $newimgWStr
 		
 		KillWindow $graphname
-//		KillWaves/Z $imgWFullStr
+		KillWaves/Z $imgWFullStr
 		
 		imgDisplay(newimgWStr)
 		
@@ -3216,7 +3218,10 @@ Function upSampleCITS(graphName)
 	Variable factor=2
 	Prompt factor, "Enter the upscale factor (1 + number of new points between each old point)"
 	DoPrompt "Resample image", factor
-	
+	if( V_Flag )
+	      	return 0          // user canceled
+   	endif
+   	
 	Resample/Dim=0/Up=(factor) citsW
 	Resample/Dim=1/Up=(factor) citsW
 	//Resample/Dim=3/Up=(factor) citsW
