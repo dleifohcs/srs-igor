@@ -2274,8 +2274,13 @@ Function matrixConvolveData(graphName)
 	
 	endif
 	
+	Variable V_Flag
 	// Make the kernel for the manipulation
-	makeKernel(graphName,dim)
+	V_Flag = makeKernel(graphName,dim)
+	
+	if (V_Flag == -1)
+		return -1
+	endif
 	
 	// Convert the data to single precision floating point
 	Redimension/S dataW // to avoid integer truncation
@@ -2349,6 +2354,12 @@ Function makeKernel(graphName,dim)
 			Prompt kernelParam, "Enter c for Exp[-x^2/(2c^2)]" 
 			DoPrompt "Gaussian kernel parameters", kernelSize, kernelParam
 			
+			 // User canceled so quit
+			if (V_Flag)
+				Print "Warning: User cancelled"         
+				return -1
+			endif 
+	
 			// make a 2D kernel
 			Make/O/N=(kernelSize,kernelSize) sKernel 
 			SetScale/I x -limitXYZ,limitXYZ,"", sKernel
