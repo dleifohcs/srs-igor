@@ -3099,12 +3099,18 @@ End
 //------------------------------------------------------------------------------------------------------------------------------------
 // Save VASP PARCHG
 //------------------------------------------------------------------------------------------------------------------------------------
-Function savePARCHG(fullFileNameStr)
-	String fullFileNameStr
+Function savePARCHG(fullFileNameStr,[filename])
+	String fullFileNameStr, filename
 	fullFileNameStr = fullFileNameStr
 	
 	String path = ParseFilePath(1, fullfilenameStr, ":", 1, 0)
-	String outputFileName = path+"Igor.PARCHG"
+	String outputFileName 
+	
+	if ( ParamIsDefault(filename) )
+		outputFileName = path+"Igor.PARCHG"
+	else
+		outputFileName = path+filename+".PARCHG"
+	endif
 	
 	// Save current DF
 	String saveDF = GetDataFolder(1)
@@ -3213,7 +3219,7 @@ Function loaddx(pathStr,filenameStr)
 	
 	// Output that we're beginning the file load 
 	Print " "
-	Print "Loading OpenDX file VASP PARCHG output in Dave Bowler's format" 
+	Print "Loading OpenDX format charge density file" 
 	
 	// -----------------------------------------
 	// SECTION 1: HEADER
@@ -3303,15 +3309,15 @@ Function loaddx(pathStr,filenameStr)
 //	endfor
 
 	Make/O/N=(dataLen) DX
-	for ( i=0; i<DXLen; i+=5 )
+	for ( i=0; i<DXLen; i+=1 )
 		FReadLine refnum, buffer
 		lineCount += 1
 		sscanf buffer, "%f %f %f %f %f", d1, d2, d3, d4, d5
-		DX[i] = d1
-		DX[i+1] = d2
-		DX[i+2] = d3
-		DX[i+3] = d4
-		DX[i+4] = d5
+		DX[5*i] = d1
+		DX[5*i+1] = d2
+		DX[5*i+2] = d3
+		DX[5*i+3] = d4
+		DX[5*i+4] = d5
 //		DX[i][0] = d1
 //		DX[i][1] = d2
 //		DX[i][2] = d3
@@ -3329,8 +3335,10 @@ Function loaddx(pathStr,filenameStr)
 	// Close file
 	close refnum
 	
+	Print "Creating PARCHG wave"
+	
 	Variable PARCHGLen = dataLen/10
-	Make/N=(PARCHGLen,10) PARCHG
+	Make/O/N=(PARCHGLen,10) PARCHG
 	for ( i=0; i<PARCHGLen; i+=1 )
 		PARCHG[i][0] = DX[i*10]
 		PARCHG[i][1] = DX[i*10+1]
@@ -3365,29 +3373,42 @@ Function loaddx(pathStr,filenameStr)
 
 	KillVariables lineCount
 	
-	// Create variables for PARCHG write
-	String/G headerStr = "PARCHG file generated from DX file"
-	Variable/G header_unknown = 1
-	Make/N=(3,3) unitcell
-	unitcell[][0] = a1[p]
-	unitcell[][1] = a2[p]
-	unitcell[][2] = a3[p]
-	MatrixTranspose unitcell
-	
 // HACK
-	Make/T/N=3 elements
+	Make/O/T/N=3 elements
 	elements[0] = "B"
 	elements[1] = "Si"
 	elements[2] = "H"
 	Variable/G numElem = 3
-	Make/N=3 atomNumbers
+	Make/O/N=3 atomNumbers
 	atomNumbers[0] = 24   
 	atomNumbers[1] = 601    
 	atomNumbers[2] = 75
 	String/G unitcell_type = "Direct"
-	Variable/G totalAtoms = 700
-	Make/N=(3,totalAtoms) xyz
+	Variable/G totalAtoms = Sum(atomNumbers)
+	Make/O/N=(totalAtoms,3) xyz
 	xyz = 0.0 
-	Duplicate grid, dimPARCHG
-			
+	Make/N=3 dimPARCHG
+	dimPARCHG[0] = grid[1]
+	dimPARCHG[1] = grid[2]
+	dimPARCHG[2] = grid[0]
+		
+	// Create variables for PARCHG write
+	String/G headerStr = "PARCHG file generated from DX file"
+	Variable/G header_unknown = 1
+	Make/O/N=(3,3) unitcell
+	unitcell[][0] = a3[p] * 300
+	unitcell[][1] = a2[p] * 300
+	unitcell[][2] = a1[p] * 240
+	MatrixTranspose unitcell	
+	
+	PARCHG = 1000000 * PARCHG
+	
+	// Writing PARCHG file
+	Print "Writing PARCHG file ", fileNameForWaves
+	savePARCHG(fullFileNameStr,filename=fileNameForWaves)
+	
+	KillDataFolder/Z root:$fileNameForWaves
+	DuplicateDataFolder root:DX, root:$fileNameForWaves
+	KillDataFolder/Z root:DX
+	SetDataFolder root:$fileNameForWaves
 End
