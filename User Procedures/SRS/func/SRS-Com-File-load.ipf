@@ -171,6 +171,9 @@ Function SRSLoadData(pathStr,filenameStr)
 		case "PARCHG":
 			loadPARCHG(pathStr, filenameStr)
 			break
+		case "dx":
+			loaddx(pathStr, filenameStr)
+			break
 		default:
 			returnVar = 0
 			Print "SRS macro package does not know this file extension type; handing file back to Igor file loader"
@@ -3047,11 +3050,24 @@ Function loadPARCHG(pathStr,filenameStr)
 	Variable numData = dimPARCHG[0] * dimPARCHG[1] * dimPARCHG[2]
 	lineCount = lineCount+2
 	
+	//
+	FReadLine refnum, buffer
+	FReadLine refnum, buffer
+	FReadLine refnum, buffer	 
+	
+	Variable column_skip=0
+	for (i=0; i<strlen(buffer); i+=1)
+		if ( cmpstr(buffer[i]," ")!=0 )
+			break
+		endif
+		column_skip += 1
+	endfor
+	Print column_skip
 	Close refnum
 	
 	// USE IGOR Procedure to load PARCHG data
 	//LoadWave/J/Q/D/N=wave/O/K=1/V={"\t, "," $",0,0}/L={0,lineCount,0,1,0} FullFileNameStr
-	LoadWave/J/Q/D/K=0/A=wave/V={"\t, "," $",0,0}/L={0,lineCount,0,0,0} FullFileNameStr
+	LoadWave/J/D/K=0/A=wave/V={"\t, "," $",0,0}/L={0,lineCount,0,column_skip,0} FullFileNameStr
 	Wave wave0, wave1, wave2, wave3, wave4, wave5, wave6, wave7, wave8, wave9
 	Variable/G dataLen = DimSize(wave0,0)
 	Make/O/N=(dataLen,10) PARCHG_3D
@@ -3081,7 +3097,7 @@ End
 
 
 //------------------------------------------------------------------------------------------------------------------------------------
-// Load VASP PARCHG
+// Save VASP PARCHG
 //------------------------------------------------------------------------------------------------------------------------------------
 Function savePARCHG(fullFileNameStr)
 	String fullFileNameStr
@@ -3160,4 +3176,218 @@ Function savePARCHG(fullFileNameStr)
 	Wave PARCHG
 	Save/A=2/G/F/M="\n" PARCHG as outputFileName
 
+End
+
+
+//------------------------------------------------------------------------------------------------------------------------------------
+// Load DX
+//------------------------------------------------------------------------------------------------------------------------------------
+Function loaddx(pathStr,filenameStr)
+	String pathStr, filenameStr
+	Variable/G lineCount=0
+	
+	String fileNameForWaves = ParseFilePath(3, filenameStr, ":", 0, 0)
+	fileNameForWaves = removeBadChars(fileNameForWaves)
+	fileNameForWaves = removeSpace(fileNameForWaves)
+	
+	// Save current DF
+	String saveDF = GetDataFolder(1)
+	
+	// Make  DF to load data into 
+	NewDataFolder/O/S root:DX
+	
+	Variable i			// used in for loops
+	Variable refNum		// used for the file identification
+	String buffer
+	
+	// Combine path and filename into a single string 
+	String/G FullFileNameStr = pathStr+filenameStr
+	
+	// Open data file
+	Open/R/Z=1 refNum as FullFileNameStr
+	Variable err = V_flag
+	if ( err )
+		Print "ERROR: unable to open the DX file for reading. Aborting."
+		return 1
+	endif
+	
+	// Output that we're beginning the file load 
+	Print " "
+	Print "Loading OpenDX file VASP PARCHG output in Dave Bowler's format" 
+	
+	// -----------------------------------------
+	// SECTION 1: HEADER
+	// -----------------------------------------
+	
+	String/G headerStr
+
+	// read the header line 
+	FReadLine refnum, headerStr
+	lineCount += 1
+
+	Variable d1, d2, d3, d4, d5, d6, d7, d8, d9, d10
+	String  dum1, dum2, dum3, dum4, dum5, dum6, dum7, dum8, dum9
+	Make/N=3 grid
+	Make/O /N=3 origin
+	Make/O /N=3 a1
+	Make/O /N=3 a2
+	Make/O /N=3 a3
+	
+	// 
+	FReadLine refnum, buffer
+	lineCount += 1
+	sscanf buffer, "%s %i %s %s %s %i %i %i", dum1, d1, dum2, dum3, dum4, d2, d3, d4
+	grid[0] = d2
+	grid[1] = d3
+	grid[2] = d4
+	
+	// 
+	FReadLine refnum, buffer
+	lineCount += 1
+	sscanf buffer, "%s %s %s %s", dum1, dum2, dum3, dum4
+	origin[0] = str2num(dum2)
+	origin[1] = str2num(dum3)
+	origin[2] = str2num(dum4)
+	
+	// 
+	FReadLine refnum, buffer
+	lineCount += 1
+	sscanf buffer, "%s %s %s %s", dum1, dum2, dum3, dum4
+	a1[0] = str2num(dum2)
+	a1[1] = str2num(dum3)
+	a1[2] = str2num(dum4)
+	
+	// 
+	FReadLine refnum, buffer
+	lineCount += 1
+	sscanf buffer, "%s %s %s %s", dum1, dum2, dum3, dum4
+	a2[0] = str2num(dum2)
+	a2[1] = str2num(dum3)
+	a2[2] = str2num(dum4)
+	
+	// 
+	FReadLine refnum, buffer
+	sscanf buffer, "%s %s %s %s", dum1, dum2, dum3, dum4
+	a3[0] = str2num(dum2)
+	a3[1] = str2num(dum3)
+	a3[2] = str2num(dum4)
+	
+	// 
+	FReadLine refnum, buffer
+	lineCount += 1
+	
+	// 
+	FReadLine refnum, buffer
+	lineCount += 1
+	
+	// 
+	FReadLine refnum, buffer
+	lineCount += 1
+	
+	//
+	Variable/G dataLen 
+	FReadLine refnum, buffer
+	lineCount += 1
+	sscanf buffer, "%s %s %s %s %s %s %s %s %s %f", dum1, dum2, dum3, dum4, dum5, dum6, dum7, dum8, dum9, datalen
+	Variable DXLen = dataLen/5
+
+//	FReadLine refnum, buffer
+///	lineCount += 1
+
+//      Variable column_skip=0
+//	for (i=0; i<strlen(buffer); i+=1)
+//		if ( cmpstr(buffer[i]," ")!=0 )
+//			break
+//		endif
+//		column_skip += 1
+//	endfor
+
+	Make/O/N=(dataLen) DX
+	for ( i=0; i<DXLen; i+=5 )
+		FReadLine refnum, buffer
+		lineCount += 1
+		sscanf buffer, "%f %f %f %f %f", d1, d2, d3, d4, d5
+		DX[i] = d1
+		DX[i+1] = d2
+		DX[i+2] = d3
+		DX[i+3] = d4
+		DX[i+4] = d5
+//		DX[i][0] = d1
+//		DX[i][1] = d2
+//		DX[i][2] = d3
+//		DX[i][3] = d4
+//		DX[i][4] = d5
+	endfor
+	
+//	Duplicate/O DX, PARCHG 
+//	MatrixTranspose PARCHG 
+//	Redimension/N=(dataLen) PARCHG
+	
+//	Variable PARCHGLen = dataLen/10
+//	Redimension/N=(10, PARCHGLen) PARCHG
+//	MatrixTranspose PARCHG 
+	// Close file
+	close refnum
+	
+	Variable PARCHGLen = dataLen/10
+	Make/N=(PARCHGLen,10) PARCHG
+	for ( i=0; i<PARCHGLen; i+=1 )
+		PARCHG[i][0] = DX[i*10]
+		PARCHG[i][1] = DX[i*10+1]
+		PARCHG[i][2] = DX[i*10+2]
+		PARCHG[i][3] = DX[i*10+3]
+		PARCHG[i][4] = DX[i*10+4]
+		PARCHG[i][5] = DX[i*10+5]
+		PARCHG[i][6] = DX[i*10+6]
+		PARCHG[i][7] = DX[i*10+7]
+		PARCHG[i][8] = DX[i*10+8]
+		PARCHG[i][9] = DX[i*10+9]	
+	endfor
+
+
+// USE IGOR Procedure to load PARCHG data
+//	LoadWave/J/D/K=0/A=wave/V={"\t, "," $",0,0}/L={0,lineCount,0,column_skip,0} FullFileNameStr
+	//Wave wave0, wave1, wave2, wave3, wave4
+	//dataLen = DimSize(wave0,0)
+//Print dataLen
+//	Make/O/N=(dataLen,5) PARCHG
+//	PARCHG[][0] = wave0[p]
+//	PARCHG[][1] = wave1[p]
+//	PARCHG[][2] = wave2[p]
+//	PARCHG[][3] = wave3[p]
+//	PARCHG[][4] = wave4[p]
+	//KillWaves/Z wave0, wave1, wave2, wave3, wave4, wave5, wave6, wave7, wave8, wave9
+	//Duplicate/O PARCHG_3D, PARCHG
+	//MatrixTranspose PARCHG_3D
+	//Redimension/N=(3) PARCHG_3D
+	//Redimension/N=(dimPARCHG[0], dimPARCHG[1], dimPARCHG[2]) PARCHG_3D
+	// end
+
+	KillVariables lineCount
+	
+	// Create variables for PARCHG write
+	String/G headerStr = "PARCHG file generated from DX file"
+	Variable/G header_unknown = 1
+	Make/N=(3,3) unitcell
+	unitcell[][0] = a1[p]
+	unitcell[][1] = a2[p]
+	unitcell[][2] = a3[p]
+	MatrixTranspose unitcell
+	
+// HACK
+	Make/T/N=3 elements
+	elements[0] = "B"
+	elements[1] = "Si"
+	elements[2] = "H"
+	Variable/G numElem = 3
+	Make/N=3 atomNumbers
+	atomNumbers[0] = 24   
+	atomNumbers[1] = 601    
+	atomNumbers[2] = 75
+	String/G unitcell_type = "Direct"
+	Variable/G totalAtoms = 700
+	Make/N=(3,totalAtoms) xyz
+	xyz = 0.0 
+	Duplicate grid, dimPARCHG
+			
 End
