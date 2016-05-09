@@ -174,6 +174,12 @@ Function SRSLoadData(pathStr,filenameStr)
 		case "dx":
 			loaddx(pathStr, filenameStr)
 			break
+		case "wos":
+			loadWOS(pathStr, filenameStr)
+			break
+		case "txt":
+			loadxps(pathStr, filenameStr)
+			break
 		default:
 			returnVar = 0
 			Print "SRS macro package does not know this file extension type; handing file back to Igor file loader"
@@ -3410,5 +3416,339 @@ Function loaddx(pathStr,filenameStr)
 	KillDataFolder/Z root:$fileNameForWaves
 	DuplicateDataFolder root:DX, root:$fileNameForWaves
 	KillDataFolder/Z root:DX
+	SetDataFolder root:$fileNameForWaves
+End
+
+
+//------------------------------------------------------------------------------------------------------------------------------------
+// Load XPS txt output from CASAXPS
+//------------------------------------------------------------------------------------------------------------------------------------
+Function loadxps(pathStr,filenameStr)
+	String pathStr, filenameStr
+	
+	String fileNameForWaves = ParseFilePath(3, filenameStr, ":", 0, 0)
+	fileNameForWaves = removeBadChars(fileNameForWaves)
+	fileNameForWaves = removeSpace(fileNameForWaves)
+	
+	// Save current DF
+	String saveDF = GetDataFolder(1)
+	
+	// Make  DF to load data into 
+	NewDataFolder/O/S root:XPS
+	
+	Variable i,j			// used in for loops
+	Variable refNum		// used for the file identification
+	
+	// Combine path and filename into a single string 
+	String/G FullFileNameStr = pathStr+filenameStr
+	String buffer
+	String firstWord
+	
+	// Output that we're beginning the file load 
+	Print " "
+	Print "Loading XPS txt format output from CASAXPS" 
+
+	// ----
+	// Find out how many spectra there are
+	// ----
+	
+	// Open data file
+	Open/R/Z=1 refNum as FullFileNameStr
+	Variable err = V_flag
+	if ( err )
+		Print "ERROR: unable to open the CASA file for reading. Aborting."
+		return 1
+	endif
+
+	Variable/G numSpectra = 0
+	for (j=0; j<10000; j+=1)
+		// read the header line 
+		FReadLine refnum, buffer
+		sscanf buffer, "%s", firstWord
+		if ( cmpstr(firstWord,"Cycle")==0 )
+			numSpectra +=1
+		endif
+	endfor
+	Close refNum
+	Print "Number of spectra = ", numSpectra
+	
+	// ----
+	// Find out how many peaks
+	// ----
+	
+	// Open data file
+	Open/R/Z=1 refNum as FullFileNameStr
+	err = V_flag
+	if ( err )
+		Print "ERROR: unable to open the CASA file for reading. Aborting."
+		return 1
+	endif
+	
+	for (j=0; j<100000; j+=1)
+		// read the header line 
+		FReadLine refnum, buffer
+		sscanf buffer, "%s", firstWord
+		if ( cmpstr(firstWord,"Position")==0 )
+			break
+		endif
+	endfor
+	
+	Variable bufferLen = strlen(buffer)
+	String nextStr
+	
+	// Remove the first word
+	sscanf buffer, "%s", nextStr
+	buffer = buffer[strlen(nextStr)+1,bufferLen]
+	
+	Variable numPeaks = 0 
+	for (i=0;i<100;i+=1)
+		sscanf buffer, "%s", nextStr
+		if ( strlen(nextStr)==0 )
+			break
+		endif
+		buffer = buffer[strlen(nextStr)+1,bufferLen]
+	endfor
+	numPeaks=i
+	Print "Number of peaks = ", numPeaks
+	
+	Close refNum
+
+	// ----
+	// Now load the data
+	// ----
+	
+	Make/O/N=(numPeaks,numSpectra) peakEnergies
+	Make/O/N=(numPeaks,numSpectra) peakFWHM
+	Make/O/N=(numPeaks,numSpectra) peakAreas
+	
+	// Open data file
+	Open/R/Z=1 refNum as FullFileNameStr
+	err = V_flag
+	if ( err )
+		Print "ERROR: unable to open the CASA file for reading. Aborting."
+		return 1
+	endif
+	
+	Variable specNum = -1
+	for (j=0; j<100000; j+=1)
+		// read the header line 
+		FReadLine refnum, buffer
+		sscanf buffer, "%s", firstWord
+		if ( cmpstr(firstWord,"Cycle")==0 )  
+			specNum += 1
+		endif
+		if ( cmpstr(firstWord,"Position")==0 )  // load position data (i.e. energies)
+			buffer = buffer[strlen(firstWord)+1,bufferLen]
+			for (i=0; i<numPeaks; i+=1)
+				sscanf buffer, "%s", firstWord
+				buffer = buffer[strlen(firstWord)+1,bufferLen]
+				peakEnergies[i][specNum] = str2num(firstWord)
+			endfor
+		endif
+		if ( cmpstr(firstWord,"FWHM")==0 )  // load position data (i.e. energies)
+			buffer = buffer[strlen(firstWord)+1,bufferLen]
+			for (i=0; i<numPeaks; i+=1)
+				sscanf buffer, "%s", firstWord
+				buffer = buffer[strlen(firstWord)+1,bufferLen]
+				peakFWHM[i][specNum] = str2num(firstWord)
+			endfor
+		endif
+		if ( cmpstr(firstWord,"Area")==0 )  // load position data (i.e. energies)
+			buffer = buffer[strlen(firstWord)+1,bufferLen]
+			for (i=0; i<numPeaks; i+=1)
+				sscanf buffer, "%s", firstWord
+				buffer = buffer[strlen(firstWord)+1,bufferLen]
+				peakAreas[i][specNum] = str2num(firstWord)
+			endfor
+		endif
+	endfor
+	
+	// make separate waves for Areas
+	make/N=(numSpectra) SumWave
+	SumWave = 0
+	String wavenameStr
+	for (i=0; i<numPeaks; i+=1)
+		//wavenameStr = "areaWave_"+num2str(i)
+		wavenameStr = "areaWave_"+num2str(peakEnergies[i][0])
+		make/N=(numSpectra) $wavenameStr
+		Wave currentwave = $wavenameStr
+		currentwave[] = peakAreas[i][p]
+		SumWave = SumWave + currentwave
+	endfor
+	
+	
+	
+	Close refNum
+
+		
+	KillDataFolder/Z root:$fileNameForWaves
+	DuplicateDataFolder root:XPS, root:$fileNameForWaves
+	KillDataFolder/Z root:XPS
+	SetDataFolder root:$fileNameForWaves
+End
+
+
+
+//------------------------------------------------------------------------------------------------------------------------------------
+// Load Web Of Science output process as LATEX input
+//------------------------------------------------------------------------------------------------------------------------------------
+Function loadWOS(pathStr,filenameStr)
+	String pathStr, filenameStr
+	
+	String fileNameForWaves = ParseFilePath(3, filenameStr, ":", 0, 0)
+	fileNameForWaves = removeBadChars(fileNameForWaves)
+	fileNameForWaves = removeSpace(fileNameForWaves)
+	
+	// Save current DF
+	String saveDF = GetDataFolder(1)
+	
+	// Make  DF to load data into 
+	NewDataFolder/O/S root:WOS
+	
+	Variable i,j			// used in for loops
+	Variable refNum		// used for the file identification
+	
+	// Combine path and filename into a single string 
+	String/G FullFileNameStr = pathStr+filenameStr
+	String buffer
+	String dummyStr
+	
+	// Output that we're beginning the file load 
+	Print " "
+	Print "Loading Web of Science Data"
+
+	// ----
+	// Find out how many spectra there are
+	// ----
+	
+	// Open data file
+	Open/R/Z=1 refNum as FullFileNameStr
+	Variable err = V_flag
+	if ( err )
+		Print "ERROR: unable to open the WOS file for reading. Aborting."
+		return 1
+	endif
+	
+	String identifier
+	// Count how many Journal Articles
+	Variable articleNum = 0
+	for (i=0; i<100000; i+=1)
+		FReadLine refnum, buffer
+		sscanf buffer, "%s %s", identifier, dummyStr
+		if ( cmpstr(identifier,"PT")==0 )
+			if ( cmpstr(dummyStr,"J")==0 )
+				articleNum += 1
+			endif
+		endif	
+	endfor
+	Variable NumberOfArticles = articleNum
+	Print "Found",NumberOfArticles,"journal article references"
+
+	//Back to start of file
+	FSetPos refNum, 0
+	
+	// Wave for titles
+	Make/T/O/N=(articleNum) J_Title
+	Make/T/O/N=(articleNum) J_Authors
+	Make/T/O/N=(articleNum) J_Name
+	
+	// Get titles
+	articleNum=-1
+	Variable getJournalTitle=1
+	Variable getJournalAuthors=1
+	Variable getJournalName=1
+	Variable bufferlen
+	String nextName
+	for (i=0; i<100000; i+=1)
+		FReadLine refnum, buffer
+		sscanf buffer, "%s %s", identifier, dummyStr
+		// Article Type
+		if ( cmpstr(identifier,"PT")==0 )
+			if ( cmpstr(dummyStr,"J")==0 )
+				articleNum += 1
+				getJournalTitle = 0
+				getJournalAuthors = 0
+				getJournalName = 0
+			endif
+		endif
+		// Article Authors
+		if ( cmpstr(identifier,"AU")==0 )
+			if ( getJournalAuthors==0 )
+				getJournalAuthors = 1
+				bufferlen = strlen(buffer)
+				J_Authors[articleNum] = buffer[3,bufferlen]
+				for ( j=0; j<100; j+=1 )
+					FReadLine refnum, buffer
+					if ( cmpstr(buffer[0,2], "   ")==0 )
+						bufferlen = strlen(buffer)
+						nextName = buffer[3,bufferlen]
+					else 
+						Break;
+					endif 
+					J_Authors[articleNum] = J_Authors[articleNum]+";"+nextName
+				endfor
+				J_Authors[articleNum] = removeEscapeChars(J_Authors[articleNum])
+				sscanf buffer, "%s %s", identifier, dummyStr
+			endif
+		endif
+		// Article Title
+		if ( cmpstr(identifier,"TI")==0 )
+			if ( getJournalTitle==0 )
+				getJournalTitle = 1
+				bufferlen = strlen(buffer)
+				J_Title[articleNum] = buffer[3,bufferlen]
+				J_Title[articleNum] = removeEscapeChars(J_Title[articleNum])
+				J_Title[articleNum] = CheckCaps(J_Title[articleNum],2)
+			endif
+		endif
+		// Article Journal Name
+		if ( cmpstr(identifier,"SO")==0 )
+			if ( getJournalName==0 )
+				getJournalName = 1
+				bufferlen = strlen(buffer)
+				J_Name[articleNum] = buffer[3,bufferlen]
+				J_Name[articleNum] = removeEscapeChars(J_Name[articleNum])
+				J_Name[articleNum] = CheckCaps(J_Name[articleNum],3)
+			endif
+		endif
+		
+	endfor
+	
+	// Close
+	Close refNum
+	
+	// Write LATEX file
+	String OutFile_tex = pathStr+filenameStr+".tex"
+	String OutFile_txt = pathStr+filenameStr+".txt"
+	Variable refTEXNum, refTXTNum
+	Open/Z=1 refTEXNum as OutFile_tex
+	Open/Z=1 refTXTNum as OutFile_txt
+	
+	String refStr
+	String latexTitle, latexAuthors, latexName
+	for (i=0; i<NumberOfArticles; i+=1)
+		// Write TXT
+		refStr = "["+num2str(i+1)+"] "+J_Authors[i]+", "+J_Title[i]+", "+J_Name[i] 
+		fprintf refTXTNum, "%s", refStr+"\n"
+		// Write LaTeX
+		latexTitle = EscapeLaTeXChars(J_Title[i])
+		latexAuthors = EscapeLaTeXChars(J_Authors[i])
+		latexName = EscapeLaTeXChars(J_Name[i])
+		fprintf refTEXNum, "%s", "\\title{"+latexTitle+"}\n"
+		fprintf refTEXNum, "%s", "\authors{"+latexAuthors+"}\n"
+		fprintf refTEXNum, "%s", "\\reference{"+latexName+"}\n"
+		fprintf refTEXNum, "%s", "\allowpagebreak\n"
+		fprintf refTEXNum, "%s", "\pubentry\n"
+		fprintf refTEXNum, "%s", "\n"
+	endfor
+	
+	Close refTEXNum
+	Close refTXTNum
+	Print "Finished"
+	
+	
+	KillDataFolder/Z root:$fileNameForWaves
+	DuplicateDataFolder root:WOS, root:$fileNameForWaves
+	KillDataFolder/Z root:WOS
 	SetDataFolder root:$fileNameForWaves
 End

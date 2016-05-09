@@ -98,6 +98,189 @@ Function/S removeBadChars(str)
 	return newstr
 End
 
+//
+// ---
+//
+Function/S removeEscapeChars(str)
+	String str
+	
+	Variable len=strlen(str)
+	Variable i
+	Variable j=0
+	String newstr= ""
+	String char= ""
+	for (i=0; i<len; i+=1)
+		char=str[i]
+		strswitch(char)
+			case "\r":
+				// Do nothing
+				break
+			case "\t":
+				// Do nothing
+				break
+			case "\n":
+				// Do nothing
+				break
+			default:
+				newstr[j]= char
+				j+=1
+				break
+		endswitch
+	endfor
+	
+	return newstr
+End
+
+//
+// ---
+//
+Function/S EscapeLaTeXChars(str)
+	String str
+	
+	Variable len=strlen(str)
+	Variable i
+	Variable j=0
+	String newstr= ""
+	String char= ""
+	for (i=0; i<len; i+=1)
+		char=str[i]
+		strswitch(char)
+			case "&":
+				char="\&"
+				newstr[j]= char
+				j+=2
+				break
+			default:
+				newstr[j]= char
+				j+=1
+				break
+		endswitch
+	endfor
+	
+	return newstr
+End
+
+//
+// --- 
+// 0 = all lower case
+// 1 = all upper case
+// 2 = only first letter capitalised
+// 3 = Capital words
+//
+Function/S CheckCaps(str,mode)
+	String str
+	Variable mode
+	
+	Variable len=strlen(str)
+	Variable i
+	Variable j=0
+	String newstr= ""
+	String char= ""
+	Variable capnext=1
+	for (i=0; i<len; i+=1)
+		char=str[i]
+		Switch (mode)
+			Case 0:
+				// all lower case	
+				if ( char2num(char) >= 65 && char2num(char) <= 90)
+					newstr[i]= num2char(char2num(char)+32)
+				else 
+					newstr[i] = char
+				endif
+				break
+			Case 1:
+				// all upper case	
+				if ( char2num(char) >= 97 && char2num(char) <= 122)
+					newstr[i]= num2char(char2num(char)-32)
+				else 
+					newstr[i] = char
+				endif
+				break
+			Case 2:
+				if ( i==0 )
+					// capitalise
+					if ( char2num(char) >= 97 && char2num(char) <= 122)
+						newstr[i]= num2char(char2num(char)-32)
+					else 
+						newstr[i] = char
+					endif
+					capnext = 0
+				else 
+					// lower case	
+					if ( char2num(char) >= 65 && char2num(char) <= 90)
+						newstr[i]= num2char(char2num(char)+32)
+					else 
+						newstr[i] = char
+					endif
+				endif
+				break
+			Case 3:
+				if ( capnext==1 )
+					// capitalise
+					if ( char2num(char) >= 97 && char2num(char) <= 122)
+						newstr[i]= num2char(char2num(char)-32)
+					else 
+						newstr[i] = char
+					endif
+					capnext = 0
+				else 
+					// lower case	
+					if ( char2num(char) >= 65 && char2num(char) <= 90)
+						newstr[i]= num2char(char2num(char)+32)
+					else 
+						newstr[i] = char
+					endif
+				endif
+				if (cmpstr(char," ")==0)
+					capnext=1
+				endif
+				break
+			Default: 
+				Print "ERROR: unknown mode.  0 = all lower case; 1 = all upper case; 2 = only first letter capitalised; 3 = Capital words; "
+				newstr = str
+				break
+		endswitch
+	endfor
+	
+	return newstr
+End
+
+//
+// --- Si, Ge, etc.
+//
+Function/S SpecialTitleChars(str)
+	String str
+	
+	Variable len=strlen(str)
+	String specialStr, specialStrRep
+	Variable sslen 
+	Variable i,j
+	
+	// Could code the below more sensibly, but for the moment I'm doing just a cut and paste the whole block approach (lazy)
+
+	String WList1 = " H ; Li ; Na ; K; Rb ; Cs ; Fr ; Mg ; Ca ; Sr ; Ba ; Ra ; B ; Al ; Ga ; C ; Si ; Ge ; Sn ; Pb ; N ; P ; Sb ; Bi ; O ; S ; Se ; Te ; Po ; F ; Cl ; Be ; Ne ; Ar ; Kr ; Xe ;"
+	String WList2 = "Si(;Ge(;)H;):H;P-in-Si;CaC6;"
+	String WList3 = " V ; STM ; STS ; STM/STS; DFT "
+	
+	String WordList= WList1+WList2	+WList3
+	Variable items = itemsinlist(WordList,";")	
+// -- 
+	for ( j=0; j<items;j+=1)
+		specialStrRep= stringfromlist(j,WordList)
+		specialStr = CheckCaps(specialStrRep,0)
+		sslen = strlen(specialStr)
+		for (i=0; i<len-sslen+1; i+=1)
+			if ( cmpstr(str[i,i+sslen-1],specialStr)==0 )
+				str[i,i+sslen-1] = specialStrRep
+			endif
+		endfor
+	endfor
+	
+	return str
+End
+
+
+
 //------------------------------------------------------------------------------------------------------------------------------------
 // Takes a string as input and removes bad characters and replaces them with "_"
 // Bad Chars=  
