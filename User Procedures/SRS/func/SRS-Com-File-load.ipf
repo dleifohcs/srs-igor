@@ -3658,7 +3658,9 @@ Function loadWOS(pathStr,filenameStr)
 	Variable getJournalAuthors=1
 	Variable getJournalName=1
 	Variable bufferlen
-	String nextName
+	Variable numOfAuthors
+	String nextName, nextTitle
+	String tempAuthorName,tempAuthorList
 	for (i=0; i<100000; i+=1)
 		FReadLine refnum, buffer
 		sscanf buffer, "%s %s", identifier, dummyStr
@@ -3669,6 +3671,8 @@ Function loadWOS(pathStr,filenameStr)
 				getJournalTitle = 0
 				getJournalAuthors = 0
 				getJournalName = 0
+			else
+Print dummyStr
 			endif
 		endif
 		// Article Authors
@@ -3676,18 +3680,27 @@ Function loadWOS(pathStr,filenameStr)
 			if ( getJournalAuthors==0 )
 				getJournalAuthors = 1
 				bufferlen = strlen(buffer)
-				J_Authors[articleNum] = buffer[3,bufferlen]
+				J_Authors[articleNum] = formatAuthor(buffer[3,bufferlen])
 				for ( j=0; j<100; j+=1 )
 					FReadLine refnum, buffer
 					if ( cmpstr(buffer[0,2], "   ")==0 )
 						bufferlen = strlen(buffer)
-						nextName = buffer[3,bufferlen]
+						nextName = formatAuthor(buffer[3,bufferlen])
 					else 
 						Break;
 					endif 
-					J_Authors[articleNum] = J_Authors[articleNum]+";"+nextName
+					J_Authors[articleNum] = J_Authors[articleNum]+", "+nextName
 				endfor
 				J_Authors[articleNum] = removeEscapeChars(J_Authors[articleNum])
+				// reformat author names
+//				numOfAuthors = itemsInList(J_Authors[articleNum],";")
+//				for ( j=0; j<numOfAuthors; j+=1 )
+//					tempAuthorName = StringFromList(j,J_Authors[articleNum])
+//					tempAuthorName = formatAuthor(tempAuthorName)
+//					tempAuthorList = tempAuthorList+";"+tempAuthorName			
+//				endfor
+//				J_Authors[articleNum] = tempAuthorList
+				// Need to scane for these two strings to continue on with next entry below
 				sscanf buffer, "%s %s", identifier, dummyStr
 			endif
 		endif
@@ -3697,8 +3710,21 @@ Function loadWOS(pathStr,filenameStr)
 				getJournalTitle = 1
 				bufferlen = strlen(buffer)
 				J_Title[articleNum] = buffer[3,bufferlen]
+				for ( j=0; j<100; j+=1 )
+					FReadLine refnum, buffer
+					if ( cmpstr(buffer[0,2], "   ")==0 )
+						bufferlen = strlen(buffer)
+						nextTitle = buffer[3,bufferlen]
+					else 
+						Break;
+					endif 
+					J_Title[articleNum] = J_Title[articleNum]+" "+nextTitle
+				endfor
 				J_Title[articleNum] = removeEscapeChars(J_Title[articleNum])
 				J_Title[articleNum] = CheckCaps(J_Title[articleNum],2)
+				J_Title[articleNum] = SpecialTitleChars(J_Title[articleNum])
+				J_Title[articleNum] = SpecialTitleCharsSRS(J_Title[articleNum])
+				sscanf buffer, "%s %s", identifier, dummyStr
 			endif
 		endif
 		// Article Journal Name

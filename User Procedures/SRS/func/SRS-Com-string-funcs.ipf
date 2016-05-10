@@ -279,7 +279,117 @@ Function/S SpecialTitleChars(str)
 	return str
 End
 
+Function/S SpecialTitleCharsSRS(str)
+	String str
+	
+	Variable len=strlen(str)
+	String specialStr, specialStrRep
+	Variable sslen 
+	Variable i,j
+	
+	// Could code the below more sensibly, but for the moment I'm doing just a cut and paste the whole block approach (lazy)
 
+	String W_List1 = "c-type"
+	String WRList1 = "C-type"
+	
+	String W_List2 = "" //"2 x 1"
+	String WRList2 = "" //"$2\\times1$"
+	
+	String W_List3 = "" // "2x1"
+	String WRList3 = "" //"$2\\times1$"
+	
+	String W_List4 = "transformation of C-type"
+	String WRList4 = "Transformation of C-type"
+	
+	String W_List5 = "valence surface electronic states on Ge"
+	String WRList5 = "Valence surface electronic states on Ge"
+	
+	String W_List6 = "P and as dopants"
+	String WRList6 = "P and As dopants"
+	
+	String W_List7 = "CaC6"
+	String WRList7 = "CaC$_6$"
+	
+	String W_List8 = "PH3"
+	String WRList8 = "PH$_3$"
+	
+	String WordList= W_List1+";"+W_List2+";"+W_List3+";"+W_List4+";"+W_List5+";"+W_List6+";"+W_List7+";"+W_List8
+	String WordReplacementList= WRList1+";"+WRList2+";"+WRList3+";"+WRList4+";"+WRList5+";"+WRList6+";"+WRList7+";"+WRList8
+	Variable items = itemsinlist(WordList,";")	
+// -- 
+	for ( j=0; j<items;j+=1)
+		specialStrRep= stringfromlist(j,WordReplacementList)
+		specialStr = stringfromlist(j,WordList)
+		sslen = strlen(specialStr)
+		for (i=0; i<len-sslen+1; i+=1)
+			if ( cmpstr(str[i,i+sslen-1],specialStr)==0 )
+				str[i,i+sslen-1] = specialStrRep
+			endif
+		endfor
+	endfor
+	
+	return str
+End
+
+
+
+//
+// ---
+//
+Function/S formatAuthor(str)
+	String str
+	
+	String d0, d1, d2, d3, d4, d5, d6, d7, d8, d9
+	sscanf str, "%s %s %s %s %s %s %s %s %s %s", d0, d1, d2, d3, d4, d5, d6, d7, d8, d9
+	
+	String sName, mName, fName, fullName
+	Variable sNameLen, mNameLen, fNameLen
+	
+	// Default allocation
+	fullName = str
+	
+	// Assume surname first, then first name, then middle name
+	sName = d0
+	fName = d1
+	mName = d2
+	
+	// Print warning if other names present
+	if ( strlen(d3+d4+d5+d6+d7+d8+d9)>0 )
+		Print "WARNING: some text lost in name:", str
+	endif
+	
+	// Remove "." "," ";" etc
+	sName = removeBadChars(sName)
+	mName = removeBadChars(mName)	
+	fName = removeBadChars(fName)	
+	
+	// get string lengths
+	sNameLen = strlen(sName)
+	fNameLen = strlen(fName)
+	mNameLen = strLen(mName)
+	
+	// Make sure correct capitalisation
+	sName = CheckCaps(sName,2)
+	fName = CheckCaps(fName,2)
+	mName = CheckCaps(mName,2)
+	
+	// replace first and middle names with initial only.
+	if ( fNameLen>1 )
+		fName = fName[0]
+	endif
+	if ( mNameLen>1 )
+		mName = mName[0]
+	endif
+	
+	If (mNameLen > 0)
+		fullName = fName+".~"+mName+".~"+sName
+	else
+		fullName = fName+".~"+sName
+	endif
+	
+	return fullName
+	
+End
 
 //------------------------------------------------------------------------------------------------------------------------------------
 // Takes a string as input and removes bad characters and replaces them with "_"
