@@ -2385,10 +2385,10 @@ Function loadWaveFunction( pathStr, filenameStr )
 	String pathStr, filenameStr
 	
 	Print "Wavefunction data"
-	
+		
 	// -------------------------------------------------------------------------------------------------------------------------------------------//
 	// USER DEFINED VARIABLES FOR CONTROLLING THE BEHAVIOUR OF THIS FILE LOADER	
-	Variable VERBOSE = 0  // set to 1 to increase the amount of output to the command window: useful for debugging 
+	Variable VERBOSE = 1  // set to 1 to increase the amount of output to the command window: useful for debugging 
 	// -------------------------------------------------------------------------------------------------------------------------------------------//
 	
 	// Save current DF
@@ -2406,7 +2406,8 @@ Function loadWaveFunction( pathStr, filenameStr )
 	
 	Print " "
 	Print "Opening wavefunction file for reading "
-	
+	Print "File: ",FullFileNameStr
+	Print " "
 	// Open data file
 	Open/R/Z=1 refNum as FullFileNameStr
 	Variable err = V_flag
@@ -2456,8 +2457,6 @@ Function loadWaveFunction( pathStr, filenameStr )
 	Make/O/N=(xdata_len,ydata_len,norb) $(filenameStrNoExt+"_pd")
 	Wave wavefunction = $(filenameStrNoExt+"_wf")
 	Wave probdensity = $(filenameStrNoExt+"_pd")
-	
-	ie = 0 // eventually loop here
 	
 	for ( ie=0; ie < norb; ie +=1 )
 		// READ EIGENVALUE
@@ -3104,6 +3103,9 @@ End
 
 //------------------------------------------------------------------------------------------------------------------------------------
 // Save VASP PARCHG
+// fullFileNameStr is used to get the path.  This string is created with PARCHG is loaded.
+// filename will be the new file name (plus ext .PARCHG)
+// it is the file PARCHG that is written (2D not 3D)
 //------------------------------------------------------------------------------------------------------------------------------------
 Function savePARCHG(fullFileNameStr,[filename])
 	String fullFileNameStr, filename
