@@ -161,6 +161,7 @@ Menu "STM", dynamic
 			// setControlMenuItem("autoUpdateImageColour"), toggleAutoImageColour()
 			setControlMenuItem("autoUpdateCITSColour"), toggleAutoCITSColour()
 			setControlMenuItem("autoUpdateCITSColourExp"), toggleAutoCITSColourExp()
+			setControlMenuItem("CITSLineProfileLog"), toggleCITSLineProfileLog()
 			"-"
 			setControlMenuItem("syncCITS"), togglesyncCITS()
 		End
@@ -243,6 +244,17 @@ Function toggleAutoCITSColourExp()
 	else
 		autoUpdateCITSColourExp = "yes"
 		autoUpdateCITSColour = "no"
+	endif
+End
+
+// set global variable for programme control
+Function toggleCITSLineProfileLog()
+	createSRSControlVariables()
+	SVAR CITSLineProfileLog = root:WinGlobals:SRSSTMControl:CITSLineProfileLog
+	if (cmpstr(CITSLineProfileLog,"yes")==0)
+		CITSLineProfileLog = "no"
+	else
+		CITSLineProfileLog = "yes"
 	endif
 End
 
@@ -494,6 +506,19 @@ Function/S setControlMenuItem(controlVariable)
 					break
 				case "yes":
 					returnStr = "Auto update CITS colour range by exponential fit!"+num2char(18) 
+					break
+				default:
+					returnStr = "error 1"
+					break
+			endswitch
+			break		
+		case "CITSLineProfileLog":
+			strswitch(state)
+				case "no":
+					returnStr = "Display the logarithm of CITS Line Profile data"
+					break
+				case "yes":
+					returnStr = "Display the Logarithm of CITS Line Profile data!"+num2char(18) 
 					break
 				default:
 					returnStr = "error 1"

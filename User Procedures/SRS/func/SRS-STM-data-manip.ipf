@@ -805,6 +805,7 @@ Function makeLineProfile(graphname)
 	Wave lineprofx, lineprofy
 	
 	NVAR lineProfileWidth = root:WinGlobals:SRSSTMControl:lineProfileWidth
+	SVAR CITSLineProfileLog = root:WinGlobals:SRSSTMControl:CITSLineProfileLog
 	
 	// this variable will be 0 if there are no NaNs or INFs in lineprofx and lineprofy
 	Variable anyNaNs = numtype(lineprofx[0]) + numtype(lineprofy[0]) + numtype(lineprofx[1]) + numtype(lineprofy[1]) + numtype(lineprofx[2]) + numtype(lineprofy[2]) + numtype(lineprofx[3]) + numtype(lineprofy[3]) 
@@ -882,9 +883,17 @@ Function makeLineProfile(graphname)
 			// Copy the created wave to a new wave that will be used for plotting - this wave is put in a separate data folder
 			Duplicate/O M_ImageLineProfile root:WinGlobals:$(graphName+"_2dProfile"):lineProfile2D
 //			KillWaves/Z M_ImageLineProfile, W_LineProfileX, W_LineProfileY
-
+			
 			// Move into 2d data slice DF
 			SetDataFolder root:WinGlobals:$(graphName+"_2dProfile")
+			
+			// Take the logarithm of the data
+			Wave lineProfile2D
+			if ( cmpstr(CITSLineProfileLog,"yes")==0 )	
+				Duplicate/O lineProfile2D, lineProfile2D_orig
+				RemovePointsBelow(lineProfile2D,1e-12,0)
+				lineProfile2D = Log(lineProfile2D)
+			endif
 			
 			// Give the 2d line profile appropriate units (taken from image wave)
 			String/G citsWXUnit= WaveUnits(citsW,0)
@@ -1200,6 +1209,12 @@ Function createSRSControlVariables()
 	String/G autoUpdateCITSColourExp
 	if (strlen(autoUpdateCITSColourExp)==0)
 		autoUpdateCITSColourExp = "no"
+	endif
+	
+	// make a toggle for automatically updating CITS colour range or not
+	String/G CITSLineProfileLog
+	if (strlen(CITSLineProfileLog)==0)
+		CITSLineProfileLog = "no"
 	endif
 	
 	// make a toggle for automatically updating CITS colour range or not
@@ -3710,3 +3725,167 @@ Function skewImg(graphName,axis)
 End
 
 
+
+
+
+
+
+
+
+
+// The several functions below were taken from https://notendur.hi.is/~agust/kennsla/WaveMetrics%20Procedures/Data%20Manipulation/Remove%20Points.ipf
+// RemoveOutliers(theWave, minVal, maxVal)
+//	Removes all points in the wave below minVal or above maxVal.
+//	Returns the number of points removed.
+Function RemoveOutliers(theWave, minVal, maxVal)
+	Wave theWave
+	Variable minVal, maxVal
+
+	Variable p, numPoints, numOutliers
+	Variable val
+	
+	numOutliers = 0
+	p = 0											// the loop index
+	numPoints = numpnts(theWave)				// number of times to loop
+
+	do
+		val = theWave[p]
+		if ((val < minVal) %| (val > maxVal))	// is this an outlier?
+			numOutliers += 1
+		else										// if not an outlier
+			theWave[p - numOutliers] = val		// copy to input wave
+		endif
+		p += 1
+	while (p < numPoints)
+	
+	// Truncate the wave
+	DeletePoints numPoints-numOutliers, numOutliers, theWave
+	
+	return(numOutliers)
+End
+
+// RemoveOutliersXY(theXWave, theYWave, minVal, maxVal)
+//	Removes each point in an XY pair whose Y value is below minVal or above maxVal.
+//	Returns the number of points removed.
+Function RemoveOutliersXY(theXWave, theYWave, minVal, maxVal)
+	Wave theXWave
+	Wave theYWave
+	Variable minVal, maxVal
+
+	Variable p, numPoints, numOutliers
+	Variable val
+	
+	numOutliers = 0
+	p = 0														// the loop index
+	numPoints = numpnts(theYWave)						// number of times to loop
+
+	do
+		val = theYWave[p]
+		if ((val < minVal) %| (val > maxVal))				// is this an outlier?
+			numOutliers += 1
+		else													// if not an outlier
+			theYWave[p - numOutliers] = val				// copy to input Y wave
+			theXWave[p - numOutliers] = theXWave[p]		// copy to input Y wave
+		endif
+		p += 1
+	while (p < numPoints)
+	
+	// Truncate the wave
+	DeletePoints numPoints-numOutliers, numOutliers, theXWave, theYWave
+	
+	return(numOutliers)
+End
+
+// RemoveNaNs(theWave)
+//	Removes all points in the wave with the value NaN.
+//	A NaN represents a blank or missing value.
+//	Returns the number of points removed.
+Function RemoveNaNs(theWave)
+	Wave theWave
+
+	Variable p, numPoints, numNaNs
+	Variable val
+	
+	numNaNs = 0
+	p = 0											// the loop index
+	numPoints = numpnts(theWave)				// number of times to loop
+
+	do
+		val = theWave[p]
+		if (numtype(val)==2)					// is this NaN?
+			numNaNs += 1
+		else										// if not NaN
+			theWave[p - numNaNs] = val			// copy to input wave
+		endif
+		p += 1
+	while (p < numPoints)
+	
+	// Truncate the wave
+	DeletePoints numPoints-numNaNs, numNaNs, theWave
+	
+	return(numNaNs)
+End
+
+// RemoveNaNsXY(theXWave, theYWave)
+//	Removes all points in an XY pair if either wave has the value NaN.
+//	A NaN represents a blank or missing value.
+//	Returns the number of points removed.
+Function RemoveNaNsXY(theXWave, theYWave)
+	Wave theXWave
+	Wave theYWave
+
+	Variable p, numPoints, numNaNs
+	Variable xval, yval
+	
+	numNaNs = 0
+	p = 0											// the loop index
+	numPoints = numpnts(theXWave)			// number of times to loop
+
+	do
+		xval = theXWave[p]
+		yval = theYWave[p]
+		if ((numtype(xval)==2) %| (numtype(yval)==2))		// either is NaN?
+			numNaNs += 1
+		else										// if not an outlier
+			theXWave[p - numNaNs] = xval		// copy to input wave
+			theYWave[p - numNaNs] = yval		// copy to input wave
+		endif
+		p += 1
+	while (p < numPoints)
+	
+	// Truncate the wave
+	DeletePoints numPoints-numNaNs, numNaNs, theXWave, theYWave
+	
+	return(numNaNs)
+End
+
+// This function written by SRS
+Function RemovePointsBelow(theWave, minVal,newVal)
+	Wave theWave
+	Variable minVal, newVal
+
+	Variable p, q, numPointsX, numPointsY, numOutliers
+	Variable val
+	
+	numOutliers = 0
+	p = 0
+	q=0											// the loop index
+	numPointsX = DimSize(theWave,0)				// number of times to loop
+	numPointsY = DimSize(theWave,1)	
+
+	do
+	  do
+		val = theWave[p][q]
+		if (val <= minVal) 	// is this an outlier?
+			theWave[p][q] = newVal
+			numOutliers += 1
+		endif
+		p += 1
+	  while (p < numPointsX)
+	  p=0
+	  q +=1
+	 while (q < numPointsY)
+	
+	
+	return(numOutliers)
+End
