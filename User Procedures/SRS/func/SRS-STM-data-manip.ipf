@@ -593,7 +593,9 @@ Function lineProfile(graphname)
 	
 	// Move to the data folder containing the global variables for the graph
 	SetDataFolder root:WinGlobals:$graphName // should already be in this data folder, but include this to be sure
-	
+
+	SVAR CITSLineProfileLog = root:WinGlobals:SRSSTMControl:CITSLineProfileLog
+		
 	// Get the global variable for this graph (these were set in the manipulateData procedure)
 	String/G imgDF			// data folder containing the data shown on the graph
 	String/G imgWStr		// name of the wave shown on the graph (an image or 3D data set; e.g. STM or CITS)
@@ -703,7 +705,11 @@ Function lineProfile(graphname)
 		AppendImage/W=$lineProfile2dGraphName lineProfile2D
 		imgGraphPretty(lineProfile2dGraphName)
 		imgScaleBar(lineProfile2dGraphName)
-		changeColour(lineProfile2dGraphName,colour="BlueExp")
+		if ( cmpstr(CITSLineProfileLog,"yes")==0 )
+			changeColour(lineProfile2dGraphName,colour="SRSBlue2")
+		else
+			changeColour(lineProfile2dGraphName,colour="BlueExp")
+		endif
 		ModifyGraph width=0
 		ModifyGraph height=0
 		DoUpdate
@@ -1149,15 +1155,25 @@ End
 
 
 //--------------------------------------------------------------------------------------------------------------
-Function createSRSControlVariables()
+Function createSRSControlVariables([forced])
+	String forced
 	
 	DFREF saveDF = GetDataFolderDFR()	  // Save
 	
-	if ( DataFolderExists("root:WinGlobals:SRSSTMControl") )
+	if ( ParamIsDefault (forced) )
+		forced = "no"
+	endif
+	
+	if ( cmpstr(forced,"yes")==0 )
+		//do nothing here
+		Print "Forcing reset and recreation of global variables"
+	else
+	  if ( DataFolderExists("root:WinGlobals:SRSSTMControl") )
 		return 1
 		// do nothing and exit the function
-	endif
-
+	  endif
+	endif 
+	
 	NewDataFolder/O root:WinGlobals
 	NewDataFolder/O/S root:WinGlobals:SRSSTMControl
 	
@@ -2070,7 +2086,7 @@ Function manipulateCITS(graphname,action)
 				if (V_Flag)
  					Print "Warning: User cancelled 'smooth CITS'"                          // User canceled
   				else			 			
-					Smooth/DIM=2/E=0 smthfactor, citsW
+					Smooth/B/DIM=2/E=0 smthfactor, citsW
 				endif
 				
 				// Refresh 3D data windows

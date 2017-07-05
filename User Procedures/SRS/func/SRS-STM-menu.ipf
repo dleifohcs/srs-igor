@@ -146,6 +146,8 @@ Menu "STM", dynamic
 		End
 		"-"
 		Submenu "Global Programme Control"
+			"Force regeneration of control variables", createSRScontrolvariables(forced="yes")
+			"-"
 			setControlMenuItem("autoDisplay"), toggleAutoDisplay()
 			setControlMenuItem("commonDataFolder"), toggleCommonDataFolderState()
 			"-"
