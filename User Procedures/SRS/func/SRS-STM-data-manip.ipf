@@ -1161,7 +1161,7 @@ Function createSRSControlVariables([forced])
 	DFREF saveDF = GetDataFolderDFR()	  // Save
 	
 	if ( ParamIsDefault (forced) )
-		forced = "no"
+		forced = "yes"  // this was originally "no" but I'm testing the idea of always forcing this.
 	endif
 	
 	if ( cmpstr(forced,"yes")==0 )

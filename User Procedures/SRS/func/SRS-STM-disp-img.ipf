@@ -607,11 +607,14 @@ Function citsZPanelUpdate(ctrlName,varNum,varStr,varName) : SetVariableControl
 			// Change data folder to the folder containing the global variables for the image graph
 			SetDataFolder root:WinGlobals:$graphName
 		
-		
 			// Load global variables for wave and data folder
 			String/G citsWStr
 			String/G citsDF
 			String/G citsWFullStr
+			
+			if (cmpstr(citsWFullStr,"")==0 )
+				citsWFullStr = "NA"
+			endif
 	
 			// Wave assignment for 2d and 3d cits waves
 			Wave citsW = $citsWFullStr
@@ -652,11 +655,18 @@ Function citsZPanelUpdate(ctrlName,varNum,varStr,varName) : SetVariableControl
 
 			// Set the image to be the z=citsZVar slice of the 3d data set
 			citsImgW[][]= citsW[p][q][citsZVar]
-	
+
+//Print "graphName==", graphName
+//Print " savecitsZVar==", savecitsZVar
+//Print " savecitsBiasZVar==", savecitsBiasZVar
+
+
 			// This allows menu control over whether or not to update the colour range of the CITS
 			SVAR autoUpdateCITSColour = root:WinGlobals:SRSSTMControl:autoUpdateCITSColour
 			SVAR autoUpdateCITSColourExp = root:WinGlobals:SRSSTMControl:autoUpdateCITSColourExp
-		
+//Print " autoUpdateCITSColour==", autoUpdateCITSColour
+//Print " autoUpdateCITSColourExp==", autoUpdateCITSColourExp
+
 			String isFFTwave = " "
 			if ( cmpstr(autoUpdateCITSColour,"yes")==0)
 				isFFTwave = StringByKey("3Dtype",note(citsW)) 
