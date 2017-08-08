@@ -606,15 +606,24 @@ Function citsZPanelUpdate(ctrlName,varNum,varStr,varName) : SetVariableControl
 		
 			// Change data folder to the folder containing the global variables for the image graph
 			SetDataFolder root:WinGlobals:$graphName
-		
 			// Load global variables for wave and data folder
 			String/G citsWStr
 			String/G citsDF
 			String/G citsWFullStr
 			
-			if (cmpstr(citsWFullStr,"")==0 )
-				citsWFullStr = "NA"
+			// DEBUGGING
+			
+			if ( cmpstr(citsWStr,"")==0)
+				citsWStr = "DEBUG_default"
 			endif
+			if ( cmpstr(citsDF,"")==0)
+				citsDF = "DEBUG_default"
+			endif
+			if ( cmpstr(citsWFullStr,"")==0)
+				citsWFullStr = "DEBUG_default"
+			endif
+
+
 	
 			// Wave assignment for 2d and 3d cits waves
 			Wave citsW = $citsWFullStr
@@ -655,7 +664,10 @@ Function citsZPanelUpdate(ctrlName,varNum,varStr,varName) : SetVariableControl
 
 			// Set the image to be the z=citsZVar slice of the 3d data set
 			citsImgW[][]= citsW[p][q][citsZVar]
-
+//Print "**"
+//Print "DimSize(citsImgW,0)" , DimSize(citsImgW,0)
+//Print "DimSize(citsW,0)" , DimSize(citsW,0)
+//Print "citsZVar", citsZVar
 //Print "graphName==", graphName
 //Print " savecitsZVar==", savecitsZVar
 //Print " savecitsBiasZVar==", savecitsBiasZVar

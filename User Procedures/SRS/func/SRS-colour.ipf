@@ -216,7 +216,7 @@ Function updateColourRange(graphName,[minVal,maxVal,Range,changeScale])
 	if ( strlen(graphName)==0 )
 			graphName= WinName(0,1)
 	endif
-	
+
 	// Move to the data folder containing the global variables for the graph
 	SetDataFolder root:WinGlobals:$graphName // should already be in this data folder, but include this to be sure
 

@@ -66,6 +66,7 @@ Function SRSSTM()
 	Execute/P/Q "COMPILEPROCEDURES "	// COMPILEPROCEDURES does just what it says, compiles procedures
 	Execute/P/Q "KillVariables/Z V_Flag"
 	SetIgorHook BeforeFileOpenHook = SRSFileOpenHook	//function that Igor calls when a file is about to be opened by Igor because the user dragged it onto the Igor icon
+	Execute/P/Q "createSRScontrolvariables(forced=\"yes\")"
 	return 0
 End
 

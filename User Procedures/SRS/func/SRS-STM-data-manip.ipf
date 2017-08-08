@@ -1166,7 +1166,7 @@ Function createSRSControlVariables([forced])
 	
 	if ( cmpstr(forced,"yes")==0 )
 		//do nothing here
-		Print "Forcing reset and recreation of global variables"
+		//Print "Forcing reset and recreation of global variables"
 	else
 	  if ( DataFolderExists("root:WinGlobals:SRSSTMControl") )
 		return 1
@@ -2063,15 +2063,36 @@ Function manipulateCITS(graphname,action)
 				Prompt deltaz, "Delta z applied during CITS acquisition (in metres)"
 				DoPrompt "Image set point current and delta z value", currentsetpoint, deltaz
 		
+// bug in this for loop
+//				for (xx=0;xx<xLength;xx+=1)
+//					for (yy=0;yy<yLength;yy+=1)
+//						for (jj=0;jj<wLength;jj+=1)
+//							kappa = (ln(Abs(citsW[xx][yy][0])) - ln(currentsetpoint))/deltaz
+//							kappaW[xx][yy] = kappa
+//							citsW[xx][yy][jj] =  citsWOrig[xx][yy][jj] / Exp(-2 * kappa * imgW[xx][yy])
+//						endfor
+//					endfor
+//				endfor
+
+
+// Manuel's replacement for loop:
 				for (xx=0;xx<xLength;xx+=1)
 					for (yy=0;yy<yLength;yy+=1)
-						for (jj=0;jj<wLength;jj+=1)
-							kappa = (ln(Abs(citsW[xx][yy][0])) - ln(currentsetpoint))/deltaz
-							kappaW[xx][yy] = kappa
-							citsW[xx][yy][jj] =  citsWOrig[xx][yy][jj] / Exp(-2 * kappa * imgW[xx][yy])
-						endfor
+						kappa = ( ln(currentsetpoint) - ln( Abs(citsWOrig[xx][yy][0]) )) /(2*deltaz) //ln(regulation) - ln(current at start of I(V)) -> becomes negative and hence deltaz can be enterred negatively, as it was, too
+						//[xx][yy][0] -> zero doesn't make a difference in kappa-map
+						kappaW[xx][yy] = kappa
+							for (jj=0;jj<wLength;jj+=1)
+								//kappa = (ln Ê Ê( Abs(citsW[xx][yy][0]) ) - ln(currentsetpoint)) Ê Ê /deltaz
+								//kappa = ( ln(currentsetpoint) - ln( Abs(citsWOrig[xx][yy][0]) )) Ê Ê /deltaz //ln(regulation) - ln(current at start of I(V)) -> becomes negative and hence deltaz can be enterred negatively, as it was, too
+								// If in line above 'Abs(citsW)' is taken, then the kappaW wave changes with changing deltaz +- imgW[xx][yy]
+								//kappaW[xx][yy] = kappa
+								//citsW[xx][yy][jj] = ÊcitsWOrig[xx][yy][jj] / Exp(2 * kappa * imgW[xx][yy])
+								citsW[xx][yy][jj] = citsWOrig[xx][yy][jj] * Exp(2 * kappa * imgW[xx][yy])
+								//citsW[xx][yy][jj] = ÊcitsWOrig[xx][yy][jj] * Exp(2 * kappa * (deltaz - imgW[xx][yy]))
+							endfor
 					endfor
 				endfor
+
 				
 				// Refresh 3D data windows
 				refresh3dData(graphName)
