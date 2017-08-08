@@ -109,6 +109,8 @@ Menu "STM", dynamic
 			"Inverse FFT [complex -> real]", doSomethingWithData("IFFT")
 			"-"
 			"Low Pass Filter a FFT window", doSomethingWithData("FFTlowpass")
+			"-"
+			"FFTCITS", doSomethingWithData("FFTCITS")
 		End
 		Submenu "Line Profile"
 			"Line Profile", doSomethingWithData("lineprofile")

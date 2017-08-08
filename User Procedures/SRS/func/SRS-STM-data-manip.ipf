@@ -1269,14 +1269,25 @@ Function createSRSControlVariables([forced])
 	String/G stsAveraging9x9= "no"
 	
 	// set a width for line profiles
-	Variable/G lineProfileWidth=1
+	Variable/G lineProfileWidth
+	if (lineProfileWidth<=1)
+		lineProfileWidth = 1
+	endif
+
 	
 	// set a low current limit for producing normalised differential conductance
-	Variable/G normConductLim=1e-12
+	Variable/G normConductLim
+	if (normConductLim==0)
+		normConductLim=1e-12
+	endif
+	
 	
 	// set a low current limit for producing normalised differential conductance
-	Variable/G CITSKappa=1e10
-	
+	Variable/G CITSKappa
+	if (CITSKappa==0)
+		CITSKappa=1e10
+	endif
+
 	SetDataFolder saveDF
 End
 
