@@ -1209,6 +1209,12 @@ Function createSRSControlVariables([forced])
 		autoBGlinewise = "no"
 	endif
 	
+	// autoimagesave
+	String/G autoSaveImage
+	if (strlen(autoSaveImage)==0)
+		autoSaveImage = "no"
+	endif
+	
 	// make a toggle for automatically updating image colour range or not *CURRENTLY NOT USED*
 	String/G autoUpdateImageColour
 	if (strlen(autoUpdateImageColour)==0)
@@ -2112,13 +2118,13 @@ Function manipulateCITS(graphname,action)
 			case "smoothZ":
 			
 				// Prompt user for smoothing factor
-				Variable smthfactor=3
+				Variable smthfactor=5
 				Prompt smthfactor, "Enter smoothing factor: " 
 				DoPrompt "Smoothing factor", smthfactor
 				if (V_Flag)
  					Print "Warning: User cancelled 'smooth CITS'"                          // User canceled
   				else			 			
-					Smooth/B/DIM=2/E=0 smthfactor, citsW
+					Smooth/B/DIM=2/E=3 smthfactor, citsW
 				endif
 				
 				// Refresh 3D data windows
@@ -2177,7 +2183,7 @@ Function manipulateCITS(graphname,action)
 				
 				for (i=0; i<zSize; i+=1)
 					// make image name
-					String CITSimageName = citsWStr+"-"+num2str(i)
+					String CITSimageName = citsWStr+"_"+num2str(i)
 					
 					Make/O/N=(xSize,ySize) $CITSimageName
 					Wave myImage = $CITSimageName
@@ -2593,6 +2599,8 @@ Function quickSaveImage([symbolicPath,imageType])
 	// Get name of top graph
 	String graphName= WinName(0,1)
 	
+	SVAR autoSaveImage = root:WinGlobals:SRSSTMControl:autoSaveImage
+	
 	// if imageType not given then set it to "JPEG"
 	if ( ParamIsDefault(imageType) )
 		imageType="JPEG"
@@ -2602,7 +2610,6 @@ Function quickSaveImage([symbolicPath,imageType])
 	if ( ParamIsDefault(symbolicPath) )
 		symbolicPath="UserDesktop"
 	endif
-	
 	
 	// Create String variables for use later on
 	String fileExt= ".default"
@@ -2621,20 +2628,24 @@ Function quickSaveImage([symbolicPath,imageType])
 			
 	endswitch
 	
-	Variable i
-	for (i=0;i<999;i+=1)
+//	Variable i
+	String imageFileNameImageOnly
+//	for (i=0;i<9;i+=1)
 	
 		// Attempt to open image to find out if it already exists
-		imageFileName= graphName+"_"+num2str(i)+fileExt
-		ImageLoad /Q/O /Z /T=any /P=$symbolicPath imageFileName
-
-		if ( V_Flag )
+		//imageFileName= graphName+"_"+num2str(i)+fileExt
+		
+		imageFileName = StringFromList(0,ImageNameList(graphName,""))
+		imageFileNameImageOnly = "IMG_"+imageFileName
+		//ImageLoad /Q/O /Z /T=any /P=$symbolicPath imageFileName
+		//if ( V_Flag )
 			// Clean up
-			KillWaves/Z $imageFileName
-		else
+			//KillWaves/Z $imageFileName
+		//	KillWaves/Z imageFileName
+		//else
 			strswitch ( imageDataOnly )
 				case "no":
-					SavePICT /Z /Q=1 /P=$symbolicPath /T=imageType /B=144 as imageFileName
+					SavePICT /O/Z /Q=1 /P=$symbolicPath /T=imageType /B=144 as imageFileName+".jpg"
 					break
 				
 				case "yes":
@@ -2666,7 +2677,7 @@ Function quickSaveImage([symbolicPath,imageType])
 					//ImageTransform /O /C=root:WinGlobals:$(graphName):ctab flipcols imgWforTIFFOutput
 					ImageTransform /C=root:WinGlobals:$(graphName):ctab cmap2rgb imgWforTIFFOutput
 					ImageRotate/O/V M_RGBOut
-					ImageSave/IGOR/O/D=32/T="TIFF"/P=$symbolicPath /Q=1 M_RGBOut as imageFileName
+					ImageSave/IGOR/O/D=32/T="TIFF"/P=$symbolicPath /Q=1 M_RGBOut as imageFileNameImageOnly+".tiff"
 					
 //					KillWaves/Z imgWforTIFFOutput, M_RGBOut
 					// return to DF
@@ -2678,10 +2689,13 @@ Function quickSaveImage([symbolicPath,imageType])
 					Print "Sorry, something went wrong with image save"
 					break
 			endswitch
-			
-			break  // this breaks out of the for loop
-		endif
-	endfor 
+
+			if (cmpstr(autoSaveImage,"yes")==0)
+				KillWindow $graphName
+			endif
+	//		break  // this breaks out of the for loop
+		//endif
+//	endfor 
 End
 
 
@@ -3936,4 +3950,44 @@ Function RemovePointsBelow(theWave, minVal,newVal)
 	
 	
 	return(numOutliers)
+End
+
+
+
+// THIS PROCEDURE IS NOT CURRENTLY PART OF THE PACKAGE.  THIS WILL ALLOW THE AVERAGE OF A COLLECTION OF CITS IMAGES EXTRACTED FROM A CITS MAP.
+Function AverageOfImages(starti,endi)
+	Variable starti, endi
+	SetDataFolder root:CITSImageSlices
+	
+	String base="I_V__19_1_FUD_"
+	base="I_V__19_1_FUTD_"
+	Variable i
+	
+//	starti = 247
+//	endi = 274
+	
+//	starti = 225
+//	endi = 245
+	
+	String startWStr = base+num2str(starti)
+	Wave startW = $startWStr
+	Duplicate/O startW, avgImgWave
+	Wave avgImgWave
+	
+	String currentImg
+	
+	for (i=starti+1; i<=endi; i+=1)
+		currentImg= base+num2str(i)
+		Wave currentImgWave = $currentImg
+		avgImgWave = avgImgWave + currentImgWave
+	endfor
+	
+	//avgImgWave = avgImgWave / (endi-starti+1)
+	
+	NewDataFolder/O root:avgCITSImage
+	String finalImgName = base+"_"+num2str(starti)+"_"+num2str(endi)
+	Duplicate/O avgImgWave root:avgCITSImage:$(finalImgName)
+	
+	
+	
 End

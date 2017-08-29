@@ -91,6 +91,10 @@ Menu "Line Trace"
 		"Shift x-axis for all traces", ShiftTracesInGraph("")
 		"-"
 		"Average all traces in graph", DoSomethingToAllTracesInGraph("",type="average")
+		"-"
+		"FFT all traces in graph", DoSomethingToAllTracesInGraph("",type="FFT")
+		"-"
+		"Change x units and scaling of graph", DoSomethingToAllTracesInGraph("",type="xunits")
 	End
 	
 	"-"

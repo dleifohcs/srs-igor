@@ -114,6 +114,9 @@ Function SRSLoadData(pathStr,filenameStr)
 		case "I(Z)_flat":
 			SRSFlatFileLoad(pathStr,filenameStr)
 			break
+		case "I(t)_flat":
+			SRSFlatFileLoad(pathStr,filenameStr)
+			break
 		case "xy":
 			loadXY2013(pathStr,filenameStr)
 			break
@@ -1037,8 +1040,8 @@ Function SRSFlatFileLoad(pathStr,filenameStr)
     	Variable timestamp;			FBinRead/F=3 refNum, timestamp 
     	Variable dummy;			FBinRead/F=3 refNum, dummy 
 
-    	String/G datetimeStr = secs2date(timestamp+date2secs(1970,1,1),1)+" "+secs2time(timestamp+date2secs(1970,1,1),1)
-
+    	String/G datetimeStr = secs2date(timestamp+date2secs(1970,1,1),-2)+" "+secs2time(timestamp+date2secs(1970,1,1),1)
+Print "data=",datetimeStr
     	// Read comments
     	String/G comment = ReadFlatStr(refNum)
 
@@ -1304,6 +1307,8 @@ Function SRSFlatFileLoad(pathStr,filenameStr)
 		Print "display", dataDF
 		displayAllData(autoBG=autoBG)
 	endif
+	
+	
 	
 	// set minimum to zero
 	//doSomethingWithData("subtractMin")
@@ -2571,11 +2576,11 @@ Function loadAccelerometer( pathStr, filenameStr )
 		DeletePoints/M=0 0, 1, ampW
 	
 		// Set the scales and add units
-		SetScale/I x, freqmin, freqmax, "Hz", ampW
-		SetScale/I d, 0,1, "m/s", ampW
+		//SetScale/I x, freqmin, freqmax, "Hz", ampW
+		//SetScale/I d, 0,1, "m/s", ampW
 	
 		// convert to m/s/sqrt(Hz)
-		ampW = ampW * 25.4 * 1e-3
+		//ampW = ampW * 25.4 * 1e-3
 	
 		// Display the wave
 		display/k=1 ampW

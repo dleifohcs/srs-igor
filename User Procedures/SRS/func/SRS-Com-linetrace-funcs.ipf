@@ -1300,6 +1300,24 @@ Function DoSomethingToAllTracesInGraph(graphName,[type])
 			Duplicate/O w, $manipulatedWaveName
 			Variable wavesAveraged = 0
 		endif
+		
+		Variable rasterstart
+		Variable Traster
+		String xunit
+		if ( cmpstr(type,"xunits") == 0 )
+			Wave w = WaveRefIndexed(GraphName,0,1)	
+			String w_info = WaveInfo(w,0)
+			xunit = StringByKey("xunits",w_info)
+			rasterstart = DimOffset(w,0)
+			Traster = DimDelta(w,0)
+			Prompt rasterstart, "Enter start value"
+			Prompt Traster, "Enter t-raster value"
+			Prompt xunit, "Enter new wave x-axis units"
+			DoPrompt "X Units Change", rasterstart, Traster, xunit
+			if( V_Flag )
+ 			     	// user canceled
+ 			endif
+ 		endif
 						
 		// loop over all waves in this graph window
 		for (i=0; i<numWaves; i+=1) 
@@ -1317,6 +1335,16 @@ Function DoSomethingToAllTracesInGraph(graphName,[type])
 					Duplicate/O w, $manipulatedWaveName
 					Wave mw = $manipulatedWaveName
 					Smooth/S=2 5, mw
+					break
+				case "xunits": 				      	
+					SetScale/P x, rasterstart, Traster, xunit, w				
+					break
+				case "FFT":
+					manipulatedWaveName = waveNameStr+"_FFT"
+					//Duplicate/O w, $manipulatedWaveName
+					//Wave mw = $manipulatedWaveName
+					//FFT/OUT=3/DEST=fftwave, w
+					FFT/OUT=3/DEST=$manipulatedWaveName w
 					break
 				case "smooth-B":
 					manipulatedWaveName = waveNameStr+"_SB"

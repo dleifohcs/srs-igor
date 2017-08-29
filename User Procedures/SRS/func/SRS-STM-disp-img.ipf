@@ -111,6 +111,8 @@ End
 Function displayAllData([autoBG])
 	String autoBG
 	
+	SVAR autoSaveImage = root:WinGlobals:SRSSTMControl:autoSaveImage
+	
 	// Get current data folder
 	DFREF saveDF = GetDataFolderDFR()	  // Save
 	String imgDF = GetDataFolder(1)  // This is the DF that holds the wave data
@@ -160,6 +162,9 @@ Function displayAllData([autoBG])
 			else
 				// if a 3D wave then do the following
 				img3dDisplay(imgWStr)
+			endif
+			if (cmpstr(autoSaveImage,"yes")==0)
+				quickSaveImage(symbolicPath="UserDesktop",imageType="JPEG")
 			endif
 		endfor
 	else

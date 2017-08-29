@@ -97,6 +97,9 @@ Menu "STM", dynamic
 			"Interpolate CITS [up-sample]", doSomethingWithData("upSampleCITS")
 			"-"
 			"Crop [to current view area]", doSomethingWithData("cropCITS")
+			"-"
+			"Extract a CITS slice to an image", doSomethingWithData("extractImageFromCITS")
+			"Extract all CITS slices to images", doSomethingWithData("extractImageSFromCITS")
 		End
 		Submenu "Region of Interest"
 			"Create or Edit ROI", doSomethingWithData("createROI")
@@ -136,9 +139,7 @@ Menu "STM", dynamic
 			"-"
 			"Save image DATA as TIFF to Desktop/SF2",quickSaveImage(symbolicPath="UserDesktop",imageType="TIFF")
 			"Save image DATA as TIFF to Documents",quickSaveImage(symbolicPath="UserDocuments",imageType="TIFF")
-			"-"
-			"Extract a CITS slice to an image", doSomethingWithData("extractImageFromCITS")
-			"Extract all CITS slices to images", doSomethingWithData("extractImageSFromCITS")
+			
 			//"Quick save JPEG to Documents/SF2",quickSaveImage(symbolicPath="SRSDocuments")
 		End
 		"-"
@@ -168,6 +169,9 @@ Menu "STM", dynamic
 			setControlMenuItem("CITSLineProfileLog"), toggleCITSLineProfileLog()
 			"-"
 			setControlMenuItem("syncCITS"), togglesyncCITS()
+			"-"
+			setControlMenuItem("autoSaveImage"), toggleAutoSaveImage()
+			
 		End
 		"-"
 		"About", SRSSTMAbout()
@@ -202,6 +206,18 @@ Function toggleAutoDisplay()
 		commonDataFolder = "no"
 	endif
 End
+
+// set global variable for programme control
+Function toggleAutoSaveImage()
+	createSRSControlVariables()
+	SVAR autoSaveImage = root:WinGlobals:SRSSTMControl:autoSaveImage
+	if (cmpstr(autoSaveImage,"yes")==0)
+		autoSaveImage = "no"
+	else
+		autoSaveImage = "yes"
+	endif
+End
+
 
 // set global variable for programme control
 Function toggleAutoImageColour()
@@ -360,7 +376,21 @@ Function/S setControlMenuItem(controlVariable)
 					returnStr = "error 1"
 					break
 			endswitch
+			break
+		case "autoSaveImage":
+			strswitch(state)
+				case "yes":
+					returnStr = "Auto-save images when loading!"+num2char(18) 
+					break
+				case "no":
+					returnStr = "Auto-save images when loading"
+					break
+				default:
+					returnStr = "error 1"
+					break
+			endswitch
 			break		
+		
 		case "autoBGnone":
 			strswitch(state)
 				case "yes":
