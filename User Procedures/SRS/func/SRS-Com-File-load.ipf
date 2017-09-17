@@ -183,6 +183,9 @@ Function SRSLoadData(pathStr,filenameStr)
 		case "txt":
 			loadxps(pathStr, filenameStr)
 			break
+		case "mww":
+			loadmww(pathStr, filenameStr)
+			break
 		default:
 			returnVar = 0
 			Print "SRS macro package does not know this file extension type; handing file back to Igor file loader"
@@ -240,6 +243,37 @@ Function loadKaneXY2012(path,filename)
 	
 	// Move to original data folder
 //	SetDataFolder saveDF
+End
+
+
+
+//------------------------------------------------------------------------------------------------------------------------------------
+// Load data from Kane's XY file format (Dec. 2012 Australian Synchrotron trip)
+//------------------------------------------------------------------------------------------------------------------------------------
+Function loadmww(path,filename)
+	String path, filename
+	
+	// Get current data folder
+	DFREF saveDF = GetDataFolderDFR()	  // Save
+	
+	// Make a new datafolder based on the filename
+	String DFnameFromFileName= removeBadChars(filename)
+	DFnameFromFileName= removeSpace(DFnameFromFileName)
+	//NewDataFolder/O/S root:$DFnameFromFileName
+	NewDataFolder/O/S root:wavefunctions
+	
+	// Load the column data 
+	LoadWave/Q/J/D/W/N/O/K=1/V={"\t, "," $",0,0} path+filename
+	Variable numWaves= V_flag
+	String waveNameList= S_waveNames
+	Wave wave0
+	
+	Variable datalength = DimSize(wave0,0)
+	Variable imagewidth = Sqrt(datalength)
+	Redimension/N=(imagewidth,imagewidth) wave0
+	
+	Duplicate/O wave0, $DFnameFromFileName
+	KillWaves wave0
 End
 
 

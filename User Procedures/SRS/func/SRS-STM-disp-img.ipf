@@ -165,6 +165,7 @@ Function displayAllData([autoBG])
 			endif
 			if (cmpstr(autoSaveImage,"yes")==0)
 				quickSaveImage(symbolicPath="UserDesktop",imageType="JPEG")
+				quickSaveImage(symbolicPath="UserDesktop",imageType="TIFF")
 			endif
 		endfor
 	else

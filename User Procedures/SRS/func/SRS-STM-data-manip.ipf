@@ -1256,16 +1256,51 @@ Function createSRSControlVariables([forced])
 	endif
 
 	String/G coloursList
+	Variable i
+	String newColoursList = ""
+	String colourStr, newColourStr
+	Variable colourStrLen
+	
 	if (strlen(coloursList)==0)
-		coloursList = "Autumn"
-		coloursList = coloursList+";BlueExp;Blue2;SRSBlue;SRSBlue2"
-		coloursList = coloursList+";SRSBBR;SRSBBY"
-		coloursList = coloursList+";BlueBlackYellow"
-		coloursList = coloursList+";Defect1;Defect2"
-		coloursList = coloursList+";GoldOrange;PinkScale;Bicolor;Grasshopper;Red2;Expfast1;GrayBinary1;Rust"
-		coloursList = coloursList+"Expfast2;GrayBinary2;Sailing;Expmult1;GrayBinary3;Strawberry;BlueLog;Expmult2"
-		coloursList = coloursList+";GrayExp;Sunset;BlueRedGreen2"
-		coloursList = coloursList+";Expmult3;Green2;Thunderbolt;BlueRedGreen3;Expmult4;Green3;Titanium"
+		coloursList = indexedfile(SRSctab,-1,".ibw")
+		i=0
+		coloursList = indexedfile(SRSctab,-1,".ibw")
+		Do 
+			colourStr = StringFromList(i,coloursList)
+			colourStrLen = strlen(colourStr)
+			if (colourStrLen < 1)
+				Break
+			endif
+			newColourStr = colourStr[0,colourStrLen-5]
+			//Print i, colourStr, colourStrLen, newColourStr
+			newColoursList = AddListItem(newColourStr,newColoursList,";",0)
+			i += 1
+		While ( colourStrLen > 0 )
+		coloursList=""
+		i=0
+		// reverse the order of the list.  
+		Do 
+			colourStr = StringFromList(i,NewColoursList)
+			colourStrLen = strlen(colourStr)
+			if (colourStrLen < 1)
+				Break
+			endif
+			coloursList = AddListItem(colourStr,ColoursList)
+			i += 1
+		While ( colourStrLen > 0 )
+		
+		
+		
+		
+		//coloursList = "Autumn"
+		//coloursList = coloursList+";BlueExp;Blue2;SRSBlue;SRSBlue2"
+		//coloursList = coloursList+";SRSBBR;SRSBBY"
+		//coloursList = coloursList+";BlueBlackYellow"
+		//coloursList = coloursList+";Defect1;Defect2"
+		//coloursList = coloursList+";GoldOrange;PinkScale;Bicolor;Grasshopper;Red2;Expfast1;GrayBinary1;Rust"
+		//coloursList = coloursList+"Expfast2;GrayBinary2;Sailing;Expmult1;GrayBinary3;Strawberry;BlueLog;Expmult2"
+		//coloursList = coloursList+";GrayExp;Sunset;BlueRedGreen2"
+		//coloursList = coloursList+";Expmult3;Green2;Thunderbolt;BlueRedGreen3;Expmult4;Green3;Titanium"
 	endif
 	
 	// this variable can be set to control whether or not STS extracted from CITS are averaged with neighbours
