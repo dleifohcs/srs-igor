@@ -490,5 +490,96 @@ End
 
 
 
+// This function creates the colour scales.
 
+Function CreateColourScales()
+	
+	Variable xA, xAI
+	Variable cMax, cMin
+	Make/O/N=(256,3) newcolour
+	
+	// Gray Scale Linear
+	newcolour[][0]=256*p
+	newcolour[][1]=256*p
+	newcolour[][2]=256*p
+	
+	Duplicate/O newcolour, GrayLinear
+	Save/C/O/P=SRSctab GrayLinear as "GrayLinear.ibw"
+	
+	// Gray Scale Linear Inverse
+	
+	newcolour[][0]=65280 - 256*p
+	newcolour[][1]=65280 - 256*p
+	newcolour[][2]=65280 - 256*p
+	
+	Duplicate/O newcolour, GrayLinearInverse
+	Save/C/O/P=SRSctab GrayLinearInverse as "GrayLinearInverse.ibw"
+	
+	// Gray Scale Linear White BG
+	
+	xA = 50
+	xAI = 256-xA
+	
+	newcolour[,xA-1]=65280 - 256*256*p/xA
+	newcolour[xA,]=256*256*(p-xA)/xAI
+	
+	Duplicate/O newcolour, GrayLinearWhiteBG
+	Save/C/O/P=SRSctab GrayLinearWhiteBG as "GrayLinearWhiteBG.ibw"
+	
+	// White Gray White
+	
+	xA = 50
+	cMax = 65280
+	cMin = 20000
+	
+	Variable slope1, slope2
+	slope1 = ((cMin - cMax) / (xA))
+	slope2 = ((cMax - cMin) / (256 - xA))
+	
+	newcolour = 0
+	newcolour[,xA]= cMax +  slope1 * p
+	newcolour[xA,]= cMin + slope2 * (p - xA)
+	
+	Duplicate/O newcolour, GrayWGW
+	Save/C/O/P=SRSctab GrayWGW as "GrayWGW.ibw"
+	
+	// Now recreate the global colours string
+	String currentDataFolder = GetDataFolder(1)
+	NewDataFolder/O root:WinGlobals
+	NewDataFolder/O/S root:WinGlobals:SRSSTMControl
+	
+	String/G coloursList
+	Variable i
+	String newColoursList = ""
+	String colourStr, newColourStr
+	Variable colourStrLen
 
+	coloursList = indexedfile(SRSctab,-1,".ibw")
+	i=0
+	coloursList = indexedfile(SRSctab,-1,".ibw")
+	Do 
+		colourStr = StringFromList(i,coloursList)
+		colourStrLen = strlen(colourStr)
+		if (colourStrLen < 1)
+			Break
+		endif
+		newColourStr = colourStr[0,colourStrLen-5]
+		//Print i, colourStr, colourStrLen, newColourStr
+		newColoursList = AddListItem(newColourStr,newColoursList,";",0)
+		i += 1
+	While ( colourStrLen > 0 )
+	coloursList=""
+	i=0
+	// reverse the order of the list.  
+	Do 
+		colourStr = StringFromList(i,NewColoursList)
+		colourStrLen = strlen(colourStr)
+		if (colourStrLen < 1)
+			Break
+		endif
+		coloursList = AddListItem(colourStr,ColoursList)
+		i += 1
+	While ( colourStrLen > 0 )	
+	
+	SetDataFolder $currentDataFolder
+End
