@@ -97,8 +97,7 @@ Function displayData()
 			Print "Image display cancelled by user" 
 		endif
 	else
-		//Print "Error: no 2D or 3D image data found in the current data folder"
-		display1DWaves("all")
+		Print "Error: no 2D or 3D image data found in the current data folder"
 	endif
 		
 	// Return to original data folder
@@ -118,6 +117,7 @@ Function displayAllData([autoBG])
 	DFREF saveDF = GetDataFolderDFR()	  // Save
 	String imgDF = GetDataFolder(1)  // This is the DF that holds the wave data
 
+	
 	// List (2D) waves in current data folder
 	String w2dList =  WaveList("*",";","DIMS:2") 
 	Variable w2dNum = ItemsInList(w2dList)
@@ -163,7 +163,6 @@ Function displayAllData([autoBG])
 				if (cmpstr(autoSaveImage,"yes")==0)
 					quickSaveImage(symbolicPath="dataDirectory",imageType="JPEG")
 					quickSaveImage(symbolicPath="dataDirectory",imageType="TIFF")
-				
 				endif
 			else
 				// if a 3D wave then do the following
@@ -173,9 +172,15 @@ Function displayAllData([autoBG])
 		if (cmpstr(autoSaveImage,"yes")==0)
 				SetDataFolder root: 
 				KillDataFolder imgDF
-			endif
+		endif
 	else
-		Print "Error: no 2D or 3D image data found in the current data folder"
+		//Print "Error: no 2D or 3D image data found in the current data folder"
+		display1DWaves("all")
+		if (cmpstr(autoSaveImage,"yes")==0)
+			quickSaveImage(symbolicPath="dataDirectory",imageType="JPEG")
+			SetDataFolder root: 
+			KillDataFolder imgDF
+		endif
 	endif
 		
 	// Return to original data folder

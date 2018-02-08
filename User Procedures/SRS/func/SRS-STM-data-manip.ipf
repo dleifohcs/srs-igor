@@ -2633,7 +2633,7 @@ Function quickSaveImage([symbolicPath,imageType])
 	
 	// Get name of top graph
 	String graphName= WinName(0,1)
-	
+
 	SVAR autoSaveImage = root:WinGlobals:SRSSTMControl:autoSaveImage
 	
 	// if imageType not given then set it to "JPEG"
@@ -2671,6 +2671,11 @@ Function quickSaveImage([symbolicPath,imageType])
 		//imageFileName= graphName+"_"+num2str(i)+fileExt
 		
 		imageFileName = StringFromList(0,ImageNameList(graphName,""))
+		// check if line trace
+		if ( strlen(imageFileName)==0 )
+			imageFileName = StringFromList(0,TraceNameList(graphName,"",1))
+		endif
+		
 		imageFileNameImageOnly = "IMG_"+imageFileName
 		//ImageLoad /Q/O /Z /T=any /P=$symbolicPath imageFileName
 		//if ( V_Flag )
