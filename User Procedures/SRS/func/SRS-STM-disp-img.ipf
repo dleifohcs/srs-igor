@@ -250,6 +250,12 @@ Function imgDisplay(imgWStr)
 	// Autoposition window
 	AutoPositionWindow/E
 	
+	// Increase image size
+	ModifyGraph width=283.465
+	DoUpdate
+	ModifyGraph width=0
+	DoUpdate
+	
 	// Return to starting data folder
 	SetDataFolder saveDF
 End
