@@ -1393,7 +1393,7 @@ Function subtractPlane(graphname,[ROI])
 	
 		Redimension/B/U imgWROI 			
 
-		WaveStats imgW
+		WaveStats/Q imgW
 		Variable rawImgAvg = V_avg
 		// Use in-built Igor function for plane removal
 		ImageRemoveBackground /O/R=imgWROI/P=1 imgW

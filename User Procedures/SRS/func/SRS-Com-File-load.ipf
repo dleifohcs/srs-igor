@@ -272,6 +272,11 @@ Function loadmww(path,filename)
 	Variable imagewidth = Sqrt(datalength)
 	Redimension/N=(imagewidth,imagewidth) wave0
 	
+	Variable intensitySum = 1
+	intensitySum = Sum(wave0)
+	wave0 = wave0 / intensitySum
+	Print "Normalising the sum of the intensity values to unity.  Before normalisation: ", intensitySum
+	
 	Duplicate/O wave0, $DFnameFromFileName
 	KillWaves wave0
 End
@@ -892,6 +897,8 @@ Function SRSFlatFileLoad(pathStr,filenameStr)
 	
 	// Combine path and filename into a single string 
 	String FullFileNameStr = pathStr+filenameStr
+	
+	NewPath /O dataDirectory, pathStr
 	
 	// Open data file
 	Open/R/Z=1 refNum as FullFileNameStr

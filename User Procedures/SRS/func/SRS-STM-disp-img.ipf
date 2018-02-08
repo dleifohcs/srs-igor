@@ -97,7 +97,8 @@ Function displayData()
 			Print "Image display cancelled by user" 
 		endif
 	else
-		Print "Error: no 2D or 3D image data found in the current data folder"
+		//Print "Error: no 2D or 3D image data found in the current data folder"
+		display1DWaves("all")
 	endif
 		
 	// Return to original data folder
@@ -159,15 +160,20 @@ Function displayAllData([autoBG])
 						doSomethingWithData("subtractplane")
 					endif
 				endif
+				if (cmpstr(autoSaveImage,"yes")==0)
+					quickSaveImage(symbolicPath="dataDirectory",imageType="JPEG")
+					quickSaveImage(symbolicPath="dataDirectory",imageType="TIFF")
+				
+				endif
 			else
 				// if a 3D wave then do the following
 				img3dDisplay(imgWStr)
 			endif
-			if (cmpstr(autoSaveImage,"yes")==0)
-				quickSaveImage(symbolicPath="UserDesktop",imageType="JPEG")
-				quickSaveImage(symbolicPath="UserDesktop",imageType="TIFF")
-			endif
 		endfor
+		if (cmpstr(autoSaveImage,"yes")==0)
+				SetDataFolder root: 
+				KillDataFolder imgDF
+			endif
 	else
 		Print "Error: no 2D or 3D image data found in the current data folder"
 	endif
@@ -199,6 +205,8 @@ End
 Function imgDisplay(imgWStr)
 	String imgWStr
 	
+	SVAR autoSaveImage = root:WinGlobals:SRSSTMControl:autoSaveImage
+	
 	// Get current data folder
 	DFREF saveDF = GetDataFolderDFR()	  // Save
 	String imgDF = GetDataFolder(1)  // This is the DF that holds the 2D image wave data
@@ -223,10 +231,12 @@ Function imgDisplay(imgWStr)
 // "makeImgPretty" routine below
 	// 
 	SetDataFolder root:WinGlobals
-	if ( DataFolderExists(graphName) )
-		Print "Warning: root:WinGlobals:"+graphName+" already exists.  If you are experiencing problems then kill the data windows (images, line plots etc.) and then delete this datafolder."
-//		KillDataFolder $graphName
+	if (cmpstr(autoSaveImage,"yes")==0)
+		KillDataFolder root:WinGlobals:$(graphName)
 	endif
+	//if ( DataFolderExists(graphName) )
+	//	Print "Warning: root:WinGlobals:"+graphName+" already exists.  If you are experiencing problems then kill the data windows (images, line plots etc.) and then delete this datafolder."
+	//endif
 	SetDataFolder saveDF
 	
 	// Adjust graph size etc.

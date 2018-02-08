@@ -122,7 +122,7 @@ Function changeColour(graphName,[colour,cMin,cMax,changeScale])
 			String ctabFileName= ctabName+".ibw"		
 			
 			// Load the colour wave into a wave named "ctable" 
-			Execute "LoadWave/P=SRSctab/O \""+ctabFileName+ "\" "
+			Execute "LoadWave/Q/P=SRSctab/O \""+ctabFileName+ "\" "
 			Duplicate/O $ctabName, ctab
 			
 		endif
@@ -528,7 +528,7 @@ Function CreateColourScales()
 	
 	// White Gray White
 	
-	xA = 50
+	xA = 10
 	cMax = 65280
 	cMin = 20000
 	
