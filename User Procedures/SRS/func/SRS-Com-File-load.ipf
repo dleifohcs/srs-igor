@@ -292,7 +292,7 @@ Function loadXY2013(pathStr,filenameStr)
 	
 	// -------------------------------------------------------------------------------------------------------------------------------------------//
 	// USER DEFINED VARIABLES FOR CONTROLLING THE BEHAVIOUR OF THIS FILE LOADER	
-	Variable VERBOSE = 1  // set to 1 to increase the amount of output to the command window: useful for debugging 
+	Variable VERBOSE = 0  // set to 1 to increase the amount of output to the command window: useful for debugging 
 	Variable keepEXT = 0 // set to 1 to keep the individual channel data and extended channels 
 	// -------------------------------------------------------------------------------------------------------------------------------------------//
 	
@@ -881,7 +881,7 @@ Function SRSFlatFileLoad(pathStr,filenameStr)
 
 	// -------------------------------------------------------------------------------------------------------------------------------------------//
 	// USER DEFINED VARIABLES FOR CONTROLLING THE BEHAVIOUR OF THIS FILE LOADER	
-	Variable VERBOSE = 1  // set to 1 to increase the amount of output to the command window: useful for debugging 
+	Variable VERBOSE = 0  // set to 1 to increase the amount of output to the command window: useful for debugging 
 	Variable RETAIN_MATRIX_INFO = 1  // set to 1 to keep all information loaded from the matrix file
 	// -------------------------------------------------------------------------------------------------------------------------------------------//
 	
@@ -898,7 +898,7 @@ Function SRSFlatFileLoad(pathStr,filenameStr)
 	// Combine path and filename into a single string 
 	String FullFileNameStr = pathStr+filenameStr
 	
-	NewPath /O dataDirectory, pathStr
+	NewPath /Q/O dataDirectory, pathStr
 	
 	// Open data file
 	Open/R/Z=1 refNum as FullFileNameStr
@@ -912,7 +912,7 @@ Function SRSFlatFileLoad(pathStr,filenameStr)
 	// SECTION 1: FILE IDENTIFICATION
 	// -----------------------------------------
 	
-	Print " "
+	// Print " "
 	
 	// VERBOSE
 	if ( VERBOSE )
@@ -931,7 +931,9 @@ Function SRSFlatFileLoad(pathStr,filenameStr)
 		Print "ERROR: File does not have a Flat File Format header.  Stopping"
 		return 1
 	else
-		Print "Opened Flat File: file structure level =", file_structure_level 
+		If ( VERBOSE ) 
+			Print "Opened Flat File: file structure level =", file_structure_level 
+		endif
 	endif
 	if ( cmpstr(file_structure_level ,"0100")!=0 )
 		Print "WARNING: File structure level not '0100' - the flat file format may have changed since this loader was written"
@@ -1082,7 +1084,7 @@ Function SRSFlatFileLoad(pathStr,filenameStr)
     	Variable dummy;			FBinRead/F=3 refNum, dummy 
 
     	String/G datetimeStr = secs2date(timestamp+date2secs(1970,1,1),-2)+" "+secs2time(timestamp+date2secs(1970,1,1),1)
-Print "data=",datetimeStr
+
     	// Read comments
     	String/G comment = ReadFlatStr(refNum)
 
@@ -1316,8 +1318,10 @@ Print "data=",datetimeStr
 	
 	// Rename the data waves and the data folder according to the channel name, run and scan number, and image mode
 	String dataDF = FlatRenameWaveAndDF()
-		
-	Print "Finished loading"
+	
+	if ( VERBOSE )	
+		Print "Finished loading"
+	endif 
 	
 	// Move to DF containing the data
 	SetDataFolder dataDF
@@ -1345,11 +1349,11 @@ Print "data=",datetimeStr
 	// Automatically display images and CITS if loading from flat file format
 	SVAR autoDisplay = root:WinGlobals:SRSSTMControl:autoDisplay
 	if ( cmpstr(autoDisplay,"yes")==0)
-		Print "display", dataDF
+		if ( VERBOSE )
+			Print "display", dataDF
+		endif 
 		displayAllData(autoBG=autoBG)
 	endif
-	
-	
 	
 	// set minimum to zero
 	//doSomethingWithData("subtractMin")
@@ -1459,7 +1463,9 @@ End
 // Redimension the axes (calls separate functions for images, sts, etc)
 //------------------------------------------------------------------------------------
 Function FlatRedimensionAxes()
-
+	
+	Variable VERBOSE = 0  // set to 1 to increase the amount of output to the command window: useful for debugging 
+	
 	// Save the current DF
 	String saveDF = GetDataFolder(1)
 	
@@ -1480,15 +1486,21 @@ Function FlatRedimensionAxes()
 	// decide what do to for different number of axes
 	switch ( axis_count )
 		case 1:  	// 1D data
-			Print "Data is one dimensional: axis is", axes_names_short[0]
+			if (VERBOSE )
+				Print "Data is one dimensional: axis is", axes_names_short[0]
+			endif 
 			FlatFile1DProcess()
 			break
 		case 2: 	// 2D data
-			Print "Data is two dimensional: axes are",axes_names_short[0]+" and",axes_names_short[1]
+			if (VERBOSE )
+				Print "Data is two dimensional: axes are",axes_names_short[0]+" and",axes_names_short[1]
+			endif 
 			FlatFile2DProcess()	
 			break
 		case 3:		// 3D data
-			Print "Data is three dimensional: axes are",axes_names_short[0]+",",axes_names_short[1]+",",axes_names_short[2]
+			if (VERBOSE )
+				Print "Data is three dimensional: axes are",axes_names_short[0]+",",axes_names_short[1]+",",axes_names_short[2]
+			endif
 			FlatFile3DProcess()
 			break
 		default:
@@ -1567,9 +1579,6 @@ Function FlatFile1DProcess()
 		Duplicate/O dataT, dataW
 		KillWaves dataT
 	endif
-	
-	
-	
 		// Scale the x and y axes appropriately
 //	SetScale/P x, x_phys_start, x_phys_inc, x_unit, dataFU
 //	SetScale/P y, y_phys_start, y_phys_inc, y_unit, dataFU
