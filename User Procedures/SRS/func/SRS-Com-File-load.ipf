@@ -2263,10 +2263,13 @@ Function/S FlatRenameWaveAndDF()
 	
 	String DFname = ""
 	
+	SVAR autoSaveImage = root:WinGlobals:SRSSTMControl:autoSaveImage
+	
 	// determine whether this is a 1D data (e.g., STS) or rastered data (e.g., images or CITS)	
 	Wave dataW
 	
 	if ( WaveExists(dataW) ) // 1D wave
+		
 		
 		String Wwavenote = note(dataW)
 		String Wname = StringByKey("Name",Wwavenote)
@@ -2278,6 +2281,15 @@ Function/S FlatRenameWaveAndDF()
 		DFname = replaceBadChars(DFname)
 		DFname = replaceSpace(DFname)
 		DFname = replaceHyphen(DFname)
+		
+		if (cmpstr(autoSaveImage,"yes")==0)
+			String Wdate = StringByKey("Time stamp",Wwavenote)
+			Wdate = Wdate[2,15]
+			Wdate = replaceBadChars(Wdate)
+			Wdate = replaceSpace(Wdate)
+			Wdate = replaceHyphen(Wdate)
+			Wname = "IV"+Wdate+"_"+Wname
+		endif 
 		
 		Make/O/D  $Wname
 		Duplicate/O dataW, $Wname
@@ -2336,6 +2348,42 @@ Function/S FlatRenameWaveAndDF()
 		nameBD = replaceBadChars(nameBD)
 		nameBD = replaceSpace(nameBD)
 		nameBD = replaceHyphen(nameBD)
+		
+		
+		
+		if (cmpstr(autoSaveImage,"yes")==0)
+		
+			String dateFU = StringByKey("Time stamp",wavenoteFU)
+			String dateBU = StringByKey("Time stamp",wavenoteBU)
+			String dateFD = StringByKey("Time stamp",wavenoteFD)
+			String dateBD = StringByKey("Time stamp",wavenoteBD)
+		
+			dateFU = dateFU[2,15]
+			dateBU = dateBU[2,15]
+			dateFD = dateFD[2,15]
+			dateBD = dateBD[2,15]
+		
+			dateFU = replaceBadChars(dateFU)
+			dateFU = replaceSpace(dateFU)
+			dateFU = replaceHyphen(dateFU)
+		
+			dateBU = replaceBadChars(dateBU)
+			dateBU = replaceSpace(dateBU)
+			dateBU = replaceHyphen(dateBU)
+		
+			dateFD = replaceBadChars(dateFD)
+			dateFD = replaceSpace(dateFD)
+			dateFD = replaceHyphen(dateFD)
+		
+			dateBD = replaceBadChars(dateBD)
+			dateBD = replaceSpace(dateBD)
+			dateBD = replaceHyphen(dateBD)
+			
+			nameFU = "Z"+dateFU+"_"+nameFU
+			nameFD = "Z"+dateFU+"_"+nameFD
+			nameBU = "Z"+dateFU+"_"+nameBU
+			nameBD = "Z"+dateFU+"_"+nameBD
+		endif
 		
 		// Get name of the DF from the forward up wave
 		DFname = StringByKey("DFName",wavenoteFU)
