@@ -134,6 +134,7 @@ Function displayAllData([autoBG])
 	
 		String imgWStr
 		Variable i
+		Variable dataPercent
 	
 		// display all 2D and 3D waves in folder 		
 		for (i=0; i<wNum; i+=1)
@@ -144,30 +145,55 @@ Function displayAllData([autoBG])
 	
 			// Create Wave assignment for image
 			Wave imgW= $imgWFullStr
-
-			// Display the data
-			if (WaveDims(imgW)<3)
-				// if a 2D wave then do the following
-				imgDisplay(imgWStr)
-				
-				if ( ParamIsDefault(autoBG) )
-					// do nothing
+	
+		    if (cmpstr(autoSaveImage,"yes")==0)
+			WaveStats/Q imgW
+			dataPercent = V_npnts/V_numNaNs
+			if ( numtype (V_sdev)!=0 )
+				Print "Wave ", imgWStr, " contains no data.  Not displaying."
+			elseif ( dataPercent < 0.1 )
+				Print "Wave ", imgWStr, " contains less than 10 percent data.  Not displaying."
+			else
+				// Display the data
+				if (WaveDims(imgW)<3)
+					// if a 2D wave then do the following
+					imgDisplay(imgWStr)
+					if ( ParamIsDefault(autoBG) )
+						// do nothing
+					else
+						// automatic background subtraction
+						if ( cmpstr(autoBG,"linewise")==0 )
+							doSomethingWithData("subtractlinewise")
+						elseif (cmpstr(autoBG,"plane")==0 )
+							doSomethingWithData("subtractplane")
+						endif
+					endif
+					quickSaveImage(symbolicPath="dataJPEGDirectory",imageType="JPEG")
+					// quickSaveImage(symbolicPath="dataDirectory",imageType="TIFF")
 				else
-					// automatic background subtraction
-					if ( cmpstr(autoBG,"linewise")==0 )
-						doSomethingWithData("subtractlinewise")
-					elseif (cmpstr(autoBG,"plane")==0 )
-						doSomethingWithData("subtractplane")
+					// if a 3D wave then do the following
+					img3dDisplay(imgWStr)
+					quickSaveImage(symbolicPath="dataJPEGDirectory",imageType="JPEG")
+				endif
+			endif
+		    else
+		    	// Display the data
+				if (WaveDims(imgW)<3)
+					// if a 2D wave then do the following
+					imgDisplay(imgWStr)
+					if ( ParamIsDefault(autoBG) )
+						// do nothing
+					else
+						// automatic background subtraction
+						if ( cmpstr(autoBG,"linewise")==0 )
+							doSomethingWithData("subtractlinewise")
+						elseif (cmpstr(autoBG,"plane")==0 )
+							doSomethingWithData("subtractplane")
+						endif
 					endif
 				endif
-				if (cmpstr(autoSaveImage,"yes")==0)
-					quickSaveImage(symbolicPath="dataDirectory",imageType="JPEG")
-					quickSaveImage(symbolicPath="dataDirectory",imageType="TIFF")
-				endif
-			else
-				// if a 3D wave then do the following
-				img3dDisplay(imgWStr)
-			endif
+		    endif
+			
 		endfor
 		if (cmpstr(autoSaveImage,"yes")==0)
 				SetDataFolder root: 
@@ -177,7 +203,7 @@ Function displayAllData([autoBG])
 		//Print "Error: no 2D or 3D image data found in the current data folder"
 		display1DWaves("all")
 		if (cmpstr(autoSaveImage,"yes")==0)
-			quickSaveImage(symbolicPath="dataDirectory",imageType="JPEG")
+			quickSaveImage(symbolicPath="dataJPEGIVDirectory",imageType="JPEG")
 			SetDataFolder root: 
 			KillDataFolder imgDF
 		endif

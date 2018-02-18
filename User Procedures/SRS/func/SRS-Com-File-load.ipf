@@ -898,7 +898,11 @@ Function SRSFlatFileLoad(pathStr,filenameStr)
 	// Combine path and filename into a single string 
 	String FullFileNameStr = pathStr+filenameStr
 	
-	NewPath /Q/O dataDirectory, pathStr
+	String jpegpathStr = pathStr+"JPEG"
+	String jpegIVpathStr = pathStr+"JPEG_IV"
+	NewPath /O dataDirectory, pathStr
+	NewPath /O/C dataJPEGDirectory, jpegpathStr
+	NewPath /O/C dataJPEGIVDirectory, jpegIVpathStr
 	
 	// Open data file
 	Open/R/Z=1 refNum as FullFileNameStr
@@ -1690,7 +1694,7 @@ Function FlatFile2DProcess()
 	if ( xmirrored && ymirrored )
 		dataBD[][]=phys_dataW[p+xWidth][q+yWidth]
 	endif
-	
+
 	// Flip the x coords of "backward" images
 	Reverse/DIM=0 dataBU
 	Reverse/DIM=0 dataBD
