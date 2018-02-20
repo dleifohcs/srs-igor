@@ -898,11 +898,11 @@ Function SRSFlatFileLoad(pathStr,filenameStr)
 	// Combine path and filename into a single string 
 	String FullFileNameStr = pathStr+filenameStr
 	
-	String jpegpathStr = pathStr+"JPEG"
-	String jpegIVpathStr = pathStr+"JPEG_IV"
-	NewPath /O dataDirectory, pathStr
-	NewPath /O/C dataJPEGDirectory, jpegpathStr
-	NewPath /O/C dataJPEGIVDirectory, jpegIVpathStr
+	String jpegpathStr = pathStr+":JPEG"
+	String jpegIVpathStr = pathStr+":JPEG_IV"
+	NewPath /Q/O dataDirectory, pathStr
+	NewPath /Q/O/C dataJPEGDirectory, jpegpathStr
+	NewPath /Q/O/C dataJPEGIVDirectory, jpegIVpathStr
 	
 	// Open data file
 	Open/R/Z=1 refNum as FullFileNameStr
@@ -2288,11 +2288,11 @@ Function/S FlatRenameWaveAndDF()
 		
 		if (cmpstr(autoSaveImage,"yes")==0)
 			String Wdate = StringByKey("Time stamp",Wwavenote)
-			Wdate = Wdate[2,15]
+			Wdate = Wdate[2,3]+Wdate[5,6]+Wdate[8,9]+"_"+Wdate[11,12]+Wdate[13,14]
 			Wdate = replaceBadChars(Wdate)
 			Wdate = replaceSpace(Wdate)
 			Wdate = replaceHyphen(Wdate)
-			Wname = "IV"+Wdate+"_"+Wname
+			Wname = "IV"+Wdate+"_"+Wname[4,30]
 		endif 
 		
 		Make/O/D  $Wname
@@ -2362,11 +2362,11 @@ Function/S FlatRenameWaveAndDF()
 			String dateFD = StringByKey("Time stamp",wavenoteFD)
 			String dateBD = StringByKey("Time stamp",wavenoteBD)
 		
-			dateFU = dateFU[2,15]
-			dateBU = dateBU[2,15]
-			dateFD = dateFD[2,15]
-			dateBD = dateBD[2,15]
-		
+			dateFU = dateFU[2,3]+dateFU[5,6]+dateFU[8,9]+"_"+dateFU[11,12]+dateFU[13,14]
+			dateFD = dateFD[2,3]+dateFD[5,6]+dateFD[8,9]+"_"+dateFD[11,12]+dateFD[13,14]
+			dateBU = dateBU[2,3]+dateBU[5,6]+dateBU[8,9]+"_"+dateBU[11,12]+dateBU[13,14]
+			dateBD = dateBD[2,3]+dateBD[5,6]+dateBD[8,9]+"_"+dateBD[11,12]+dateBD[13,14]
+			
 			dateFU = replaceBadChars(dateFU)
 			dateFU = replaceSpace(dateFU)
 			dateFU = replaceHyphen(dateFU)
@@ -2382,11 +2382,11 @@ Function/S FlatRenameWaveAndDF()
 			dateBD = replaceBadChars(dateBD)
 			dateBD = replaceSpace(dateBD)
 			dateBD = replaceHyphen(dateBD)
-			
-			nameFU = "Z"+dateFU+"_"+nameFU
-			nameFD = "Z"+dateFU+"_"+nameFD
-			nameBU = "Z"+dateFU+"_"+nameBU
-			nameBD = "Z"+dateFU+"_"+nameBD
+				
+			nameFU = "Z"+dateFU+"_"+nameFU[1,30]
+			nameFD = "Z"+dateFU+"_"+nameFD[1,30]
+			nameBU = "Z"+dateFU+"_"+nameBU[1,30]
+			nameBD = "Z"+dateFU+"_"+nameBD[1,30]
 		endif
 		
 		// Get name of the DF from the forward up wave

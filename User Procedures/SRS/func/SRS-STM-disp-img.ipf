@@ -173,7 +173,7 @@ Function displayAllData([autoBG])
 				else
 					// if a 3D wave then do the following
 					img3dDisplay(imgWStr)
-					quickSaveImage(symbolicPath="dataJPEGDirectory",imageType="JPEG")
+					quickSaveImage(symbolicPath="dataJPEGIVDirectory",imageType="JPEG")
 				endif
 			endif
 		    else
@@ -197,7 +197,7 @@ Function displayAllData([autoBG])
 		endfor
 		if (cmpstr(autoSaveImage,"yes")==0)
 				SetDataFolder root: 
-				KillDataFolder imgDF
+				KillDataFolder/Z imgDF
 		endif
 	else
 		//Print "Error: no 2D or 3D image data found in the current data folder"
@@ -205,7 +205,7 @@ Function displayAllData([autoBG])
 		if (cmpstr(autoSaveImage,"yes")==0)
 			quickSaveImage(symbolicPath="dataJPEGIVDirectory",imageType="JPEG")
 			SetDataFolder root: 
-			KillDataFolder imgDF
+			KillDataFolder/Z imgDF
 		endif
 	endif
 		
@@ -263,7 +263,7 @@ Function imgDisplay(imgWStr)
 	// 
 	SetDataFolder root:WinGlobals
 	if (cmpstr(autoSaveImage,"yes")==0)
-		KillDataFolder root:WinGlobals:$(graphName)
+		KillDataFolder/Z root:WinGlobals:$(graphName)
 	endif
 	//if ( DataFolderExists(graphName) )
 	//	Print "Warning: root:WinGlobals:"+graphName+" already exists.  If you are experiencing problems then kill the data windows (images, line plots etc.) and then delete this datafolder."

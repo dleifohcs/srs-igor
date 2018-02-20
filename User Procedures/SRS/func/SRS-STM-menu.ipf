@@ -75,6 +75,8 @@ Menu "STM", dynamic
 			"Pad image", doSomethingWithData("padImage")
 			"Pad image with NaNs to give equal axes", doSomethingWithData("equalAxes")
 			"Interpolate image [up-sample]", doSomethingWithData("upSampleImage")
+			"-"
+			"Change the value of bias and current", doSomethingWithData("changeBiasCurrent")
 		End
 		Submenu "CITS tools"
 			"Differentiate CITS", doSomethingWithData("differentiateCITS")

@@ -564,6 +564,16 @@ Function doSomethingWithData(actionType)
 					changeColour(graphName,changeScale="no")
 					break
 					
+				case "changeBiasCurrent":
+					
+					changeBiasCurrent(graphName)
+					
+					KillWindow $graphname
+					
+					SetDataFolder imgDF
+					imgDisplay(imgWStr)
+					break
+					
 				default:
 					Print "Error, unknown manipulationType"
 					break
@@ -4030,4 +4040,53 @@ Function AverageOfImages(starti,endi)
 	
 	
 	
+End
+
+
+Function changeBiasCurrent(graphName)
+String graphName
+
+	if ( strlen(graphName)==0 )
+		graphName= WinName(0,1)	
+	endif
+	
+	// Get name of the image Wave
+	String wnameList = ImageNameList("", ";")
+	String imgWStr = StringFromList(0, wnameList)
+	
+	// Get full name and path to image wave
+	String/G imgWFullStr
+
+	// Create wave assignment for 3d cits wave
+	Wave imgW = $imgWFullStr
+	
+	// Get the wave note
+	String imgInfoFromNote = note(imgW)
+	
+	// Get the bias and setpoint values from the wave note
+	String biasStr = StringByKey("Voltage",imgInfoFromNote)
+	String setpointStr = StringByKey("Setpoint",imgInfoFromNote)
+	
+	// convert to nano, pico, etc.
+	//biasStr = sciunit(biasStr)
+	//setpointStr = sciunit(setpointStr)
+	
+	//Variable bias, setpoint
+	Variable bias, setpoint
+	String biasUnit, setpointUnit
+	sscanf biasStr, "%f%s", bias, biasUnit
+	sscanf setpointStr, "%f%s", setpoint, setpointUnit
+	
+	Variable promptBias = str2num(biasStr)
+	Variable promptCurrent = str2num(setpointStr)
+		
+	Prompt promptBias, "Bias value: "
+	Prompt promptCurrent, "Current value: "
+	DoPrompt "Setting bias and current value for "+imgWStr, promptBias, promptCurrent
+	
+	imgInfoFromNote = ReplaceStringByKey("Voltage",imgInfoFromNote, num2str(promptBias)+" "+biasUnit)
+	imgInfoFromNote = ReplaceStringByKey("Setpoint",imgInfoFromNote, num2str(promptCurrent)+" "+setpointUnit)
+	
+	Note/K imgW, imgInfoFromNote
+		
 End
