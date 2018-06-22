@@ -93,7 +93,8 @@ Function SRSLoadData(pathStr,filenameStr)
 	createSRSControlVariables()
 	
 	String ext = ParseFilePath(4, filenameStr, ":", 0, 0)
-	
+//	String filenamestart = ParseFilePath(0, filenameStr, ".", 0, 0)
+//Print "DEBUG: ", filenamestart
 	Variable returnVar = 1 // set to 1 means that Igor will not attempt to open the file
 	strswitch (ext)
 		case "Z_flat":
@@ -135,7 +136,22 @@ Function SRSLoadData(pathStr,filenameStr)
 		case "11":
 			loadSEMITIPfort( pathStr, filenameStr, 11)
 			break
+		case "95":
+			loadSEMITIPfort( pathStr, filenameStr, 95)
+			break
+		case "96":
+			loadSEMITIPfort( pathStr, filenameStr, 96)
+			break
+		case "97":
+			loadSEMITIPfort( pathStr, filenameStr, 97)
+			break
 		case "14":
+			loadSEMITIPfort( pathStr, filenameStr, 14)
+			break
+		case "91":
+			loadSEMITIPfort( pathStr, filenameStr, 14)
+			break
+		case "92":
 			loadSEMITIPfort( pathStr, filenameStr, 14)
 			break
 		case "15":
@@ -2274,7 +2290,6 @@ Function/S FlatRenameWaveAndDF()
 	
 	if ( WaveExists(dataW) ) // 1D wave
 		
-		
 		String Wwavenote = note(dataW)
 		String Wname = StringByKey("Name",Wwavenote)
 		Wname = replaceBadChars(Wname)
@@ -2761,17 +2776,37 @@ Function loadSEMITIPfort( path, filename, fortNum)
 		Wave wave0, wave1, wave2, wave3
 		Variable dataLen
 		
+		String addendum
+		switch ( fortNum )
+			case 11:
+				addendum = "_p"
+				fortNum = 11
+				break
+			case 95:
+				addendum = "_b"
+				fortNum = 11
+				break
+			case 96:
+				addendum = "_v"
+				fortNum = 11
+				break
+			case 97:
+				addendum = "_c"
+				fortNum = 11
+				break
+		endswitch
+		
 		switch ( fortNum )
 			case 11:
 				NewDataFolder/O/S root:SEMITIP_STS:$description
 				
-				String zWName = "z_"+description
+				String zWName = "z_"+description+addendum
 				Duplicate/O wave0 $zWName
 				Wave zW = $zWName
 				zW = zW * 1e-9
 				SetScale/I d,0,1,"m", zW
 				
-				String potWName = "V_"+description
+				String potWName = "V_"+description+addendum
 				Duplicate/O wave1 $potWName
 				Wave potW = $potWName
 				SetScale/I d,0,1,"eV", potW
@@ -2790,9 +2825,16 @@ Function loadSEMITIPfort( path, filename, fortNum)
 				DoUpdate
 								
 				break
-			case 14:
+			case 14:  // tunnelling current from SEMITIP
+			
 				NewDataFolder/O/S root:SEMITIP_STS:$description
-				String stsWStr = "sts_"+description
+				String stsWStr = "C"+description
+				String stsExtWStr = "C_E_"+description
+				String stsLocWStr = "C_L_"+description
+				
+				String stsAbsWStr = "CA"+description
+				String stsExtAbsWStr = "CA_E_"+description
+				String stsLocAbsWStr = "CA_L_"+description
 				
 				dataLen = DimSize(wave1,0)
 				
@@ -2803,7 +2845,25 @@ Function loadSEMITIPfort( path, filename, fortNum)
 				SetScale/I x, WaveMin(wave0), WaveMax(wave0),"V",stsW
 				SetScale/I d,0,1,"A", stsW
 				
-				//Display
+				// extended state contribution to the current
+				if ( WaveExists(wave2) )
+					// interpolate data (this is to fix the data point reversal that occurs in the raw data
+					Interpolate2/T=1/N=(dataLen) /Y=$(stsExtWStr) wave0, wave2
+					Wave stsExtW = $stsExtWStr
+					SetScale/I x, WaveMin(wave0), WaveMax(wave0),"V", stsExtW
+					SetScale/I d,0,1,"A", stsExtW
+				endif
+				
+				// localalised state contribution to the current
+				if ( WaveExists(wave3) )
+					// interpolate data (this is to fix the data point reversal that occurs in the raw data
+					Interpolate2/T=1/N=(dataLen) /Y=$(stsLocWStr) wave0, wave3
+					Wave stsLocW = $stsLocWStr
+					SetScale/I x, WaveMin(wave0), WaveMax(wave0),"V",stsW
+					SetScale/I d,0,1,"A", stsW
+				endif
+							
+				//Display Current
 				Display/k=1 stsW
 				ModifyGraph tick=2,mirror=1,standoff=0;DelayUpdate
 				Label left "Current (\\U)";DelayUpdate
@@ -2811,36 +2871,59 @@ Function loadSEMITIPfort( path, filename, fortNum)
 				ModifyGraph zero=2
 				DoUpdate
 				
-				// extended state contribution to the current
+				// Display extended state contribution to the current
 				if ( WaveExists(wave2) )
-					stsWStr = "sts_ext_"+description
-					// interpolate data (this is to fix the data point reversal that occurs in the raw data
-					Interpolate2/T=1/N=(dataLen) /Y=$(stsWStr) wave0, wave2
-					Wave stsW = $stsWStr
-				
-					SetScale/I x, WaveMin(wave0), WaveMax(wave0),"V",stsW
-					SetScale/I d,0,1,"A", stsW
-					AppendToGraph stsW
-					ModifyGraph lstyle($stsWStr)=3,rgb($stsWStr)=(0,0,0)
+					AppendToGraph stsExtW
+					ModifyGraph lstyle($stsExtWStr)=3,rgb($stsExtWStr)=(0,0,0)
 					Legend/C/N=text0/F=0/A=LT
 					DoUpdate
 				endif
 				
-				// localalised state contribution to the current
+				// Display localalised state contribution to the current
 				if ( WaveExists(wave3) )
-					stsWStr = "sts_loc_"+description
-					// interpolate data (this is to fix the data point reversal that occurs in the raw data
-					Interpolate2/T=1/N=(dataLen) /Y=$(stsWStr) wave0, wave3
-					Wave stsW = $stsWStr
-				
-					SetScale/I x, WaveMin(wave0), WaveMax(wave0),"V",stsW
-					SetScale/I d,0,1,"A", stsW
-					AppendToGraph stsW
-					ModifyGraph lstyle($stsWStr)=3,rgb($stsWStr)=(3,52428,1)
+					AppendToGraph stsLocW
+					ModifyGraph lstyle($stsLocWStr)=3,rgb($stsLocWStr)=(3,52428,1)
 					Legend/C/N=text0/F=0/A=LT
 					DoUpdate
 				endif
-
+				
+				// Make and display absolute value waves
+				Duplicate/O stsW, $stsAbsWStr
+				Wave stsAbsW = $stsAbsWStr
+				stsAbsW = Abs(stsW)
+				SetScale/I x, WaveMin(wave0), WaveMax(wave0),"V",stsAbsW
+				//Display AbsCurrent
+				Display/k=1 stsAbsW
+				ModifyGraph tick=2,mirror=1,standoff=0;DelayUpdate
+				Label left "Current Magnitude (\\U)";DelayUpdate
+				Label bottom "Bias (\\U)"
+				ModifyGraph zero=2
+				ModifyGraph log(left)=1;DelayUpdate
+				SetAxis left 1e-13,1e-07
+				DoUpdate
+				
+				// Display extended state contribution to the current
+				if ( WaveExists(wave2) )
+					Duplicate/O stsExtW, $stsExtAbsWStr
+					Wave stsExtAbsW = $stsExtAbsWStr
+					stsExtAbsW = Abs(stsExtW)
+					AppendToGraph stsExtAbsW
+					ModifyGraph lstyle($stsExtAbsWStr)=3,rgb($stsExtAbsWStr)=(0,0,0)
+					Legend/C/N=text0/F=0/A=LT
+					DoUpdate
+				endif
+				
+				// Display localalised state contribution to the current
+				if ( WaveExists(wave3) )
+					Duplicate/O stsLocW, $stsLocAbsWStr
+					Wave stsLocAbsW = $stsLocAbsWStr
+					stsLocAbsW = Abs(stsLocW)
+					AppendToGraph stsLocAbsW
+					ModifyGraph lstyle($stsLocAbsWStr)=3,rgb($stsLocAbsWStr)=(3,52428,1)
+					Legend/C/N=text0/F=0/A=LT
+					DoUpdate
+				endif
+			
 				break
 				
 			case 15:

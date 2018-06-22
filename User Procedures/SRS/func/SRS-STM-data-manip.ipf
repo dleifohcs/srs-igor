@@ -4009,15 +4009,13 @@ Function AverageOfImages(starti,endi)
 	Variable starti, endi
 	SetDataFolder root:CITSImageSlices
 	
-	String base="I_V__19_1_FUD_"
-	base="I_V__19_1_FUTD_"
+	String base="I_V__66_1_FUDMIMC_"
+
 	Variable i
 	
-//	starti = 247
-//	endi = 274
-	
-//	starti = 225
-//	endi = 245
+	//starti = 60
+	//endi = 153
+
 	
 	String startWStr = base+num2str(starti)
 	Wave startW = $startWStr
@@ -4038,7 +4036,8 @@ Function AverageOfImages(starti,endi)
 	String finalImgName = base+"_"+num2str(starti)+"_"+num2str(endi)
 	Duplicate/O avgImgWave root:avgCITSImage:$(finalImgName)
 	
-	
+	String newwavename = "avgImgWave_"+num2str(starti)+"_"+num2str(endi)
+	Rename avgImgWave, $newwavename
 	
 End
 
