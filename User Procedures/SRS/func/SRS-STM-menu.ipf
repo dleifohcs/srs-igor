@@ -45,12 +45,14 @@ Menu "STM", dynamic
 			"Decrease Brightness"+"/F3", incrementColourScale("","increase","both")
 			"Increase Brightness"+"/F4", incrementColourScale("","decrease","both")
 			"Decrease Contrast"+"/SF3", incrementColourScale("","increase","range")
-			"Increase Contrast"+"/SF4", incrementColourScale("","decrease","range")	
+			"Increase Contrast"+"/SF4", incrementColourScale("","decrease","range")
 			"-"
 			"Decrease scale maximum"+"/OF3", incrementColourScale("","decrease","max")
 			"Increase scale maximum"+"/OF4", incrementColourScale("","increase","max")
 			"Decrease scale minimum"+"/SOF3", incrementColourScale("","decrease","min")
 			"Increase scale minimum"+"/SOF4", incrementColourScale("","increase","min")
+			"-"
+			"FFT scale",   updateColourRange("",minVal=-5e-08,maxVal=1e-07)
 		End
 		"-"
 		Submenu "Image tools"
@@ -116,6 +118,9 @@ Menu "STM", dynamic
 			"Low Pass Filter a FFT window", doSomethingWithData("FFTlowpass")
 			"-"
 			"FFTCITS", doSomethingWithData("FFTCITS")
+			"-"
+			"Subtract ROI from Complex FFT", doSomethingWithData("subtractROIFFTInverse")
+			"Keep only ROI from Complex FFT", doSomethingWithData("subtractROIFFT")
 		End
 		Submenu "Line Profile"
 			"Line Profile", doSomethingWithData("lineprofile")

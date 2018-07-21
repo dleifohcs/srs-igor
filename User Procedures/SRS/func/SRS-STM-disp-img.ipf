@@ -736,9 +736,11 @@ Function citsZPanelUpdate(ctrlName,varNum,varStr,varName) : SetVariableControl
 			if ( cmpstr(autoUpdateCITSColour,"yes")==0)
 				isFFTwave = StringByKey("3Dtype",note(citsW)) 
 				if (cmpstr(isFFTwave,"CITSFFT")==0)
-					updateColourRangeByHist(graphName,type="exp")
+					//updateColourRangeByHist(graphName,type="exp")
+					 
 				else
 					changeColour(graphName,colour="keep",changeScale=autoUpdateCITSColour)
+					
 				endif
 			endif
 	

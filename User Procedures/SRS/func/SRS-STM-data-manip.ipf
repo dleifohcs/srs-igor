@@ -325,6 +325,26 @@ Function doSomethingWithData(actionType)
 					updateLineProfile(graphname)
 					
 					break
+				
+				case "subtractROIFFT":
+					
+					// Make a back up copy of the original data in a data folder of the same name
+//					backupData(graphName,"R")  // the string in the second variable is appended to wave name after backup up the original data
+					
+					// Function for removing a plane background
+					subtractROI(graphName,"no")
+										
+					break
+				
+				case "subtractROIFFTInverse":
+					
+					// Make a back up copy of the original data in a data folder of the same name
+//					backupData(graphName,"R")  // the string in the second variable is appended to wave name after backup up the original data
+					
+					// Function for removing a plane background
+					subtractROI(graphName,"yes")
+										
+					break
 					
 				case "subtractlinewise":
 					
@@ -1424,6 +1444,78 @@ Function subtractPlane(graphname,[ROI])
 	SetDataFolder saveDF
 End
 
+
+//--------------------------------------------------------------------------------------------------------------
+// ROI SUBTRACT
+Function subtractROI(graphname,inverse)
+	String graphname, inverse
+	
+	// Get current data folder
+	DFREF saveDF = GetDataFolderDFR()	  // Save
+	
+	// Move to the data folder containing the global variables for the graph
+	SetDataFolder root:WinGlobals:$graphName // should already be in this data folder, but include this to be sure
+	
+	// Get the global variable for this graph (these were set in the manipulateData procedure)
+	String/G imgDF			// data folder containing the data shown on the graph
+	String/G imgWStr		// name of the wave shown on the graph (an image or 3D data set; e.g. STM or CITS)
+	String/G imgWFullStr		// data folder plus wave name
+	
+	// Make wave assignment to the data
+	Wave imgW= $imgWFullStr
+	
+	// Create name of ROI wave
+	String imgWROIStr= graphName+"_ROI_W"
+
+	// IF THE WAVE IS COMPLEX DO THE FOLLOWING  (CAN FIND OUT IF WAVE IS COMPLEX USING WAVEINFO - odd values of NUMTYPE mean complex wave.  Add this in later)
+		
+	// Drawing tools
+	SetDrawLayer/W=$graphName ProgFront
+	If ( cmpstr(inverse,"yes")==0 ) // make inverse ROI		
+		ImageGenerateROIMask/e=1/i=0/W=$graphName $imgWStr
+	else // make normal ROI
+		ImageGenerateROIMask/W=$graphName $imgWStr
+	endif
+	
+	Redimension/C M_ROIMask	
+	Duplicate/C/O M_ROIMask $imgWROIStr
+	Wave imgWROI = $imgWROIStr
+	KillWaves/Z M_ROIMask
+		
+	// Drawing tools
+	SetDrawLayer/W=$graphName UserFront
+			
+	// Drawing tools
+	HideTools/W=$graphName 
+	
+	SetDataFolder imgDF
+	
+	// Create name of ROI subtracted wave
+	String imgWROISubStr= imgWStr+"R"
+
+		
+	// Duplicate data
+	Duplicate/O/C imgW, $imgWROISubStr
+	Wave/C imgWROISub = $imgWROISubStr
+	imgWROISub = imgW * imgWROI
+
+	
+	
+//	if ( WaveExists(imgWROI)!=0 )  // Don't do anything unless a ROI exists (either for the entire image or a user drawn ROI)
+	
+//		Redimension/B/U imgWROI 			
+
+//	else
+//		Print "Warning: Missing ROI wave?"
+	
+//	endif 
+	
+	// Clean up
+//	KillWaves/Z imgWROI
+	
+	// Return to saved data folder
+	//SetDataFolder saveDF
+End
 
 
 //--------------------------------------------------------------------------------------------------------------
@@ -2800,6 +2892,9 @@ Function createROI(graphname)
 	// Make wave assignment to the data.  This can be either a 2d, or 3d data wave
 	Wave imgW= $imgWFullStr
 	
+	SetAxis/A left;DelayUpdate
+	SetAxis/A bottom
+
 	// Drawing tools
 	SetDrawLayer/W=$graphName ProgFront
 
@@ -2913,7 +3008,8 @@ Function FFTimage(graphName,type)
 	imgDisplay(imgFFTStr)
 	String FFTgraphName= WinName(0,1)
 	changeColour(FFTgraphName,colour="BlueLog")
-	updateColourRangeByHist("",type="exp")
+	//updateColourRangeByHist("",type="exp")
+	 updateColourRange("",minVal=-5e-08,maxVal=5e-08)
 	
 	if ( cmpstr(type,"complex")==0 )
 		// Compute the full complex output FFT
