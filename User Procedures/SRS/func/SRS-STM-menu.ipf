@@ -104,6 +104,7 @@ Menu "STM", dynamic
 			"-"
 			"Extract a CITS slice to an image", doSomethingWithData("extractImageFromCITS")
 			"Extract all CITS slices to images", doSomethingWithData("extractImageSFromCITS")
+			"Average CITS slices over a range", AverageOfImages()
 		End
 		Submenu "Region of Interest"
 			"Create or Edit ROI", doSomethingWithData("createROI")

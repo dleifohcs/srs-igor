@@ -4101,12 +4101,22 @@ End
 
 
 // THIS PROCEDURE IS NOT CURRENTLY PART OF THE PACKAGE.  THIS WILL ALLOW THE AVERAGE OF A COLLECTION OF CITS IMAGES EXTRACTED FROM A CITS MAP.
-Function AverageOfImages(starti,endi)
+Function AverageOfImages()
 	Variable starti, endi
 	SetDataFolder root:CITSImageSlices
 	
-	String base="I_V__66_1_FUDMIMC_"
+	String wavelistStr = WaveList("*",";","DIMS:2")
+	String waveStr = StringFromList(0,wavelistStr,";")
+	Variable base_len = strlen(wavestr)
+	String base=waveStr[0,base_len-2]
+	
 
+	starti = 0
+	endi = ItemsInList(wavelistStr)
+		
+	Prompt starti, "Start Image: "
+	Prompt endi, "End image: "
+	DoPrompt "What start and end image", starti, endi
 	Variable i
 	
 	//starti = 60
@@ -4132,9 +4142,13 @@ Function AverageOfImages(starti,endi)
 	String finalImgName = base+"_"+num2str(starti)+"_"+num2str(endi)
 	Duplicate/O avgImgWave root:avgCITSImage:$(finalImgName)
 	
-	String newwavename = "avgImgWave_"+num2str(starti)+"_"+num2str(endi)
-	Rename avgImgWave, $newwavename
+	KillWaves avgImgWave
 	
+	//String newwavename = "avgImgWave_"+num2str(starti)+"_"+num2str(endi)
+	//Rename avgImgWave, $newwavename
+	SetDataFolder root:avgCITSImage
+	imgDisplay(finalImgName)
+	TextBox/K/N=text1
 End
 
 
