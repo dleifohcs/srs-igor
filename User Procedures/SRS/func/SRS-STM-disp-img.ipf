@@ -755,4 +755,93 @@ Function citsZPanelUpdate(ctrlName,varNum,varStr,varName) : SetVariableControl
 End
 
 
+// This Function was downloaded from the internet: https://www.wavemetrics.com/code-snippet/clone-window
+Function CloneWindow([win,replace,with,freeze])
+    String win // Name of the window to clone.  
+    String replace,with // Replace some string in the windows recreation macro with another string.  
+    Variable freeze // Make a frozen clone (basically just a picture).  
+    
+    if(ParamIsDefault(replace) || ParamIsDefault(with))
+        replace=""; with=""
+    endif
+    if(ParamIsDefault(win))
+        win=WinName(0,1)
+    endif
+    String win_rec=WinRecreation(win,0)
+    Variable i
+    for(i=0;i<ItemsInList(replace);i+=1)
+        String one_replace=StringFromList(i,replace)
+        String one_with=StringFromList(i,with)
+        win_rec=ReplaceString(one_replace,win_rec,one_with)
+    endfor
+    if(freeze)
+        Struct rect coords
+        //GetWinCoords(win,coords)
+        SavePICT /WIN=$win as "Clipboard"
+        String newName=UniqueName(win,6,0)
+        LoadPICT /O/Q "Clipboard",$newName
+        Display /N=$newName /W=(coords.left,coords.top,coords.right,coords.bottom)
+        DrawPICT /W=$newName 0,0,1,1,$newName
+    else
+        Execute /Q win_rec
+    endif
+End
+
+// This function not currently linked from menu.  It was copied from internet.  Doesn't work with images.  Might work with line profiles but
+// not yet tested. 
+Function CloneWindowCopyData([win,name,times])
+    String win
+    String name // The new name for the window and data folder. 
+    Variable times // The number of clones to make.  Clones beyond the first will have _2, _3, etc. appended to their names.   
+    if(ParamIsDefault(win))
+        win=WinName(0,1)
+    endif
+    if(ParamIsDefault(name))
+    	  name=UniqueName(win,6,0)
+        //name=UniqueName2(win,"6;11")
+    else
+        name=CleanupName(name,0)
+    endif
+    times=ParamIsDefault(times) ? 1 : times
+    String curr_folder=GetDataFolder(1)
+    NewDataFolder /O/S root:$name
+    String traces=TraceNameList(win,";",3)
+    Variable i,j
+    for(i=0;i<ItemsInList(traces);i+=1)
+        String trace=StringFromList(i,traces)
+        Wave TraceWave=TraceNameToWaveRef(win,trace)
+        Wave /Z TraceXWave=XWaveRefFromTrace(win,trace)
+        Duplicate /o TraceWave $NameOfWave(TraceWave)
+        if(waveexists(TraceXWave))
+            Duplicate /o TraceXWave $NameOfWave(TraceXWave)
+        endif
+    endfor
+    String win_rec=WinRecreation(win,0)
+    
+    // Copy error bars if they exist.  Won't work with subrange display syntax.  
+    for(i=0;i<ItemsInList(win_rec,"\r");i+=1)
+        String line=StringFromList(i,win_rec,"\r")
+        if(StringMatch(line,"*ErrorBars*"))
+            String errorbar_names
+            sscanf line,"%*[^=]=(%[^)])",errorbar_names
+            for(j=0;j<2;j+=1)
+                String errorbar_path=StringFromList(j,errorbar_names,",")
+                sscanf errorbar_path,"%[^[])",errorbar_path
+                String errorbar_name=StringFromList(ItemsInList(errorbar_path,":")-1,errorbar_path,":")
+                Duplicate /o $("root"+errorbar_path) $errorbar_name
+            endfor
+        endif
+    endfor
+    
+    for(i=1;i<=times;i+=1)
+        Execute /Q win_rec
+        if(i==1)
+            DoWindow /C $name
+        else
+            DoWindow /C $(name+"_"+num2str(i))
+        endif
+        ReplaceWave allInCDF
+    endfor
+    SetDataFolder $curr_folder
+End
 

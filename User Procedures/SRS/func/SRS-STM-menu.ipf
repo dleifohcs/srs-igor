@@ -31,6 +31,10 @@ Menu "STM", dynamic
 		Submenu "Display"
 			"Display 2D or 3D data/F10", displayData()
 			"Display all in data folder", displayAllData()
+			"-"
+			"Clone an existing window", CloneWindow()
+			"-"
+			"Copy current image data to root:imageData", dosomethingwithdata("copyimagedata")
 		End
 		Submenu "Colours"
 			"Change image colour", doSomethingWithData("changeColour")

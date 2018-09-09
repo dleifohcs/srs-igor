@@ -164,6 +164,12 @@ Function doSomethingWithData(actionType)
 					upSampleCITS(graphName)			
 					break
 					
+				case "copyImageData":  // x and y axes the same; pad with zeros
+					
+					copyImageData(graphName,"I")
+						
+					break
+					
 				case "equalAxes":  // x and y axes the same; pad with zeros
 					
 					equalAxes(graphName)			
@@ -1961,7 +1967,7 @@ Function backupData(graphname,suffixStr)
 		Duplicate/O $imgWFullStr, $newimgWStr
 		
 		KillWindow $graphname
-		KillWaves/Z $imgWFullStr
+		//KillWaves/Z $imgWFullStr
 		
 		imgDisplay(newimgWStr)
 		
@@ -1975,6 +1981,40 @@ Function backupData(graphname,suffixStr)
 
 End
 	
+
+//--------------------------------------------------------------------------------------------------------------
+// Create a copy of image data to root:ImageData
+Function copyImageData(graphname,suffixStr)
+	String graphname, suffixStr
+	
+	// Get current data folder
+	DFREF saveDF = GetDataFolderDFR()	  // Save
+	
+	// Move to the data folder containing the global variables for the graph
+	SetDataFolder root:WinGlobals:$graphName 
+	
+	// Check that the image displayed has an associated 3d dataset.  The image must have been displayed with the SRS macros that generate the appropriate global variables
+	//If it does then we will save the 3d wave, rather than the 2d wave. 
+	
+	
+	// 2d data
+		
+		// Get the global variable for this graph (these were set in the manipulateData procedure)
+		String/G imgDF		// data folder plus wave name
+		String/G imgWStr
+		String/G imgWFullStr		// data folder plus wave name
+		
+		// Make a new DF to store a copy of the original data
+		String/G databackupDF = "root:imageData"
+		NewDataFolder/O $databackupDF
+		String/G backupDataStr= databackupDF+":"+PossiblyQuoteName(imgWStr)
+		Duplicate/O $imgWFullStr $backupDataStr
+			
+	SetDataFolder saveDF
+
+End
+	
+
 
 
 
