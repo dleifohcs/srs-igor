@@ -2653,10 +2653,15 @@ function loadScalaImage(path, filename)
 	
 	GBLoadWave/T={16,4}/N=myScalaImage/W=1 path+filename 
 	Wave myScalaImage0
+	WaveStats myScalaImage0
+	Variable datalength = V_npnts
+	Print "Loaded SCALA format data"
+	Print "Total numer of data points is ", datalength
+	datalength = sqrt(datalength)
+	Print "Attempting to redimension into ", datalength, " x ", datalength
 	Duplicate/O myScalaImage0, img
-	Variable datalength
-	redimension/N=(300,300) img
-	KillWaves myScalaImage0
+	redimension/N=(datalength,datalength) img
+	//KillWaves myScalaImage0
 	
 	SetDataFolder saveDF
 end

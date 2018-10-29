@@ -101,6 +101,7 @@ Menu "STM", dynamic
 			"-"
 			"STS from CITS - Point", doSomethingWithData("STSfromCITS")
 			"STS from CITS - ROI", doSomethingWithData("STSfromCITSROI")
+			"STS from CITS - All", doSomethingWithData("STSfromCITSAll")
 			"-"
 			"Interpolate CITS [up-sample]", doSomethingWithData("upSampleCITS")
 			"-"

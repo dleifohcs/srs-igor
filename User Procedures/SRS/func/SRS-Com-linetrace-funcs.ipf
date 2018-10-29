@@ -1428,3 +1428,42 @@ Function smoothAWaveB(waveStr,smth)
 	
 	Smooth smth, w
 End
+
+
+
+// BELOW IS A HACK FOR EMILY's DATA 29 OCT 2018
+
+Function makeImageFromTraceList()
+	// Get current data folder
+	String wDF = GetDataFolder(1)
+	String wDFName= GetDataFolder(0)  // this is used to name the graph window
+	
+	// remove bad characters from the DFname
+	wDFName = removeBadChars(wDFName)
+	wDFName = removeSpace(wDFName)
+
+	// List (1D) waves in current data folder
+	String wList =  WaveList("*",";","DIMS:1") 
+	Variable wNum = ItemsInList(wList)
+
+	String wName,wNameFullStr
+	Variable i  // for looping within the case arguments below
+	Variable foundWave = 0 
+		
+	wName= StringFromList(0,wList,";") 
+	Wave wTrace = $wName
+	
+	WaveStats/Q wTrace;
+	Make/O/N=(V_npnts,wNum) image
+	image = 0
+	// 
+	image[][0]= wTrace[p]
+				
+	// Append the rest of the waves
+	for (i=1; i<wNum; i+=1)
+		wName= StringFromList(i,wList,";") 
+		Wave wTrace = $wName
+		image[][i]= wTrace[p]
+	endfor
+
+End

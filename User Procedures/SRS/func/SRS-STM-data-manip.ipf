@@ -496,6 +496,24 @@ Function doSomethingWithData(actionType)
 						Print "Error: this is not a 3d data set, or it was not displayed using the img3dDisplay(imgWStr) function of the SRS-STM macros"
 					endif
 					break
+				
+				case "STSfromCITSAll":
+				
+					// Make wave assignment to 3d data wave
+					Wave citsImgW
+					
+					// Check that the image displayed has an associated 3d dataset.  The image must have been displayed with the SRS macros that generate the appropriate global variables
+					if (WaveExists(citsImgW)==1)
+				
+						// Establish link between cursor positions and CursorMoved fn. 
+						CursorDependencyForGraph(graphName)
+					
+						// Display STS curve
+						dispSTSfromCITSROI(graphName,all="yes")
+					else
+						Print "Error: this is not a 3d data set, or it was not displayed using the img3dDisplay(imgWStr) function of the SRS-STM macros"
+					endif
+					break
 					
 				case "duplicateLinePlot":
 					
@@ -1799,8 +1817,13 @@ End
 
 
 //--------------------------------------------------------------------------------------------------------------
-Function dispSTSfromCITSROI(graphname)
+Function dispSTSfromCITSROI(graphname,[all])
 	String graphname
+	String all
+	
+	If ( paramisdefault(all) )
+		all = "no"
+	endif
 	
 	// Get current data folder
 	DFREF saveDFSTSfromCITS = GetDataFolderDFR()	  // Save
@@ -1852,9 +1875,14 @@ Function dispSTSfromCITSROI(graphname)
 	Variable zNum = DimSize(citsROIonlyW,2)
 	
 	Variable i
-	for (i=0;i<zNum;i+=1)
-		citsROIonlyW[][][i] = citsROIonlyW[p][q][i] * imgWROI[p][q]
-	endfor
+	// if all != yes then set STS outside ROI to zero.
+	if ( cmpstr (all, "yes") == 0 )
+		// do nothing
+	else
+		for (i=0;i<zNum;i+=1)
+			citsROIonlyW[][][i] = citsROIonlyW[p][q][i] * imgWROI[p][q]
+		endfor
+	endif
 	
 	// Determine image size 
 	Variable xMin= DimOffset(imgW,0)
